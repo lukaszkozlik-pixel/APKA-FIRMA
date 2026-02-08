@@ -381,39 +381,37 @@
             return text;
         }
 
-        function shareSummary() {
+        async function shareSummary() {
             const t = generateSummaryText();
             
-            // Sprawdzamy, czy system wspiera natywne udostępnianie
+            // 1. Próba natywnego udostępniania
             if (navigator.share) {
-                navigator.share({
-                    title: 'Rachunek za montaż',
-                    text: t
-                    // Usunąłem url: '', bo czasem puste pole blokuje okno na Androidzie 14/15
-                })
-                .then(() => console.log('Udostępniono pomyślnie'))
-                .catch((error) => {
-                    // Jeśli użytkownik anulował, nie rób nic. 
-                    // Jeśli to błąd techniczny, skopiuj do schowka.
-                    if(error.name !== 'AbortError') {
-                        copyToClipboard(t);
+                try {
+                    await navigator.share({
+                        title: 'Rachunek',
+                        text: t
+                    });
+                    return; // Jeśli poszło, kończymy
+                } catch (err) {
+                    console.log("Błąd lub anulowanie share:", err);
+                    // Jeśli to nie było anulowanie przez Ciebie, przejdź do kopiowania
+                    if (err.name !== 'AbortError') {
+                        performCopy(t);
                     }
-                });
+                }
             } else {
-                // Rezerwowo dla starych urządzeń
-                copyToClipboard(t);
+                performCopy(t);
             }
         }
 
-        // Wydzielona funkcja kopiowania, żeby nie śmiecić w głównej
-        function copyToClipboard(text) {
+        function performCopy(text) {
             const tempInput = document.createElement("textarea");
             tempInput.value = text;
             document.body.appendChild(tempInput);
             tempInput.select();
             document.execCommand("copy");
             document.body.removeChild(tempInput);
-            alert("Twoje urządzenie nie obsługuje bezpośredniego udostępniania. Tekst został skopiowany do schowka.");
+            alert("RACHUNEK SKOPIOWANY DO SCHOWKA!\nMożesz go teraz wkleić w wybranej aplikacji.");
         }
 
         function closeSummaryModal() { document.getElementById('modal-summary').style.display = 'none'; }
