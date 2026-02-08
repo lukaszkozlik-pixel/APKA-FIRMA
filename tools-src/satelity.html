@@ -42,6 +42,13 @@
             border-left: 10px solid transparent; border-right: 10px solid transparent;
             border-bottom: 20px solid #00c853; filter: drop-shadow(0 0 2px black);
         }
+
+        /* Powiększenie przycisku warstw dla łatwiejszej obsługi palcem */
+        .leaflet-control-layers-toggle {
+            width: 44px !important;
+            height: 44px !important;
+            background-size: 26px 26px !important;
+        }
     </style>
 </head>
 <body>
@@ -61,7 +68,6 @@
     let map, userMarker, headingMarker, currentLine;
     let userCoords = null;
 
-    // Lista satelitów z flagą 'top' dla najważniejszych pozycji
     const satellites = [
         { name: "Hotbird 13.0°E", lon: 13.0, top: true },
         { name: "Astra 19.2°E", lon: 19.2, top: true },
@@ -78,22 +84,45 @@
         navigator.geolocation.watchPosition(updatePos, err => console.error(err), { enableHighAccuracy: true });
     }, false);
 
-    // Tryb testowy (przeglądarka)
     window.onload = () => { if(!window.cordova) navigator.geolocation.watchPosition(updatePos); };
+
+    function initMap(lat, lon) {
+        // 1. Inicjalizacja mapy
+        map = L.map('map').setView([lat, lon], 17);
+
+        // 2. Definicja warstw
+        const streetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        });
+
+        const satMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri'
+        });
+
+        // 3. Dodanie domyślnej warstwy i przełącznika
+        streetMap.addTo(map);
+        const baseMaps = {
+            "Mapa": streetMap,
+            "Satelita": satMap
+        };
+        L.control.layers(baseMaps).addTo(map);
+
+        // 4. Markery użytkownika i kierunku
+        userMarker = L.circleMarker([lat, lon], { color: '#1a73e8', radius: 8, fillOpacity: 1 }).addTo(map);
+        
+        const headingIcon = L.divIcon({
+            className: 'phone-heading-wrapper',
+            html: '<div class="phone-heading" id="phone-arrow"></div>',
+            iconSize: [20, 20],
+            iconAnchor: [10, 10]
+        });
+        headingMarker = L.marker([lat, lon], { icon: headingIcon }).addTo(map);
+    }
 
     function updatePos(pos) {
         userCoords = [pos.coords.latitude, pos.coords.longitude];
         if (!map) {
-            map = L.map('map').setView(userCoords, 17);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-            userMarker = L.circleMarker(userCoords, { color: '#1a73e8', radius: 8, fillOpacity: 1 }).addTo(map);
-            
-            const headingIcon = L.divIcon({
-                className: 'phone-heading-wrapper',
-                html: '<div class="phone-heading" id="phone-arrow"></div>',
-                iconSize: [20, 20], iconAnchor: [10, 10]
-            });
-            headingMarker = L.marker(userCoords, { icon: headingIcon }).addTo(map);
+            initMap(userCoords[0], userCoords[1]);
         } else {
             userMarker.setLatLng(userCoords);
             headingMarker.setLatLng(userCoords);
@@ -101,7 +130,6 @@
         renderSatList();
     }
 
-    // Kompas
     window.addEventListener('deviceorientationabsolute', e => {
         let heading = e.alpha || e.webkitCompassHeading;
         if (heading !== undefined) {
@@ -115,7 +143,6 @@
         if (!userCoords) return;
         list.innerHTML = "";
 
-        // Sortowanie: te z flagą 'top' zawsze na górze
         const sortedSats = [...satellites].sort((a, b) => {
             if (a.top && !b.top) return -1;
             if (!a.top && b.top) return 1;
@@ -146,15 +173,11 @@
         card.classList.add('active');
         if (currentLine) map.removeLayer(currentLine);
     
-        // KOREKTA: W nawigacji 0° to Północ (góra). 
-        // W matematyce JS 0° to Wschód (prawa).
-        // Musimy odjąć 90 stopni i zmienić kierunek rotacji.
         const angleRad = (az - 90) * Math.PI / 180;
-        
-        const d = 0.005; // długość linii
+        const d = 0.005; 
         const endPoint = [
-            userCoords[0] - d * Math.sin(angleRad), // Latitude
-            userCoords[1] + d * Math.cos(angleRad)  // Longitude
+            userCoords[0] - d * Math.sin(angleRad), 
+            userCoords[1] + d * Math.cos(angleRad)
         ];
     
         currentLine = L.polyline([userCoords, endPoint], { 
@@ -166,8 +189,6 @@
         map.setView(userCoords, 17);
     }
 
-    // --- MATEMATYKA SATELITARNA ---
-
     function calculateAzimuth(lat, lon, satLon) {
         const phi = lat * Math.PI / 180;
         const dL = (lon - satLon) * Math.PI / 180;
@@ -178,8 +199,8 @@
     function calculateElevation(lat, lon, satLon) {
         const phi = lat * Math.PI / 180;
         const dL = (lon - satLon) * Math.PI / 180;
-        const R = 6371; // km
-        const r = 42164; // promień orbity geostacjonarnej w km
+        const R = 6371; 
+        const r = 42164; 
         
         const num = Math.cos(phi) * Math.cos(dL) - (R / r);
         const den = Math.sqrt(1 - Math.pow(Math.cos(phi) * Math.cos(dL), 2));
@@ -196,4 +217,3 @@
 </script>
 </body>
 </html>
-

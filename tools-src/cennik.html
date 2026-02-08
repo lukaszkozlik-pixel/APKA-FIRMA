@@ -115,10 +115,9 @@
                 <hr>
                 <h2 id="modal-total" style="text-align: center;"></h2>
                 <div class="modal-btns">
-                    <button class="btn-modal" onclick="shareSummary('universal')" style="background: #1a73e8; color: white; grid-column: span 2;">UDOSTĘPNIJ (E-mail, Notatki, Inne)</button>
+                    <button class="btn-modal" onclick="shareSummary()" style="background: #1a73e8; color: white; grid-column: span 2;">UDOSTĘPNIJ</button>
                     
-                    <button class="btn-modal" onclick="shareSummary('whatsapp')" style="background: #25D366; color: white;">WhatsApp</button>
-                    <button class="btn-modal" onclick="shareSummary('sms')" style="background: #03dac6; color: black;">SMS</button>
+                   
                     
                     <button class="btn-modal" onclick="closeSummaryModal()" style="background: #70757a; color: white;">Wróć</button>
                     <button class="btn-modal" onclick="resetAll()" style="background: #d93025; color: white;">Nowe</button>
@@ -348,45 +347,73 @@
             document.getElementById('modal-total').innerText = `Razem: ${total} zł`;
             document.getElementById('modal-summary').style.display = 'flex';
         }
-
-        function shareSummary(method = 'universal') {
-            // 1. Generowanie tekstu podsumowania
-            let t = "PODSUMOWANIE INSTALACJI\n";
-            t += "--------------------------\n";
-            selectedItems.forEach(i => {
-                let unit = i.name.toLowerCase().includes("kabel") ? "m" : "szt";
-                t += `- ${i.name} (${i.qty}${unit}): ${Math.round(i.price * i.qty)} zł\n`;
-            });
-            t += "--------------------------\n";
-            t += `RAZEM DO ZAPŁATY: ${total} zł`;
         
-            // 2. Wybór metody udostępniania
-            if (method === 'whatsapp') {
-                window.location.href = `whatsapp://send?text=${encodeURIComponent(t)}`;
-            } 
-            else if (method === 'sms') {
-                window.location.href = `sms:?body=${encodeURIComponent(t)}`;
-            } 
-            else {
-                // Metoda UNIWERSALNA (Notatki, Mail, Messenger itp.)
-                if (navigator.share) {
-                    navigator.share({
-                        title: 'Rachunek za montaż',
-                        text: t
-                    }).catch(err => {
-                        console.log("Anulowano udostępnianie");
-                    });
-                } else {
-                    // Rezerwowe kopiowanie do schowka, jeśli system jest stary
-                    const tempInput = document.createElement("textarea");
-                    tempInput.value = t;
-                    document.body.appendChild(tempInput);
-                    tempInput.select();
-                    document.execCommand("copy");
-                    document.body.removeChild(tempInput);
-                    alert("Skopiowano do schowka! Możesz teraz wkleić tekst do dowolnej aplikacji.");
-                }
+        function generateSummaryText() {
+            if (selectedItems.length === 0) return "Brak wybranych pozycji.";
+
+            // Pobieranie aktualnej daty i godziny
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('pl-PL', { 
+                year: 'numeric', month: '2-digit', day: '2-digit',
+                hour: '2-digit', minute: '2-digit' 
+            });
+
+            let text = "--- RACHUNEK ZA MONTAŻ ---\n";
+            text += `Data: ${dateStr}\n\n`;
+            text += `--------------------------`;
+
+            selectedItems.forEach((item, index) => {
+                // Obliczamy cenę za daną pozycję
+                const linePrice = (item.price * item.qty).toFixed(2);
+                
+                // Logika jednostek: kabel = m, reszta = szt.
+                const unit = item.name.toLowerCase().includes('kabel') ? 'm' : 'szt.';
+                
+                text += `${index + 1}. ${item.name}\n`;
+                text += `   ${item.qty} ${unit} x ${item.price} zł = ${linePrice} zł\n`;
+            });
+
+            text += "\n--------------------------\n";
+            text += `SUMA DO ZAPŁATY: ${total.toFixed(2)} zł\n`;
+            text += "--------------------------\n";
+            text += "Dziękujemy za skorzystanie z usług!";
+
+            return text;
+        }
+
+        function shareSummary() {
+            const t = generateSummaryText();
+            
+            // Sprawdzamy, czy system wspiera natywne udostępnianie
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Rachunek za montaż',
+                    text: t
+                    // Usunąłem url: '', bo czasem puste pole blokuje okno na Androidzie 14/15
+                })
+                .then(() => console.log('Udostępniono pomyślnie'))
+                .catch((error) => {
+                    // Jeśli użytkownik anulował, nie rób nic. 
+                    // Jeśli to błąd techniczny, skopiuj do schowka.
+                    if(error.name !== 'AbortError') {
+                        copyToClipboard(t);
+                    }
+                });
+            } else {
+                // Rezerwowo dla starych urządzeń
+                copyToClipboard(t);
             }
+        }
+
+        // Wydzielona funkcja kopiowania, żeby nie śmiecić w głównej
+        function copyToClipboard(text) {
+            const tempInput = document.createElement("textarea");
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempInput);
+            alert("Twoje urządzenie nie obsługuje bezpośredniego udostępniania. Tekst został skopiowany do schowka.");
         }
 
         function closeSummaryModal() { document.getElementById('modal-summary').style.display = 'none'; }

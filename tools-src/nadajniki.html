@@ -15,7 +15,7 @@
         #map { height: 40%; width: 100%; z-index: 1; border-bottom: 2px solid #ccc; }
 
         .btn-recenter {
-            position: fixed; top: 70px; right: 20px;
+            position: fixed; top: 38%; right: 10px;
             background: white; border: 2px solid #1a73e8;
             border-radius: 50%; width: 50px; height: 50px;
             font-size: 1.5rem; color: #1a73e8; z-index: 1000;
@@ -39,6 +39,18 @@
             border-right: 10px solid transparent;
             border-bottom: 20px solid #1a73e8;
             filter: drop-shadow(0 0 2px black);
+        }
+
+        .leaflet-control-layers {
+            margin-top: 10px !important;
+            margin-right: 10px !important;
+            border: 2px solid rgba(0,0,0,0.2) !important;
+            box-shadow: none !important;
+        }
+        .leaflet-control-layers-toggle {
+            width: 44px !important;
+            height: 44px !important;
+            background-size: 26px 26px !important;
         }
     </style>
 </head>
@@ -84,22 +96,41 @@ let map, userMarker, headingMarker;
         }
     };
 
-    function initMap(lat, lon) {
-        map = L.map('map').setView([lat, lon], 17);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap'
-        }).addTo(map);
+        function initMap(lat, lon) {
+    // 1. Inicjalizacja mapy bez dodawania domyślnej warstwy na start
+    map = L.map('map').setView([lat, lon], 17);
 
-        userMarker = L.circleMarker([lat, lon], { color: '#1a73e8', radius: 8, fillOpacity: 1 }).addTo(map);
-        
-        const headingIcon = L.divIcon({
-            className: 'phone-heading-wrapper',
-            html: '<div class="phone-heading" id="phone-arrow"></div>',
-            iconSize: [20, 20],
-            iconAnchor: [10, 10]
-        });
-        headingMarker = L.marker([lat, lon], { icon: headingIcon }).addTo(map);
-    }
+    // 2. Definicja warstwy zwykłej (OpenStreetMap)
+    const streetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+    });
+
+    // 3. Definicja warstwy satelitarnej (Esri World Imagery)
+    const satMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+    });
+
+    // 4. Dodanie domyślnej warstwy na mapę
+    streetMap.addTo(map);
+
+    // 5. Stworzenie obiektu z wyborem map i dodanie kontrolki przełączania
+    const baseMaps = {
+        "Mapa": streetMap,
+        "Satelita": satMap
+    };
+    L.control.layers(baseMaps).addTo(map);
+
+    // Reszta Twojego kodu (markery) zostaje bez zmian
+    userMarker = L.circleMarker([lat, lon], { color: '#1a73e8', radius: 8, fillOpacity: 1 }).addTo(map);
+    
+    const headingIcon = L.divIcon({
+        className: 'phone-heading-wrapper',
+        html: '<div class="phone-heading" id="phone-arrow"></div>',
+        iconSize: [20, 20],
+        iconAnchor: [10, 10]
+    });
+    headingMarker = L.marker([lat, lon], { icon: headingIcon }).addTo(map);
+}
 
     function updateLocation() {
         // Dodajemy opcje dla większej dokładności na zewnątrz
