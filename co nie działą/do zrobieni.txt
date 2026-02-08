@@ -1,0 +1,6 @@
+cennik:
+- udostępnianie przez whatsapp - skasować
+- udostępnianie ogólne - od razu kopiuje - nie daje mozliwości gdzie wysłać..
+
+do zrobienia:
+mapy - widok satelitarny

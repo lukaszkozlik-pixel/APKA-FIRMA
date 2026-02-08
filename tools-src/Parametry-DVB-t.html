@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <!-- WIDOK MOBILNY: Zapewnia skalowanie do szerokości ekranu telefonu -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Parametry DVB-T2</title>
+    
+    <style>
+                /* Styl dla parzystych wierszy w ciele tabeli */
+        tbody tr:nth-child(even) {
+            /* Lekko jaśniejszy odcień grafitu (ok. 10% jaśniejszy niż domyślny kolor tła wierszy) */
+            background-color: rgba(255, 255, 255, 0.08); 
+        }
+        
+        /* Opcjonalnie: upewnij się, że styl wierszy nieparzystych (domyślnych) jest spójny */
+        tbody tr:nth-child(odd) {
+            background-color: rgba(44, 47, 51, 0.9); 
+        }
+        /* GLOBALNE STYLE I TŁO */
+        body {
+            background-color: #121212; /* Grafitowe tło */
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+            color: #e0e0e0;
+        }
+
+        /* KONTENER TABELI Z PRZEWIJANIEM */
+        .table-container {
+            overflow-x: auto;
+            border-radius: 12px;
+            /* Grafitowe tło z przezroczystością */
+            background-color: rgba(44, 47, 51, 0.9); 
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            color: white;
+            min-width: 900px; /* Minimalna szerokość, by dane były czytelne przed przewinięciem */
+        }
+
+        /* STYLE NAGŁÓWKÓW (TH) */
+        th {
+            background-color: rgba(30, 30, 30, 0.95);
+            color: #00d4ff; /* Jasny akcent */
+            text-align: center;
+            padding: 12px 5px;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: 1px solid #444; 
+            white-space: nowrap;
+        }
+
+        /* STYLE KOMÓREK DANYCH (TD) */
+        td {
+            padding: 12px 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 14px;
+            text-align: center;
+            vertical-align: middle; 
+            white-space: nowrap;
+            background-color: transparent; /* Nadpisanie białego tła z Excela */
+        }
+    </style>
+</head>
+<body>
+
+<div class="table-container">
+    <table>
+        <thead>
+            <!-- Nagłówki z obrazka -->
+            <tr>
+                <th>Kanał</th>
+                <th>Częstotliwość</th>
+                <th>Polaryzacja</th>
+                <th>MUX</th>
+                <th>Modulacja</th>
+                <th>Przedział ochronny (GI)</th>
+                <th>FEC</th>
+                <th>Min max sygnal</th>
+                <th>MER</th>
+                <th>C/N</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Dane z obrazka, z poprawnymi rowspanami (połączonymi polami) -->
+            <tr>
+                <td>6</td>
+                <td>184.5</td>
+                <td>H</td>
+                <td rowspan="2">MUX-8</td>
+                <td rowspan="2">64-QAM</td>
+                <td rowspan="2">1/4</td>
+                <td rowspan="2">5/6</td>
+                <td rowspan="2">51 - 74</td>
+                <td rowspan="2">&gt;26</td>
+                <td>&gt;27 (min 23)</td>
+            </tr>
+            <tr>
+                <td>7</td>
+                <td>191.5</td>
+                <td style="border-left: none;">V</td>
+                <td>31</td>
+            </tr>
+            <tr>
+                <td>21</td>
+                <td>474</td>
+                <td rowspan="6">H</td>
+                <td>MUX-4</td>
+                <td rowspan="6">256-QAM</td>
+                <td>1/8</td>
+                <td>4/5</td>
+                <td rowspan="6">48-75 (max 85)</td>
+                <td rowspan="6">&gt;32 (min 28)</td>
+                <td rowspan="6">&gt;31 (min 29)</td>
+            </tr>
+            <tr>
+                <td>22</td>
+                <td>482</td>
+                <td>MUX-3 kraków</td>
+                <td rowspan="5">19/128</td>
+                <td rowspan="5">3/4</td>
+               
+            </tr>
+             <tr>
+                <td>23</td>
+                <td>490</td>
+                <td>MUX-2</td>
+           
+            </tr>
+            <tr>
+                <td>24</td>
+                <td>498</td>
+                <td>MUX-6</td>
+         
+            </tr>
+             <tr>
+                <td>41</td>
+                <td>634</td>
+                <td>MUX-3 katowice</td>
+            
+            </tr>
+             <tr>
+                <td>43</td>
+                <td>650</td>
+                <td>MUX-1</td>
+          
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>

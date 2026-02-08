@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<style>
+    body {
+        font-family: sans-serif;
+        padding: 10px;
+        margin: 0;
+        background-color: #121212;
+        color: #e0e0e0;
+    }
+    
+    .table-wrapper {
+        overflow-x: auto;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+        border-radius: 8px;
+        background-color: #1e1e1e;
+        border: 1px solid #333;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 450px;
+    }
+
+    th, td {
+        padding: 12px 10px;
+        text-align: left;
+        border-bottom: 1px solid #333;
+        font-size: 13px;
+    }
+
+    thead tr {
+        background-color: #2c2c2c;
+        color: #ffffff;
+    }
+
+    /* Kropka koloru */
+    .dot {
+        height: 15px;
+        width: 15px;
+        border-radius: 50%;
+        display: inline-block;
+        vertical-align: middle;
+        margin-right: 8px;
+        border: 1px solid #555;
+    }
+
+    /* Klasy kolorów na podstawie pliku kolory_sat (1).png */
+    .bg-yellow { background-color: #ffff00; }
+    .bg-green  { background-color: #008000; }
+    .bg-red    { background-color: #ff0000; }
+    .bg-black  { background-color: #000000; }
+    .bg-white  { background-color: #ffffff; }
+
+    .tag {
+        font-family: monospace;
+        background: #333;
+        padding: 2px 4px;
+        border-radius: 3px;
+        color: #90caf9;
+    }
+
+    .voltage {
+        color: #ff8a80;
+        font-weight: bold;
+    }
+</style>
+</head>
+<body>
+
+<div class="table-wrapper">
+    <table>
+        <thead>
+            <tr>
+                <th>Kolor</th>
+                <th>Oznaczenie</th>
+                <th>Pasmo / Polaryzacja</th>
+                <th>Sterowanie</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><span class="dot bg-yellow"></span>Żółty</td>
+                <td><span class="tag">H/H</span> (HH, Hi)</td>
+                <td>Górne / Pozioma</td>
+                <td><span class="voltage">18V / 22kHz</span></td>
+            </tr>
+            <tr>
+                <td><span class="dot bg-green"></span>Zielony</td>
+                <td><span class="tag">L/H</span> (HL, Lo)</td>
+                <td>Dolne / Pozioma</td>
+                <td><span class="voltage">18V / 0kHz</span></td>
+            </tr>
+            <tr>
+                <td><span class="dot bg-red"></span>Czerwony</td>
+                <td><span class="tag">H/V</span> (VH, Hi)</td>
+                <td>Górne / Pionowa</td>
+                <td><span class="voltage">13V / 22kHz</span></td>
+            </tr>
+            <tr>
+                <td><span class="dot bg-black"></span>Czarny</td>
+                <td><span class="tag">L/V</span> (VL, Lo)</td>
+                <td>Dolne / Pionowa</td>
+                <td><span class="voltage">13V / 0kHz</span></td>
+            </tr>
+            <tr>
+                <td><span class="dot bg-white"></span>Biały</td>
+                <td colspan="3">Terr.TV / Telewizja Naziemna</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>

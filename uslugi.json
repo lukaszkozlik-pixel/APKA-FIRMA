@@ -1,0 +1,7 @@
+[
+    { "name": "Montaż anteny SAT", "price": 150 },
+    { "name": "Ustawienie sygnału", "price": 80 },
+    { "name": "Zarabianie końcówek", "price": 5 },
+    { "name": "Montaż anteny DVB-T", "price": 120 },
+    { "name": "Programowanie TV", "price": 40 }
+]

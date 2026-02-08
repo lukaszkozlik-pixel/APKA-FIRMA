@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biblioteka DVB-T</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #121212;
+        }
+        header { background: #1a73e8; color: white; padding: 10px; display: flex; align-items: center; z-index: 1000; }
+        .btn-back { background: none; border: none; color: white; font-size: 1.8rem; padding-right: 15px; cursor: pointer; }
+        h1 { font-size: 1.2rem; margin: 0; flex-grow: 1; text-align: center; margin-right: 30px; }
+
+        /* Styl paska zakładek */
+        .tabs-header {
+            display: flex;
+            background: #1e1e1e;
+            border-bottom: 2px solid #333;
+            overflow-x: auto; /* Przewijanie zakładek na małych ekranach */
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px 5px;
+            border: none;
+            background: none;
+            color: #888;
+            font-weight: bold;
+            font-size: 0.85rem;
+            cursor: pointer;
+            white-space: nowrap;
+            border-bottom: 3px solid transparent;
+            transition: 0.3s;
+        }
+
+        .tab-btn.active {
+            color: #03dac6;
+            border-bottom: 3px solid #03dac6;
+            background: rgba(3, 218, 198, 0.05);
+        }
+
+        /* Kontener na zawartość */
+        .tab-content {
+            flex: 1;
+            width: 100%;
+            border: none;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+   
+<header>
+    <button class="btn-back" onclick="window.location.replace('../index.html')">&lt;</button>
+    <h1>Biblioteka DVB-T</h1>
+</header>
+
+<div class="tabs-header">
+    <button class="tab-btn active" onclick="openTab(this, 'czestotliwosciDVBT.html')">CZĘSTOTLIWOŚCI</button>
+    <button class="tab-btn" onclick="openTab(this, 'muxy.html')">LISTA MUX</button>
+    <button class="tab-btn" onclick="openTab(this, 'Parametry-DVB-t.html')">PARAMETRY</button>
+</div>
+
+<iframe id="content-frame" src="czestotliwosciDVBT.html"></iframe>
+
+<script>
+    function openTab(btn, fileName) {
+        // Usuń klasę active ze wszystkich przycisków
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        
+        // Dodaj klasę active do klikniętego przycisku
+        btn.classList.add('active');
+        
+        // Zmień źródło iframe na wybrany plik
+        document.getElementById('content-frame').src = fileName;
+    }
+</script>
+
+</body>
+</html>

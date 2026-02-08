@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<style>
+    /* --- CIEMNY MOTYW --- */
+    body {
+        font-family: sans-serif;
+        padding: 10px;
+        margin: 0;
+        background-color: #121212; /* Bardzo ciemne tło całej strony */
+        color: #e0e0e0; /* Jasnoszary kolor tekstu głównego */
+    }
+    
+    /* Kontener tabeli */
+    .table-wrapper {
+        overflow-x: auto;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.5); /* Mocniejszy cień */
+        border-radius: 8px;
+        background-color: #1e1e1e; /* Ciemnoszare tło "karty" z tabelą */
+        border: 1px solid #333;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 500px; /* Wymusza przewijanie na wąskich ekranach */
+    }
+
+    th, td {
+        padding: 12px 8px;
+        text-align: left;
+        border-bottom: 1px solid #333; /* Ciemne linie oddzielające */
+        font-size: 14px;
+    }
+
+    /* Styl nagłówka */
+    thead tr {
+        background-color: #2c2c2c; /* Trochę jaśniejszy nagłówek */
+        color: #ffffff; /* Biały tekst w nagłówku */
+        font-weight: bold;
+        border-bottom: 2px solid #444;
+    }
+
+    th {
+        white-space: nowrap;
+    }
+
+    /* Pasiasty wzór dla lepszej czytelności (ciemny) */
+    tbody tr:nth-of-type(even) {
+        background-color: #252525; /* Naprzemienne ciemniejsze tło wierszy */
+    }
+    
+    tbody tr:hover {
+        background-color: #303030; /* Lekkie podświetlenie wiersza przy dotknięciu */
+    }
+
+    /* Wyróżnienie pierwszej kolumny */
+    td:first-child {
+        font-weight: bold;
+        color: #ffffff; /* Biały tekst w pierwszej kolumnie */
+    }
+    
+    /* Kolor dla 22kHz - jaśniejszy czerwony/różowy dla kontrastu */
+    .tone {
+        color: #ff8a80; 
+        font-weight: bold;
+        font-size: 0.9em;
+        display: block; /* Ładnie układa się pod napięciem */
+        margin-top: 4px;
+    }
+</style>
+</head>
+<body>
+
+<div class="table-wrapper">
+    <table>
+        <thead>
+            <tr>
+                <th>Pasmo</th>
+                <th>Polaryzacja</th>
+                <th>Zakres (GHz)</th>
+                <th>Przełącznik</th>
+                <th>1 pośrednia</th>
+                <th>Generator</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Dolne</td>
+                <td>Pozioma</td>
+                <td>10.700 – 11.700</td>
+                <td>18 V</td>
+                <td>950 - 1950 MHz</td>
+                <td>LO1 9,75 GHz</td>
+            </tr>
+            <tr>
+                <td>Dolne</td>
+                <td>Pionowa</td>
+                <td>10.700 – 11.700</td>
+                <td>13 lub 14 V</td>
+                <td>950 - 1950 MHz</td>
+                <td>LO1 9,75 GHz</td>
+            </tr>
+            <tr>
+                <td>Górne</td>
+                <td>Pozioma</td>
+                <td>11.700 – 12.750</td>
+                <td>18 V <span class="tone">+ 22 kHz</span></td>
+                <td>1100 - 2150 MHz</td>
+                <td>LO2 10,6 GHz</td>
+            </tr>
+            <tr>
+                <td>Górne</td>
+                <td>Pionowa</td>
+                <td>11.700 – 12.750</td>
+                <td>13 lub 14 V <span class="tone">+ 22 kHz</span></td>
+                <td>1100 - 2150 MHz</td>
+                <td>LO2 10,6 GHz</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>

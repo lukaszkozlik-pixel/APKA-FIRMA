@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cennik Usług</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        header {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            background: #1a73e8;
+            color: white;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 1.3rem;
+            flex-grow: 1;
+            text-align: center;
+            margin-right: 40px; /* Balansuje przesunięcie przycisku wstecz, by tytuł był na środku */
+        }
+
+        .btn-back {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.8rem; /* Duży, wyraźny znak */
+            font-weight: 300;
+            padding: 5px 15px 5px 0; /* Większe pole dotyku */
+            cursor: pointer;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* Style specyficzne dla cennika */
+        .item-list { padding: 15px; flex: 1; overflow-y: auto; padding-bottom: 100px; }
+        .price-item {
+            background: white; margin-bottom: 10px; padding: 15px; border-radius: 10px;
+            display: flex; justify-content: space-between; align-items: center;
+            border: 2px solid transparent; transition: 0.2s;
+            user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+        }
+        .price-item.selected { border-color: #1a73e8; background: #e8f0fe; }
+        .price-item:active { background-color: #fce8e6; transition: background-color 0.8s; }
+        .price-value { font-weight: bold; color: #1a73e8; }
+        .qty { font-weight: bold; color: #1a73e8; margin-right: 5px; }
+        .item-other { border: 2px dashed #1a73e8; color: #1a73e8; justify-content: center; font-weight: bold; margin-top: 20px; }
+
+        .summary-bar {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: #202124; color: white; padding: 20px;
+            border-radius: 20px 20px 0 0; display: flex; justify-content: space-between; align-items: center;
+            z-index: 50;
+        }
+        .btn-done { background: #03dac6; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        
+        /* Style Modali */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); justify-content: center; align-items: center; padding: 20px; z-index: 100;
+        }
+        .modal-content { background: white; padding: 20px; border-radius: 15px; width: 100%; max-width: 400px; }
+        .modal-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .btn-modal { padding: 12px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        
+        .custom-form { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+        .custom-form input { padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 1rem; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <header>
+            <button class="btn-back" onclick="window.location.replace('../index.html')">&lt;</button>
+            <h1>Cennik Instalacji</h1>
+        </header>
+
+        <div class="item-list" id="menu">
+
+
+            <div class="price-item" onclick="addMountingPrice()" onmousedown="startPress(this)" onmouseup="endPress()" ontouchstart="startPress(this)"                                  ontouchend="endPress()" oncontextmenu="return false;" data-name="Montaż (indywidualny)">
+                <div><span class="qty"></span><span>Montaż (podaj cenę)</span></div>
+                <span class="price-value" id="mount-val">--- zł</span>
+            </div>
+
+            <div class="price-item item-other" onclick="openCustomModal()">+ Dodaj inne</div>
+            </div>
+
+            <div class="summary-bar">
+                <div>Suma: <span id="total-price">0</span> zł</div>
+                <button id="btn-submit" class="btn-done" onclick="showSummary()" disabled style="opacity: 0.5;">GOTOWE</button>
+            </div>
+            </div>
+        </div>
+        <div id="modal-custom" class="modal">
+            <div class="modal-content">
+                <h3>Własna usługa</h3>
+                <div class="custom-form">
+                    <input type="text" id="custom-name" placeholder="Nazwa">
+                    <input type="number" id="custom-price" placeholder="Cena (zł)" inputmode="decimal" onkeydown="if(['e', 'E', '+', '-'].includes(event.key)) event.preventDefault();">
+                </div>
+                <div class="modal-btns">
+                    <button class="btn-modal" onclick="closeCustomModal()" style="background:#eee;">Anuluj</button>
+                    <button class="btn-modal" onclick="addCustomItem()" style="background:#1a73e8; color:white;">Dodaj</button>
+                </div>
+            </div>
+        </div>
+
+      
+        <div id="modal-summary" class="modal">
+            <div class="modal-content">
+                <h3>Podsumowanie:</h3>
+                <ul id="summary-list" style="margin: 20px 0; list-style: none; padding: 0;"></ul>
+                <hr>
+                <h2 id="modal-total" style="text-align: center;"></h2>
+                <div class="modal-btns">
+                    <button class="btn-modal" onclick="shareSummary('universal')" style="background: #1a73e8; color: white; grid-column: span 2;">UDOSTĘPNIJ (E-mail, Notatki, Inne)</button>
+                    
+                    <button class="btn-modal" onclick="shareSummary('whatsapp')" style="background: #25D366; color: white;">WhatsApp</button>
+                    <button class="btn-modal" onclick="shareSummary('sms')" style="background: #03dac6; color: black;">SMS</button>
+                    
+                    <button class="btn-modal" onclick="closeSummaryModal()" style="background: #70757a; color: white;">Wróć</button>
+                    <button class="btn-modal" onclick="resetAll()" style="background: #d93025; color: white;">Nowe</button>
+                </div>
+            </div>
+        </div>
+
+    <script>
+        let total = 0;
+        let selectedItems = [];
+        let pressTimer;
+        let isLongPress = false;
+
+        function updateDisplay() {
+            document.getElementById('total-price').innerText = total;
+            document.querySelectorAll('.price-item').forEach(div => {
+                const name = div.getAttribute('data-name');
+                if(!name) return;
+                const item = selectedItems.find(i => i.name === name);
+                const qtySpan = div.querySelector('.qty');
+                const valSpan = div.querySelector('.price-value');
+                
+                if (item) {
+                    div.classList.add('selected');
+                    let unit = name.includes("Kabel") ? "m x " : "x ";
+                    qtySpan.innerText = item.qty + unit;
+                    if(name === "Montaż (indywidualny)") valSpan.innerText = item.price + " zł";
+                } else {
+                    div.classList.remove('selected');
+                    qtySpan.innerText = "";
+                    if(name === "Montaż (indywidualny)") valSpan.innerText = "--- zł";
+                }
+            });
+            const btn = document.getElementById('btn-submit');
+            btn.disabled = total <= 0;
+            btn.style.opacity = total > 0 ? "1" : "0.5";
+        }
+
+        // Ta funkcja uruchomi się sama przy starcie strony
+        window.onload = function() {
+            initPrices();
+        };
+
+        async function initPrices() {
+            // 1. Definiujesz adres serwera
+            const urlSerwera = 'https://gist.githubusercontent.com/lukaszkozlik-pixel/cc9860262022f28a759d1790020381fe/raw/uslugi.json';
+          
+            // Pobranie danych z pamięci podręcznej (Local Storage)
+            const localData = localStorage.getItem('cachedServices');
+            if (localData) {
+                renderServices(JSON.parse(localData));
+            }
+
+            // 2. Próba pobrania świeżych danych z serwera
+            try {
+                const response = await fetch(urlSerwera + '?t=' + Date.now());
+                if (response.ok) {
+                    const freshServices = await response.json();
+                    
+                    // Zapisujemy nowe dane w pamięci telefonu
+                    localStorage.setItem('cachedServices', JSON.stringify(freshServices));
+                    
+                    // Czyścimy stare kafelki i rysujemy nowe (tylko jeśli dane się zmieniły)
+                    document.querySelectorAll('.standard-item').forEach(el => el.remove());
+                    renderServices(freshServices);
+                }
+            } catch (error) {
+                console.log("Brak internetu lub błąd serwera. Korzystam z wersji offline.");
+            }
+        }
+
+        function addCableFromJSON(element) {
+            if (isLongPress) { isLongPress = false; return; }
+            
+            const name = element.getAttribute('data-name');
+            const unitPrice = parseFloat(element.getAttribute('data-price'));
+            
+            let m = prompt(`Ile metrów produktu: ${name}?`, "1");
+            if (!m) return;
+            
+            // Zamiana przecinka na kropkę i wyciągnięcie samej liczby
+            let qty = parseFloat(m.replace(',', '.').replace(/[^0-9.]/g, ''));
+            
+            if (qty > 0) {
+                let item = selectedItems.find(i => i.name === name);
+                if (item) {
+                    item.qty += qty;
+                } else {
+                    selectedItems.push({ name: name, price: unitPrice, qty: qty });
+                }
+                total += (unitPrice * qty);
+                // Zaokrąglenie do 2 miejsc po przecinku (przydatne przy cenach typu 2.50)
+                total = Math.round(total * 100) / 100;
+                updateDisplay();
+            }
+        }
+        
+
+        function renderServices(services) {
+            const menuContainer = document.getElementById('menu');
+            if (!menuContainer) return;
+            
+            services.forEach(service => {
+                const div = document.createElement('div');
+                div.className = 'price-item standard-item';
+                div.setAttribute('data-name', service.name);
+                div.setAttribute('data-price', service.price);
+                
+                // Logika wyboru funkcji: kabel vs reszta
+                const isKabel = service.name.toLowerCase().includes('kabel');
+                
+                div.onclick = function() { 
+                    if (isKabel) {
+                        // Dla kabla używamy ceny z JSON jako ceny za metr
+                        addCableFromJSON(this); 
+                    } else {
+                        addItem(this); 
+                    }
+                };
+        
+                div.onmousedown = function() { startPress(this); };
+                div.onmouseup = function() { endPress(); };
+                div.ontouchstart = function() { startPress(this); };
+                div.ontouchend = function() { endPress(); };
+                
+                div.innerHTML = `
+                    <div><span class="qty"></span><span>${service.name}</span></div>
+                    <span class="price-value">${service.price} zł${isKabel ? '/m' : ''}</span>
+                `;
+                
+                const otherBtn = document.querySelector('.item-other');
+                menuContainer.insertBefore(div, otherBtn);
+            });
+            updateDisplay();
+}
+
+        // UNIWERSALNE USUWANIE PRZEZ LONG CLICK
+        function removeItemAll(element) {
+            const name = element.getAttribute('data-name');
+            let idx = selectedItems.findIndex(i => i.name === name);
+            if (idx > -1) {
+                total -= (selectedItems[idx].price * selectedItems[idx].qty);
+                selectedItems.splice(idx, 1);
+            }
+            updateDisplay();
+        }
+
+        // DODAWANIE STANDARDOWE
+        function addItem(element) {
+            if (isLongPress) { isLongPress = false; return; }
+            const name = element.getAttribute('data-name');
+            const price = parseInt(element.getAttribute('data-price'));
+            let item = selectedItems.find(i => i.name === name);
+            if (item) item.qty++; else selectedItems.push({ name, price, qty: 1 });
+            total += price;
+            updateDisplay();
+        }
+
+        // DODAWANIE KABLI (METRY)
+        function addCable(element) {
+            if (isLongPress) { isLongPress = false; return; }
+            const name = element.getAttribute('data-name');
+            const unitPrice = parseInt(element.getAttribute('data-unit-price'));
+            let m = prompt("Ile metrów?", "1");
+            if (!m) return;
+            let qty = parseInt(m.replace(/[^0-9]/g, ''));
+            if (qty > 0) {
+                let item = selectedItems.find(i => i.name === name);
+                if (item) item.qty += qty; else selectedItems.push({ name: name, price: unitPrice, qty });
+                total += (unitPrice * qty);
+                updateDisplay();
+            }
+        }
+
+        // MONTAŻ Z CENĄ Z RĘKI
+        function addMountingPrice() {
+            if (isLongPress) { isLongPress = false; return; }
+            let p = prompt("Podaj cenę montażu:");
+            if (!p) return;
+            let price = parseInt(p.replace(/[^0-9]/g, ''));
+            if (price > 0) {
+                const name = "Montaż (indywidualny)";
+                let item = selectedItems.find(i => i.name === name);
+                if (item) { item.qty++; total += price; } 
+                else { selectedItems.push({ name, price, qty: 1 }); total += price; }
+                updateDisplay();
+            }
+        }
+
+        // SYSTEMOWY LONG PRESS
+        function startPress(element) {
+            isLongPress = false;
+            pressTimer = setTimeout(() => { 
+                isLongPress = true; 
+                removeItemAll(element); 
+                if(navigator.vibrate) navigator.vibrate(60); 
+            }, 700);
+        }
+        function endPress() { clearTimeout(pressTimer); }
+
+        // OBSŁUGA MODALA "INNE"
+        function openCustomModal() { document.getElementById('modal-custom').style.display = 'flex'; }
+        function closeCustomModal() { document.getElementById('modal-custom').style.display = 'none'; }
+        function addCustomItem() {
+            const name = document.getElementById('custom-name').value.trim();
+            const price = parseInt(document.getElementById('custom-price').value);
+            if (name && !isNaN(price)) {
+                selectedItems.push({ name, price, qty: 1 });
+                total += price;
+                updateDisplay();
+                document.getElementById('custom-name').value = '';
+                document.getElementById('custom-price').value = '';
+                closeCustomModal();
+            }
+        }
+
+        // PODSUMOWANIE I UDOSTĘPNIANIE
+        function showSummary() {
+            const list = document.getElementById('summary-list');
+            list.innerHTML = '';
+            selectedItems.forEach(item => {
+                list.innerHTML += `<li style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                    <span>${item.name} x${item.qty}</span>
+                    <span>${item.price * item.qty} zł</span>
+                </li>`;
+            });
+            document.getElementById('modal-total').innerText = `Razem: ${total} zł`;
+            document.getElementById('modal-summary').style.display = 'flex';
+        }
+
+        function shareSummary(method = 'universal') {
+            // 1. Generowanie tekstu podsumowania
+            let t = "PODSUMOWANIE INSTALACJI\n";
+            t += "--------------------------\n";
+            selectedItems.forEach(i => {
+                let unit = i.name.toLowerCase().includes("kabel") ? "m" : "szt";
+                t += `- ${i.name} (${i.qty}${unit}): ${Math.round(i.price * i.qty)} zł\n`;
+            });
+            t += "--------------------------\n";
+            t += `RAZEM DO ZAPŁATY: ${total} zł`;
+        
+            // 2. Wybór metody udostępniania
+            if (method === 'whatsapp') {
+                window.location.href = `whatsapp://send?text=${encodeURIComponent(t)}`;
+            } 
+            else if (method === 'sms') {
+                window.location.href = `sms:?body=${encodeURIComponent(t)}`;
+            } 
+            else {
+                // Metoda UNIWERSALNA (Notatki, Mail, Messenger itp.)
+                if (navigator.share) {
+                    navigator.share({
+                        title: 'Rachunek za montaż',
+                        text: t
+                    }).catch(err => {
+                        console.log("Anulowano udostępnianie");
+                    });
+                } else {
+                    // Rezerwowe kopiowanie do schowka, jeśli system jest stary
+                    const tempInput = document.createElement("textarea");
+                    tempInput.value = t;
+                    document.body.appendChild(tempInput);
+                    tempInput.select();
+                    document.execCommand("copy");
+                    document.body.removeChild(tempInput);
+                    alert("Skopiowano do schowka! Możesz teraz wkleić tekst do dowolnej aplikacji.");
+                }
+            }
+        }
+
+        function closeSummaryModal() { document.getElementById('modal-summary').style.display = 'none'; }
+        function resetAll() { total = 0; selectedItems = []; updateDisplay(); closeSummaryModal(); }
+    </script>
+</body>
+</html>

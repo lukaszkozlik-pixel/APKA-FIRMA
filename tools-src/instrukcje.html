@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instrukcje Dekoderów</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        body { background-color: #121212; margin: 0; font-family: sans-serif; }
+        .search-box {
+            padding: 15px;
+            background: #1e1e1e;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        #searchInput {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background: #2c2c2c;
+            color: white;
+            font-size: 1rem;
+        }
+
+        header { background: #1a73e8; color: white; padding: 10px; display: flex; align-items: center; z-index: 1000; }
+        .btn-back { background: none; border: none; color: white; font-size: 1.8rem; padding-right: 15px; cursor: pointer; }
+        h1 { font-size: 1.2rem; margin: 0; flex-grow: 1; text-align: center; margin-right: 30px; }
+        
+        .instruction-list { padding: 10px; }
+        .inst-card {
+            background: #1e1e1e;
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 5px solid #6200ee;
+            text-decoration: none;
+            color: inherit;
+        }
+        .inst-info { flex-grow: 1; }
+        .inst-title { font-weight: bold; color: #e0e0e0; margin-bottom: 5px; }
+        .inst-type { font-size: 0.8rem; color: #888; text-transform: uppercase; }
+        .btn-view {
+            background: #6200ee;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<header style="background: #6200ee;">
+    <button class="btn-back" onclick="window.location.replace('../index.html')">&lt;</button>
+    <h1>Instrukcje PDF</h1>
+</header>
+
+<div class="search-box">
+    <input type="text" id="searchInput" placeholder="Szukaj dekodera (np. 4K, Dual...)" onkeyup="filterInstructions()">
+</div>
+
+    <!-- -------------  POLSAT BOX   ------------------------->
+
+    
+<div class="instruction-list" id="instList">
+    <a href="https://api.plus.pl/jcr/files/file/adp/files/regulations_lp/cp/polsatbox-4k-lite/polsat_box_4K_4Klite_instrukcja_27.10.pdf" class="inst-card" target="_blank">
+        <div class="inst-info">
+            <div class="inst-title">Polsat Box 4K/Lite</div>
+            <div class="inst-type">PDF</div>
+        </div>
+        <div class="btn-view">OTWÓRZ</div>
+    </a>
+
+
+         <a href="https://www.polsatbox.pl/CMS/media/img/v4/imgRD/cp-hp/instrukcja_EvoBox_PVR_1.1_internet.pdf" class="inst-card" target="_blank">
+        <div class="inst-info">
+            <div class="inst-title">PB EvoBox PVR</div>
+            <div class="inst-type">PDF</div>
+        </div>
+        <div class="btn-view">OTWÓRZ</div>
+    </a>
+
+    
+     <a href="https://api.plus.pl/file/files/file/pdfs_lp/cp/tv-naziemna/Dekoder_DVB-T2_Instrukcjaobsugi.pdf" class="inst-card" target="_blank">
+        <div class="inst-info">
+            <div class="inst-title">PB DVB-T2</div>
+            <div class="inst-type">PDF</div>
+        </div>
+        <div class="btn-view">OTWÓRZ</div>
+    </a>
+
+
+    <!--
+     <a href="" class="inst-card" target="_blank">
+        <div class="inst-info">
+            <div class="inst-title">Canal+ 4K DualBox</div>
+            <div class="inst-type">PDF</div>
+        </div>
+        <div class="btn-view">OTWÓRZ</div>
+    </a>
+
+
+    ------------------ CANAL + ---------------------------
+    -->
+
+
+    
+
+    <a href="https://pl.canalplus.com/resources/dokumenty-one-portal/struktura/TELEWIZJA%20SATELITARNA/INSTRUKCJE%2C%20DEKLARACJE%20ZGODNO%C5%9ACI/INSTRUKCJE%20OBS%C5%81UGI/Instrukcja_USW4001NCP_01_2023_www.pdf" class="inst-card" target="_blank">
+        <div class="inst-info">
+            <div class="inst-title">Canal+ 4K UltraBox+</div>
+            <div class="inst-type">PDF</div>
+        </div>
+        <div class="btn-view">OTWÓRZ</div>
+    </a>
+
+     <a href="https://pl.canalplus.com/resources/dokumenty-one-portal/struktura/TELEWIZJA%20SATELITARNA/INSTRUKCJE%2C%20DEKLARACJE%20ZGODNO%C5%9ACI/INSTRUKCJE%20OBS%C5%81UGI/Instrukcja_G9_SE_4K_01_2023_www.pdf" class="inst-card" target="_blank">
+        <div class="inst-info">
+            <div class="inst-title">Canal+ 4K DualBox</div>
+            <div class="inst-type">PDF</div>
+        </div>
+        <div class="btn-view">OTWÓRZ</div>
+    </a>
+
+         <a href="https://pl.canalplus.com/resources/dokumenty-one-portal/struktura/TELEWIZJA%20SATELITARNA/INSTRUKCJE%2C%20DEKLARACJE%20ZGODNO%C5%9ACI/INSTRUKCJE%20OBS%C5%81UGI/Instrukcja%20wifi%20PremiumboxADB%20NCP4740SF022022V11.pdf" class="inst-card" target="_blank">
+        <div class="inst-info">
+            <div class="inst-title">Canal+ wifi PremiumBox</div>
+            <div class="inst-type">PDF</div>
+        </div>
+        <div class="btn-view">OTWÓRZ</div>
+    </a>
+
+     <a href="https://pl.canalplus.com/resources/dokumenty-one-portal/struktura/TELEWIZJA%20SATELITARNA/INSTRUKCJE%2C%20DEKLARACJE%20ZGODNO%C5%9ACI/INSTRUKCJE%20OBS%C5%81UGI/Instrukcja%20wifiBOX%20SAGEMCOM%20DSIW74SERWIS082023www.pdf" class="inst-card" target="_blank">
+        <div class="inst-info">
+            <div class="inst-title">Canal+ WifiBox+</div>
+            <div class="inst-type">PDF</div>
+        </div>
+        <div class="btn-view">OTWÓRZ</div>
+    </a>
+
+    <!--<div class="inst-card" onclick="alert('Tryb serwisowy: MENU -> Ustawienia -> 8080')">
+        <div class="inst-info">
+            <div class="inst-title">Dekoder WiFiBox+</div>
+            <div class="inst-type">Notatka • Kod Serwisowy</div>
+        </div>
+        <div class="btn-view">INFO</div>
+    </div>-->
+</div>
+
+<script>
+    function filterInstructions() {
+        let input = document.getElementById('searchInput').value.toLowerCase();
+        let cards = document.getElementsByClassName('inst-card');
+
+        for (let card of cards) {
+            let title = card.querySelector('.inst-title').innerText.toLowerCase();
+            card.style.display = title.includes(input) ? "" : "none";
+        }
+    }
+</script>
+
+</body>
+</html>

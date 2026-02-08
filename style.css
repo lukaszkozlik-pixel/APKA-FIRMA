@@ -1,0 +1,85 @@
+:root {
+    --primary-color: #1a73e8;
+    --bg-color: #f8f9fa;
+    --tile-color: #ffffff;
+    --text-color: #202124;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Roboto, sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+}
+
+#app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+header {
+    background: var(--primary-color);
+    color: white;
+    padding: 20px;
+    text-align: center;
+    font-weight: bold;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Magia siatki 2x2 */
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Dwie równe kolumny */
+    gap: 15px;
+    padding: 15px;
+    flex: 1;
+    align-content: start; /* Kafelki zaczną się od góry */
+}
+
+.tile {
+    background: var(--tile-color);
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    aspect-ratio: 1 / 1; /* Idealny kwadrat */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    border: 1px solid #e0e0e0;
+    transition: transform 0.1s;
+    cursor: pointer;
+}
+
+/* Efekt naciśnięcia palcem */
+.tile:active {
+    transform: scale(0.95);
+    background-color: #e8f0fe;
+}
+
+.icon {
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
+
+.label {
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+footer {
+    text-align: center;
+    padding: 10px;
+    font-size: 0.8rem;
+    color: #70757a;
+}
+
+/* Efekt "ładowania" przy długim kliknięciu */
+.price-item:active {
+    background-color: #fce8e6; /* Delikatny czerwony sugerujący usunięcie */
+    transition: background-color 0.8s;
+}

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instrukcje i Schematy</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        header { display: flex; align-items: center; padding: 10px 15px; background: #1a73e8; color: white; }
+        header h1 { margin: 0; font-size: 1.3rem; flex-grow: 1; text-align: center; margin-right: 40px; }
+        .btn-back { background: none; border: none; color: white; font-size: 1.8rem; cursor: pointer; padding-right: 15px; }
+        
+        .category-title { background: #eee; padding: 10px 15px; font-weight: bold; font-size: 0.9rem; color: #555; text-transform: uppercase; }
+        .instr-item { 
+            background: white; padding: 15px; border-bottom: 1px solid #ddd; 
+            display: flex; align-items: center; gap: 15px; cursor: pointer;
+        }
+        .instr-item:active { background: #f0f0f0; }
+        .instr-icon { font-size: 1.5rem; }
+        .instr-info { display: flex; flex-direction: column; }
+        .instr-name { font-weight: bold; color: #333; }
+        .instr-desc { font-size: 0.8rem; color: #777; }
+    </style>
+</head>
+<body>
+    <header>
+        <button class="btn-back" onclick="window.location.replace('index.html')">&lt;</button>
+        <h1>Biblioteka Wiedzy</h1>
+    </header>
+
+    <div class="category-title">Schematy połączeń</div>
+    <div class="instr-item" onclick="openDoc('schemat_diseqc.pdf')">
+        <span class="instr-icon">🔌</span>
+        <div class="instr-info">
+            <span class="instr-name">Przełącznik DiSEqC 4/1</span>
+            <span class="instr-desc">Schemat łączenia 4 satelitów do 1 tunera</span>
+        </div>
+    </div>
+    <div class="instr-item" onclick="openDoc('zlacze_f.jpg')">
+        <span class="instr-icon">🔧</span>
+        <div class="instr-info">
+            <span class="instr-name">Zarabianie złącza F</span>
+            <span class="instr-desc">Instrukcja krok po kroku (obrazek)</span>
+        </div>
+    </div>
+
+    <div class="category-title">Konfiguracja sprzętu</div>
+    <div class="instr-item" onclick="openDoc('instrukcja_miernika.pdf')">
+        <span class="instr-icon">📊</span>
+        <div class="instr-info">
+            <span class="instr-name">Instrukcja Miernika</span>
+            <span class="instr-desc">Szybka ściąga z obsługi Twojego modelu</span>
+        </div>
+    </div>
+
+    <script>
+        function openDoc(fileName) {
+            // W Cordovie pliki najlepiej trzymać w folderze www/docs/
+            // Ta funkcja otworzy plik w systemowej przeglądarce lub dedykowanej aplikacji
+            const filePath = 'docs/' + fileName;
+            
+            if (window.cordova && cordova.InAppBrowser) {
+                // Jeśli masz plugin InAppBrowser
+                cordova.InAppBrowser.open(filePath, '_system', 'location=yes');
+            } else {
+                // Standardowe otwarcie
+                window.open(filePath, '_blank');
+            }
+        }
+    </script>
+</body>
+</html>
