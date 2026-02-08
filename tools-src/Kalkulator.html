@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator Sygnału</title>
+    <style>
+        body { font-family: sans-serif; margin: 0; background: #f4f4f4; color: #333; }
+        header { background: #d32f2f; color: white; padding: 15px; display: flex; align-items: center; }
+        .btn-back { background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; margin-right: 15px; }
+        .container { padding: 20px; max-width: 500px; margin: auto; }
+        
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 0.9rem; }
+        input, select { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
+        
+        .result-box { text-align: center; padding: 20px; border-radius: 12px; color: white; transition: 0.3s; }
+        .good { background: #2e7d32; } /* Zielony */
+        .warning { background: #f9a825; } /* Pomarańczowy */
+        .bad { background: #c62828; } /* Czerwony */
+        
+        .result-val { font-size: 2.5rem; font-weight: bold; }
+        .result-desc { font-size: 1rem; margin-top: 5px; }
+        .loss-info { font-size: 0.85rem; color: #666; margin-top: 10px; border-top: 1px dashed #ccc; padding-top: 10px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <button class="btn-back" onclick="location.href='index.html'">&lt;</button>
+    <h1 style="margin:0; font-size: 1.2rem;">Kalkulator Strat Sygnału</h1>
+</header>
+
+<div class="container">
+    <div class="card">
+        <label>Sygnał z anteny (dBµV)</label>
+        <input type="number" id="inputSignal" value="75" oninput="calculate()">
+
+        <label>Długość kabla (metry)</label>
+        <input type="number" id="cableLength" value="10" oninput="calculate()">
+
+        <label>Rozgałęźnik</label>
+        <select id="splitter" onchange="calculate()">
+            <option value="0">Brak (0 dB)</option>
+            <option value="4">2-drożny (-4 dB)</option>
+            <option value="8">3-drożny (-8 dB)</option>
+            <option value="10">4-drożny (-10 dB)</option>
+            <option value="14">8-drożny (-14 dB)</option>
+        </select>
+
+        <label>Gniazdo końcowe (dB)</label>
+        <input type="number" id="outlet" value="1" oninput="calculate()">
+    </div>
+
+    <div id="resultCard" class="result-box good">
+        <div id="resultValue" class="result-val">0 dBµV</div>
+        <div id="resultStatus" class="result-desc">Sygnał OK</div>
+        <div id="lossDetails" class="loss-info"></div>
+    </div>
+</div>
+
+<script>
+    function calculate() {
+        const signal = parseFloat(document.getElementById('inputSignal').value) || 0;
+        const cable = parseFloat(document.getElementById('cableLength').value) || 0;
+        const splitterLoss = parseFloat(document.getElementById('splitter').value) || 0;
+        const outletLoss = parseFloat(document.getElementById('outlet').value) || 0;
+
+        // Średnie tłumienie kabla RG6 to ok. 0.2 dB na metr dla UHF
+        const cableLossTotal = cable * 0.2;
+        const totalLoss = cableLossTotal + splitterLoss + outletLoss;
+        const finalSignal = (signal - totalLoss).toFixed(1);
+
+        const resVal = document.getElementById('resultValue');
+        const resStatus = document.getElementById('resultStatus');
+        const resCard = document.getElementById('resultCard');
+        const resDetails = document.getElementById('lossDetails');
+
+        resVal.innerText = finalSignal + " dBµV";
+        resDetails.innerHTML = `Łączne straty: -${totalLoss.toFixed(1)} dB<br>(Kabel: -${cableLossTotal.toFixed(1)} dB)`;
+
+        // Normy dla DVB-T2: 48 - 74 dBµV
+        if (finalSignal >= 48 && finalSignal <= 74) {
+            resCard.className = "result-box good";
+            resStatus.innerText = "Sygnał Prawidłowy";
+        } else if (finalSignal > 74) {
+            resCard.className = "result-box warning";
+            resStatus.innerText = "Sygnał za silny (przesterowanie)";
+        } else {
+            resCard.className = "result-box bad";
+            resStatus.innerText = "Sygnał za słaby!";
+        }
+    }
+
+    // Odpal na starcie
+    window.onload = calculate;
+</script>
+
+</body>
+</html>

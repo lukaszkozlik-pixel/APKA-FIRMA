@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Przelicznik dBµV / dBm</title>
+    <style>
+        body { font-family: sans-serif; margin: 0; background: #f4f4f4; color: #333; }
+        header { background: #455a64; color: white; padding: 15px; display: flex; align-items: center; }
+        .btn-back { background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; margin-right: 15px; }
+        .container { padding: 20px; max-width: 400px; margin: auto; }
+        
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
+        .input-group { margin-bottom: 25px; }
+        label { display: block; margin-bottom: 10px; font-weight: bold; color: #555; }
+        
+        input { 
+            width: 100%; padding: 15px; border: 2px solid #ddd; border-radius: 8px; 
+            font-size: 1.5rem; text-align: center; box-sizing: border-box; transition: 0.3s;
+        }
+        input:focus { border-color: #455a64; outline: none; background: #f0f4f5; }
+
+        .arrow { font-size: 2rem; color: #bbb; margin: 10px 0; }
+        
+        .info-table { 
+            margin-top: 20px; width: 100%; border-collapse: collapse; font-size: 0.85rem; color: #666;
+        }
+        .info-table td { padding: 5px; border-bottom: 1px solid #eee; text-align: left; }
+    </style>
+</head>
+<body>
+
+<header>
+    <button class="btn-back" onclick="location.href='index.html'">&lt;</button>
+    <h1 style="margin:0; font-size: 1.1rem;">Przelicznik Jednostek 75 Ω</h1>
+</header>
+
+<div class="container">
+    <div class="card">
+        <div class="input-group">
+            <label>Napięcie (dBµV)</label>
+            <input type="number" id="dbuv" placeholder="np. 60" oninput="convert('dbuv')">
+        </div>
+
+        <div class="arrow">⇅</div>
+
+        <div class="input-group">
+            <label>Moc (dBm)</label>
+            <input type="number" id="dbm" placeholder="np. -48" oninput="convert('dbm')">
+        </div>
+
+        <table class="info-table">
+            <tr><td>DVB-T2 min:</td><td>48 dBµV</td><td>-60 dBm</td></tr>
+            <tr><td>DVB-T2 max:</td><td>74 dBµV</td><td>-35 dBm</td></tr>
+            <tr><td>SAT min:</td><td>47 dBµV</td><td>-62 dBm</td></tr>
+            <tr><td>SAT max:</td><td>77 dBµV</td><td>-32 dBm</td></tr>
+        </table>
+    </div>
+</div>
+
+<script>
+    const OFFSET = 108.75; // Stała dla impedancji 75 Ohm
+
+    function convert(source) {
+        const dbuvInput = document.getElementById('dbuv');
+        const dbmInput = document.getElementById('dbm');
+
+        if (source === 'dbuv') {
+            const val = parseFloat(dbuvInput.value);
+            if (!isNaN(val)) {
+                dbmInput.value = (val - OFFSET).toFixed(2);
+            } else {
+                dbmInput.value = '';
+            }
+        } else {
+            const val = parseFloat(dbmInput.value);
+            if (!isNaN(val)) {
+                dbuvInput.value = (val + OFFSET).toFixed(2);
+            } else {
+                dbuvInput.value = '';
+            }
+        }
+    }
+</script>
+
+</body>
+</html>
