@@ -6,87 +6,71 @@
     <title>Biblioteka DVB-T</title>
     <link rel="stylesheet" href="../style.css">
     <style>
-        body {
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            background-color: #121212;
+        body { font-family: sans-serif; margin: 0; background: #f4f4f4; color: #333; }
+        header { background: #1a73e8; color: white; padding: 15px; display: flex; align-items: center; }
+        .btn-back { background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; margin-right: 15px; }
+        .container { padding: 10px; }
+        
+        .accordion { background: white; border-radius: 10px; margin-bottom: 10px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .acc-header { background: #1a73e8; color: white; padding: 15px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* Kluczowa zmiana: padding: 0, aby iframe wypełniał całą szerokość, oraz wysokość */
+        .acc-content { 
+            display: none; 
+            padding: 0; 
+            border-top: 1px solid #eee; 
+            height: 70vh; /* Ustawiamy stałą wysokość okna z tabelą */
         }
-        header { background: #1a73e8; color: white; padding: 10px; display: flex; align-items: center; z-index: 1000; }
-        .btn-back { background: none; border: none; color: white; font-size: 1.8rem; padding-right: 15px; cursor: pointer; }
-        h1 { font-size: 1.2rem; margin: 0; flex-grow: 1; text-align: center; margin-right: 30px; }
+        .acc-content.show { display: block; }
 
-        /* Styl paska zakładek */
-        .tabs-header {
-            display: flex;
-            background: #1e1e1e;
-            border-bottom: 2px solid #333;
-            overflow-x: auto; /* Przewijanie zakładek na małych ekranach */
-        }
-
-        .tab-btn {
-            flex: 1;
-            padding: 15px 5px;
-            border: none;
-            background: none;
-            color: #888;
-            font-weight: bold;
-            font-size: 0.85rem;
-            cursor: pointer;
-            white-space: nowrap;
-            border-bottom: 3px solid transparent;
-            transition: 0.3s;
-        }
-
-        .tab-btn.active {
-            color: #03dac6;
-            border-bottom: 3px solid #03dac6;
-            background: rgba(3, 218, 198, 0.05);
-        }
-
-        /* Kontener na zawartość */
-        .tab-content {
-            flex: 1;
-            width: 100%;
-            border: none;
-        }
-
-        iframe {
+        /* Styl dla iframe wewnątrz akordeonu */
+        .acc-content iframe {
             width: 100%;
             height: 100%;
             border: none;
+            display: block;
         }
     </style>
 </head>
 <body>
 
-   
 <header>
     <button class="btn-back" onclick="window.location.replace('../index.html')">&lt;</button>
-    <h1>Biblioteka DVB-T</h1>
+    <h1 style="margin:0; font-size: 1.1rem;">Biblioteka DVB-T</h1>
 </header>
 
-<div class="tabs-header">
-    <button class="tab-btn active" onclick="openTab(this, 'czestotliwosciDVBT.html')">CZĘSTOTLIWOŚCI</button>
-    <button class="tab-btn" onclick="openTab(this, 'muxy.html')">LISTA MUX</button>
-    <button class="tab-btn" onclick="openTab(this, 'Parametry-DVB-t.html')">PARAMETRY</button>
+<div class="container">
+    
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">CZĘSTOTLIWOŚCI (KANAŁY) <span>+</span></div>
+        <div class="acc-content">
+            <iframe src="docs/czestotliwosciDVBT.html"></iframe>
+        </div>
+    </div>
+
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">LISTA MUX-ÓW <span>+</span></div>
+        <div class="acc-content">
+            <iframe src="docs/muxy.html"></iframe>
+        </div>
+    </div>
+
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">PARAMETRY SYGNAŁU <span>+</span></div>
+        <div class="acc-content">
+            <iframe src="docs/Parametry-DVB-t.html"></iframe>
+        </div>
+    </div>
+
 </div>
 
-<iframe id="content-frame" src="czestotliwosciDVBT.html"></iframe>
-
 <script>
-    function openTab(btn, fileName) {
-        // Usuń klasę active ze wszystkich przycisków
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        
-        // Dodaj klasę active do klikniętego przycisku
-        btn.classList.add('active');
-        
-        // Zmień źródło iframe na wybrany plik
-        document.getElementById('content-frame').src = fileName;
+    function toggleAcc(header) {
+        const content = header.nextElementSibling;
+        const span = header.querySelector('span');
+        content.classList.toggle('show');
+        span.innerText = content.classList.contains('show') ? '−' : '+';
     }
 </script>
-
 </body>
 </html>

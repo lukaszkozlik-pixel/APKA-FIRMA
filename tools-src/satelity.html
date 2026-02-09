@@ -8,187 +8,198 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         body { margin: 0; font-family: sans-serif; background: #f4f4f4; display: flex; flex-direction: column; height: 100vh; }
-        header { background: #004ba0; color: white; padding: 10px; display: flex; align-items: center; z-index: 1000; }
-        .btn-back { background: none; border: none; color: white; font-size: 1.8rem; padding-right: 15px; cursor: pointer; }
-        h1 { font-size: 1.2rem; margin: 0; flex-grow: 1; text-align: center; margin-right: 30px; }
+        
+        /* POPRAWIONY NAGŁÓWEK - TYTUŁ NA ŚRODKU */
+        header { 
+            background: #004ba0; 
+            color: white; 
+            padding: 10px 15px; 
+            display: flex; 
+            align-items: center; 
+            position: relative; 
+            min-height: 50px;
+            z-index: 1000; 
+        }
+        .btn-back { 
+            background: none; 
+            border: none; 
+            color: white; 
+            font-size: 1.8rem; 
+            cursor: pointer; 
+            z-index: 2;
+            padding: 0;
+        }
+        h1 { 
+            font-size: 1.1rem; 
+            margin: 0; 
+            position: absolute; 
+            left: 0; 
+            right: 0; 
+            text-align: center; 
+            pointer-events: none; 
+        }
 
         #map { height: 35%; width: 100%; z-index: 1; border-bottom: 2px solid #ccc; }
         
         .list-container { flex: 1; overflow-y: auto; padding: 10px; }
         
         .sat-card {
-            background: white; margin-bottom: 10px; padding: 15px;
-            border-radius: 8px; display: grid; 
-            grid-template-columns: 1fr auto auto auto; /* 4 kolumny: nazwa, azymut, elewacja, skew */
-            gap: 12px; align-items: center; border-left: 5px solid #004ba0; cursor: pointer;
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 1px solid #ddd;
         }
 
-        /* Wyróżnienie Hotbirda i Astry */
-        .sat-card.top-sat {
-            background: #f0f7ff;
-            border-left-color: #1a73e8;
-            border-left-width: 8px;
-        }
+        .sat-card.active { border: 3px solid #00c853; background: #f1f8e9; }
+        .sat-info { display: flex; flex-direction: column; }
+        .sat-name { font-weight: bold; font-size: 1.1rem; color: #004ba0; }
+        .sat-pos { font-size: 0.8rem; color: #666; }
+        .sat-angles { margin-top: 5px; font-weight: bold; color: #333; }
+        .btn-line { 
+        background: #004ba0; 
+        color: white; 
+        border: none; 
+        padding: 12px 20px; /* Nieco większy dla wygody */
+        border-radius: 8px; 
+        font-weight: bold; 
+        font-size: 0.8rem;
+        cursor: pointer;
+        text-transform: uppercase;
+        transition: background 0.2s;
+    }
 
-        .sat-card.active { border-left-color: #00c853; background: #f1f8e9; }
-        
-        .val-box { text-align: center; min-width: 50px; }
-        .val-label { font-size: 0.65rem; color: #666; text-transform: uppercase; margin-bottom: 2px; }
-        .val-num { font-size: 1rem; font-weight: bold; color: #1a73e8; }
+.btn-line:active {
+    background: #00c853; /* Zmienia kolor na zielony w momencie kliknięcia */
+}
 
-        .phone-heading {
-            width: 0; height: 0;
-            border-left: 10px solid transparent; border-right: 10px solid transparent;
-            border-bottom: 20px solid #00c853; filter: drop-shadow(0 0 2px black);
-        }
-
-        /* Powiększenie przycisku warstw dla łatwiejszej obsługi palcem */
-        .leaflet-control-layers-toggle {
-            width: 44px !important;
-            height: 44px !important;
-            background-size: 26px 26px !important;
-        }
+/* Zmniejszenie i rozjaśnienie napisu na dole mapy */
+.leaflet-control-attribution {
+    font-size: 8px !important; /* Bardzo mały druk */
+    background: rgba(255, 255, 255, 0.5) !important; /* Przezroczyste tło */
+    max-width: 50%; /* Niech się zawija, zamiast lecieć przez cały ekran */
+}
     </style>
 </head>
-<body>
+<body onload="initMap()">
 
 <header>
     <button class="btn-back" onclick="window.location.replace('../index.html')">&lt;</button>
-    <h1>Ustawianie Satelity</h1>
+    <h1>Kierunki Satelit</h1>
 </header>
 
 <div id="map"></div>
 
-<div class="list-container" id="sat-list">
-    <div style="padding: 20px; text-align: center;">Szukam pozycji GPS...</div>
-</div>
+<div class="list-container" id="satList">
+    </div>
 
 <script>
-    let map, userMarker, headingMarker, currentLine;
+    let map, userMarker, currentLine;
     let userCoords = null;
 
     const satellites = [
-        { name: "Hotbird 13.0°E", lon: 13.0, top: true },
-        { name: "Astra 19.2°E", lon: 19.2, top: true },
-        { name: "Eutelsat 16.0°E", lon: 16.0 },
-        { name: "Eutelsat 9.0°E", lon: 9.0 },
-        { name: "Astra 4.8°E", lon: 4.8 },
-        { name: "Astra 28.2°E", lon: 28.2 },
+        { name: "Hotbird 13°E", lon: 13.0 },
+        { name: "Astra 19.2°E", lon: 19.2 },
+        { name: "Astra 23.5°E", lon: 23.5 },
         { name: "Thor 0.8°W", lon: -0.8 },
-        { name: "Amos 4.0°W", lon: -4.0 },
-        { name: "Hispasat 30.0°W", lon: -30.0 }
+        { name: "Hispasat 30°W", lon: -30.0 }
     ];
 
-    document.addEventListener("deviceready", () => {
-        navigator.geolocation.watchPosition(updatePos, err => console.error(err), { enableHighAccuracy: true });
-    }, false);
-
-    window.onload = () => { if(!window.cordova) navigator.geolocation.watchPosition(updatePos); };
-
-    function initMap(lat, lon) {
-        // 1. Inicjalizacja mapy
-        map = L.map('map').setView([lat, lon], 17);
-
-        // 2. Definicja warstw
-        const streetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    function initMap() {
+        // Definicja warstwy standardowej
+        const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
             attribution: '© OpenStreetMap'
         });
 
-        const satMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            attribution: 'Tiles &copy; Esri'
+        // Definicja warstwy satelitarnej (Esri World Imagery)
+        const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EBP, and the GIS User Community'
         });
 
-        // 3. Dodanie domyślnej warstwy i przełącznika
-        streetMap.addTo(map);
+        // Inicjalizacja mapy z domyślną warstwą satelitarną (lepsza dla instalatora)
+        map = L.map('map', {
+            center: [52.23, 21.01],
+            zoom: 6,
+            layers: [osm] // Satelita jako startowy widok
+        });
+
+        // Dodanie przełącznika w prawym górnym rogu
         const baseMaps = {
-            "Mapa": streetMap,
-            "Satelita": satMap
+            "Satelita": satellite,
+            "Mapa": osm
         };
         L.control.layers(baseMaps).addTo(map);
 
-        // 4. Markery użytkownika i kierunku
-        userMarker = L.circleMarker([lat, lon], { color: '#1a73e8', radius: 8, fillOpacity: 1 }).addTo(map);
-        
-        const headingIcon = L.divIcon({
-            className: 'phone-heading-wrapper',
-            html: '<div class="phone-heading" id="phone-arrow"></div>',
-            iconSize: [20, 20],
-            iconAnchor: [10, 10]
-        });
-        headingMarker = L.marker([lat, lon], { icon: headingIcon }).addTo(map);
+        // 2. POBIERANIE LOKALIZACJI W TLE
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(position => {
+                userCoords = [position.coords.latitude, position.coords.longitude];
+                
+                map.setView(userCoords, 17);
+                
+                if (userMarker) map.removeLayer(userMarker);
+                userMarker = L.marker(userCoords).addTo(map)
+                    .bindPopup("Twoja pozycja");
+                
+                displaySatellites();
+            }, () => {
+                document.getElementById('satList').innerHTML = "<p style='text-align:center; padding:20px;'>Błąd GPS. Włącz lokalizację w telefonie.</p>";
+            }, { enableHighAccuracy: true });
+        }
     }
 
-    function updatePos(pos) {
-        userCoords = [pos.coords.latitude, pos.coords.longitude];
-        if (!map) {
-            initMap(userCoords[0], userCoords[1]);
-        } else {
-            userMarker.setLatLng(userCoords);
-            headingMarker.setLatLng(userCoords);
-        }
-        renderSatList();
-    }
-
-    window.addEventListener('deviceorientationabsolute', e => {
-        let heading = e.alpha || e.webkitCompassHeading;
-        if (heading !== undefined) {
-            const arrow = document.getElementById('phone-arrow');
-            if (arrow) arrow.style.transform = `rotate(${heading}deg)`;
-        }
-    }, true);
-
-    function renderSatList() {
-        const list = document.getElementById("sat-list");
-        if (!userCoords) return;
+    function displaySatellites() {
+        const list = document.getElementById('satList');
         list.innerHTML = "";
 
-        const sortedSats = [...satellites].sort((a, b) => {
-            if (a.top && !b.top) return -1;
-            if (!a.top && b.top) return 1;
-            return 0;
-        });
-
-        sortedSats.forEach(sat => {
+        satellites.forEach(sat => {
             const az = calculateAzimuth(userCoords[0], userCoords[1], sat.lon);
             const el = calculateElevation(userCoords[0], userCoords[1], sat.lon);
-            const sk = calculateSkew(userCoords[0], userCoords[1], sat.lon);
-
-            const card = document.createElement('div');
-            card.className = 'sat-card' + (sat.top ? ' top-sat' : '');
             
-            card.onclick = () => drawSatLine(az, card);
+            const card = document.createElement('div');
+            card.className = 'sat-card';
             card.innerHTML = `
-                <div style="font-weight:bold;">${sat.name}</div>
-                <div class="val-box"><div class="val-label">Azymut</div><div class="val-num">${az}°</div></div>
-                <div class="val-box"><div class="val-label">Elewacja</div><div class="val-num">${el}°</div></div>
-                <div class="val-box"><div class="val-label">Skew</div><div class="val-num">${sk}°</div></div>
+                <div class="sat-info">
+                    <span class="sat-name">${sat.name}</span>
+                    <span class="sat-pos">Pozycja: ${sat.lon}°</span>
+                    <span class="sat-angles">Azymut: ${az}° | Elewacja: ${el}°</span>
+                </div>
+                <button class="btn-line" onclick="drawLine(${az}, this)">WYBIERZ</button>
             `;
             list.appendChild(card);
         });
     }
 
-    function drawSatLine(az, card) {
+    function drawLine(az, btn) {
+        if (!userCoords) return;
+
         document.querySelectorAll('.sat-card').forEach(c => c.classList.remove('active'));
-        card.classList.add('active');
+        btn.parentElement.classList.add('active');
+
         if (currentLine) map.removeLayer(currentLine);
-    
+
         const angleRad = (az - 90) * Math.PI / 180;
         const d = 0.005; 
         const endPoint = [
             userCoords[0] - d * Math.sin(angleRad), 
             userCoords[1] + d * Math.cos(angleRad)
         ];
-    
+
         currentLine = L.polyline([userCoords, endPoint], { 
             color: '#00c853', 
-            weight: 5, 
+            weight: 6, 
             dashArray: '5, 10' 
         }).addTo(map);
-    
+
         map.setView(userCoords, 17);
     }
 
+    // Obliczenia trygonometryczne
     function calculateAzimuth(lat, lon, satLon) {
         const phi = lat * Math.PI / 180;
         const dL = (lon - satLon) * Math.PI / 180;
@@ -201,19 +212,12 @@
         const dL = (lon - satLon) * Math.PI / 180;
         const R = 6371; 
         const r = 42164; 
-        
-        const num = Math.cos(phi) * Math.cos(dL) - (R / r);
+        const num = Math.cos(phi) * Math.cos(dL) - (R/r);
         const den = Math.sqrt(1 - Math.pow(Math.cos(phi) * Math.cos(dL), 2));
-        const el = Math.atan(num / den);
+        const el = Math.atan2(num, den);
         return Math.round(el * 180 / Math.PI);
     }
-
-    function calculateSkew(lat, lon, satLon) {
-        const phi = lat * Math.PI / 180;
-        const dL = (lon - satLon) * Math.PI / 180;
-        const skewRad = Math.atan(Math.sin(dL) / Math.tan(phi));
-        return Math.round(skewRad * 180 / Math.PI);
-    }
 </script>
+
 </body>
 </html>

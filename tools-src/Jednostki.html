@@ -6,8 +6,37 @@
     <title>Przelicznik dBµV / dBm</title>
     <style>
         body { font-family: sans-serif; margin: 0; background: #f4f4f4; color: #333; }
-        header { background: #455a64; color: white; padding: 15px; display: flex; align-items: center; }
-        .btn-back { background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; margin-right: 15px; }
+header {
+    background: #455a64;
+    color: white;
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+    position: relative; /* Pozwala na centrowanie h1 względem całego paska */
+    min-height: 50px;
+    box-sizing: border-box;
+}
+
+.btn-back {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    z-index: 2; /* Musi być nad tekstem, by dało się go kliknąć */
+    padding: 0;
+    margin: 0;
+}
+
+h1 {
+    font-size: 1.1rem;
+    margin: 0;
+    position: absolute; /* Wyrywamy tytuł z układu flex */
+    left: 0;
+    right: 0;
+    text-align: center; /* Centrujemy tekst na całej szerokości header */
+    pointer-events: none; /* Sprawia, że h1 nie blokuje kliknięć w przycisk pod nim */
+}
         .container { padding: 20px; max-width: 400px; margin: auto; }
         
         .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }

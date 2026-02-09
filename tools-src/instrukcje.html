@@ -6,52 +6,111 @@
     <title>Instrukcje Dekoderów</title>
     <link rel="stylesheet" href="../style.css">
     <style>
-        body { background-color: #121212; margin: 0; font-family: sans-serif; }
-        .search-box {
-            padding: 15px;
-            background: #1e1e1e;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-        #searchInput {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #333;
-            background: #2c2c2c;
-            color: white;
-            font-size: 1rem;
-        }
+        /* --- JASNY MOTYW DLA MODUŁU INSTRUKCJI --- */
+    body { 
+        background-color: #f4f4f4; /* Jasnoszare tło strony dla kontrastu z białymi kartami */
+        margin: 0; 
+        font-family: -apple-system, sans-serif; 
+        color: #333;
+    }
 
-        header { background: #1a73e8; color: white; padding: 10px; display: flex; align-items: center; z-index: 1000; }
-        .btn-back { background: none; border: none; color: white; font-size: 1.8rem; padding-right: 15px; cursor: pointer; }
-        h1 { font-size: 1.2rem; margin: 0; flex-grow: 1; text-align: center; margin-right: 30px; }
-        
-        .instruction-list { padding: 10px; }
-        .inst-card {
-            background: #1e1e1e;
-            margin-bottom: 10px;
-            padding: 15px;
-            border-radius: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-left: 5px solid #6200ee;
-            text-decoration: none;
-            color: inherit;
-        }
-        .inst-info { flex-grow: 1; }
-        .inst-title { font-weight: bold; color: #e0e0e0; margin-bottom: 5px; }
-        .inst-type { font-size: 0.8rem; color: #888; text-transform: uppercase; }
-        .btn-view {
-            background: #6200ee;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 5px;
-            font-size: 0.8rem;
-            font-weight: bold;
-        }
+    /* Pasek wyszukiwania */
+    .search-box {
+        padding: 15px;
+        background: #ffffff;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    #searchInput {
+        width: 100%;
+        padding: 12px;
+        border-radius: 10px;
+        border: 1px solid #e0e0e0;
+        background: #f9f9f9;
+        color: #333;
+        font-size: 1rem;
+        outline: none;
+        transition: border-color 0.3s;
+    }
+
+    #searchInput:focus {
+        border-color: #1a73e8; /* Niebieski focus przy wpisywaniu */
+    }
+
+    /* Styl nagłówka apki */
+    header { 
+        background: #1a73e8; 
+        color: white; 
+        padding: 10px; 
+        display: flex; 
+        align-items: center; 
+        z-index: 1000; 
+    }
+
+    .btn-back { 
+        background: none; 
+        border: none; 
+        color: white; 
+        font-size: 1.8rem; 
+        padding-right: 15px; 
+        cursor: pointer; 
+    }
+
+    h1 { font-size: 1.2rem; margin: 0; flex-grow: 1; text-align: center; margin-right: 30px; }
+
+    /* Kontener kart */
+    .instruction-list { padding: 10px; }
+
+    /* Styl karty instrukcji */
+    .inst-card {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-decoration: none;
+        color: inherit;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        border: 1px solid #eee;
+        transition: transform 0.2s;
+    }
+
+    .inst-card:active {
+        transform: scale(0.98); /* Efekt kliknięcia na telefonie */
+        background: #f0f7ff;
+    }
+
+    /* Info o instrukcji */
+    .inst-title {
+        font-weight: bold;
+        font-size: 1rem;
+        color: #1a73e8; /* Niebieskie tytuły */
+        margin-bottom: 4px;
+    }
+
+    .inst-type {
+        font-size: 0.75rem;
+        color: #777;
+        text-transform: uppercase;
+        font-weight: bold;
+        letter-spacing: 0.5px;
+    }
+
+    /* Przycisk akcji na karcie */
+    .btn-view {
+        background: #f0f4f8;
+        color: #1a73e8;
+        padding: 8px 15px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: bold;
+        border: 1px solid #d0e0f0;
+    }
     </style>
 </head>
 <body>

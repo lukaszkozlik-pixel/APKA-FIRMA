@@ -4,71 +4,85 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta charset="UTF-8">
 <style>
-    /* --- CIEMNY MOTYW --- */
+
+
+    /* --- JASNY MOTYW DLA PARAMETRÓW SAT --- */
     body {
         font-family: sans-serif;
         padding: 10px;
         margin: 0;
-        background-color: #121212; /* Bardzo ciemne tło całej strony */
-        color: #e0e0e0; /* Jasnoszary kolor tekstu głównego */
+        background-color: #ffffff; /* Białe tło strony */
+        color: #333333; /* Ciemnoszary tekst główny */
     }
     
-    /* Kontener tabeli */
+    /* Kontener tabeli z delikatnym cieniem */
     .table-wrapper {
-        overflow-x: auto;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.5); /* Mocniejszy cień */
+        overflow-x: auto; /* Przewijanie na telefonach */
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         border-radius: 8px;
-        background-color: #1e1e1e; /* Ciemnoszare tło "karty" z tabelą */
-        border: 1px solid #333;
+        background-color: #ffffff;
+        border: 1px solid #e0e0e0;
     }
 
     table {
         width: 100%;
         border-collapse: collapse;
-        min-width: 500px; /* Wymusza przewijanie na wąskich ekranach */
+        min-width: 550px; /* Zapobiega ściskaniu kolumn */
     }
 
     th, td {
-        padding: 12px 8px;
+        padding: 12px 10px;
         text-align: left;
-        border-bottom: 1px solid #333; /* Ciemne linie oddzielające */
+        border-bottom: 1px solid #eeeeee;
         font-size: 14px;
     }
 
-    /* Styl nagłówka */
+    /* Styl nagłówka spójny z resztą apki */
     thead tr {
-        background-color: #2c2c2c; /* Trochę jaśniejszy nagłówek */
-        color: #ffffff; /* Biały tekst w nagłówku */
+        background-color: #f5f5f5;
+        color: #004ba0; /* Ciemniejszy niebieski z nagłówka SAT */
         font-weight: bold;
-        border-bottom: 2px solid #444;
+        border-bottom: 2px solid #004ba0;
     }
 
     th {
         white-space: nowrap;
+        text-transform: uppercase;
+        font-size: 12px;
+        letter-spacing: 0.5px;
     }
 
-    /* Pasiasty wzór dla lepszej czytelności (ciemny) */
+    /* Paski dla lepszej czytelności (jasna zebra) */
     tbody tr:nth-of-type(even) {
-        background-color: #252525; /* Naprzemienne ciemniejsze tło wierszy */
+        background-color: #fafafa;
     }
     
-    tbody tr:hover {
-        background-color: #303030; /* Lekkie podświetlenie wiersza przy dotknięciu */
+    /* Podświetlenie wiersza przy kliknięciu */
+    tbody tr:active {
+        background-color: #f0f4f8;
     }
 
-    /* Wyróżnienie pierwszej kolumny */
+    /* Wyróżnienie pierwszej kolumny (Pasmo) */
     td:first-child {
         font-weight: bold;
-        color: #ffffff; /* Biały tekst w pierwszej kolumnie */
+        color: #333333;
     }
     
-    /* Kolor dla 22kHz - jaśniejszy czerwony/różowy dla kontrastu */
+    /* Styl dla polaryzacji (Pozioma/Pionowa) */
+    .pol-h { color: #1565c0; font-weight: bold; } /* Niebieski dla poziomej */
+    .pol-v { color: #d32f2f; font-weight: bold; } /* Czerwony dla pionowej */
+
+    /* Styl dla sygnału 22kHz */
     .tone {
-        color: #ff8a80; 
+        color: #e65100; /* Pomarańczowy/Rdzawy dla wyróżnienia */
         font-weight: bold;
-        font-size: 0.9em;
-        display: block; /* Ładnie układa się pod napięciem */
+        font-size: 0.85em;
+        display: block;
         margin-top: 4px;
+        background: #fff3e0;
+        padding: 2px 4px;
+        border-radius: 4px;
+        text-align: center;
     }
 </style>
 </head>

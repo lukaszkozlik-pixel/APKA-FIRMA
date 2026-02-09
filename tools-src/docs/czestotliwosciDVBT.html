@@ -5,62 +5,81 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         * { box-sizing: border-box; }
-        body {
-            font-family: sans-serif;
-            background-color: #121212;
-            color: #E0E0E0;
-            margin: 0;
-            padding: 10px;
-        }
+body {
+    background-color: #ffffff; /* Czyste białe tło */
+    color: #333333;
+    font-family: sans-serif;
+    margin: 0;
+    padding: 10px;
+}
 
-        .wrapper {
-            width: 100%;
-            border: 1px solid #333;
-            border-radius: 8px;
-            background-color: #1E1E1E;
-            overflow: hidden;
-        }
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+}
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
-        }
+thead th {
+    background-color: #f5f5f5; /* Delikatne szare tło nagłówka */
+    color: #1a73e8; /* Twój główny niebieski kolor z apki */
+    text-align: left;
+    padding: 12px;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    border-bottom: 2px solid #1a73e8;
+}
 
-        thead th {
-            background-color: #2C2C2C;
-            color: #FFFFFF;
-            padding: 12px 10px;
-            text-align: left;
-            font-size: 15px;
-            border-bottom: 2px solid #444;
-        }
+td {
+    padding: 12px;
+    border-bottom: 1px solid #eeeeee;
+    vertical-align: middle;
+}
 
-        /* STAŁA SZEROKOŚĆ PIERWSZEJ KOLUMNY */
-        th:nth-child(1), td:nth-child(1) { width: 60px; text-align: center; }
-        th:nth-child(2), td:nth-child(2) { width: 120px; }
+tr:nth-child(even) {
+    background-color: #fafafa; /* Bardzo jasny pasek dla czytelności */
+}
 
-        td {
-            padding: 10px;
-            font-size: 13px;
-            border-bottom: 1px solid #333;
-            vertical-align: top;
-        }
+/* Styl numeru kanału */
+.ch-num {
+    font-weight: bold;
+    color: #d32f2f; /* Ciemniejszy czerwony/pomarańczowy dla kontrastu na jasnym */
+    font-size: 1.1rem;
+}
 
-        tr:nth-child(even) { background-color: #252525; }
+/* Styl częstotliwości (MHz) */
+.freq {
+    font-weight: bold;
+    color: #000000;
+    font-size: 1.1rem;
+}
 
-        .block { display: block; margin-bottom: 2px; }
-        
-        .ch-num {
-            font-weight: bold;
-            color: #FFFF00; /* Żółty HEX */
-            font-size: 1.2em;
-        }
+/* Etykiety VHF/UHF - wyraźniejsze na jasnym tle */
+.labelvhf {
+    font-size: 0.75rem;
+    color: #2e7d32; /* Ciemniejsza zieleń */
+    background: #e8f5e9;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+}
 
-        .freq { font-size: 1.4em; font-weight: bold; color: #FFFFFF; }
-        .labelvhf { font-size: 0.80em; color: #00ff00; text-transform: uppercase; }
-        .label { font-size: 0.80em; color: #006ee6; text-transform: uppercase; }
-        .range { color: #90CAF9; font-size: 1.1em; }
+.label {
+    font-size: 0.75rem;
+    color: #1565c0; /* Głęboki niebieski */
+    background: #e3f2fd;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+/* Nazwa MUXa */
+.range {
+    color: #555555;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
     </style>
 </head>
 <body>

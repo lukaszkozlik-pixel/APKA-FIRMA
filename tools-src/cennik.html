@@ -92,7 +92,7 @@
                 <button id="btn-submit" class="btn-done" onclick="showSummary()" disabled style="opacity: 0.5;">GOTOWE</button>
             </div>
             </div>
-        </div>
+        
         <div id="modal-custom" class="modal">
             <div class="modal-content">
                 <h3>Własna usługa</h3>
@@ -360,7 +360,7 @@
 
             let text = "--- RACHUNEK ZA MONTAŻ ---\n";
             text += `Data: ${dateStr}\n\n`;
-            text += `--------------------------`;
+            text += `--------------------------\n\n`;
 
             selectedItems.forEach((item, index) => {
                 // Obliczamy cenę za daną pozycję

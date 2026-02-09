@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -6,80 +7,72 @@
     <title>Biblioteka SAT</title>
     <link rel="stylesheet" href="../style.css">
     <style>
-        body {
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            background-color: #121212;
+        body { font-family: sans-serif; margin: 0; background: #f4f4f4; }
+        header { background: #004ba0; color: white; padding: 15px; display: flex; align-items: center; }
+        .btn-back { background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; margin-right: 15px; }
+        .container { padding: 10px; }
+        
+        .accordion { background: white; border-radius: 10px; margin-bottom: 10px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .acc-header { background: #004ba0; color: white; padding: 15px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .acc-content { 
+            display: none; 
+            padding: 0;             /* Usuwamy marginesy, by iframe wypełnił całą szerokość */
+            border-top: 1px solid #eee; 
+            background: #ffffff;    /* Zmieniamy tło z ciemnego na białe */
+            color: #333;            /* Zmieniamy kolor tekstu na ciemny */
+            height: 60vh;           /* Wysokość okna dla tabeli (70% ekranu) */
         }
-        header { background: #1a73e8; color: white; padding: 10px; display: flex; align-items: center; z-index: 1000; }
-        .btn-back { background: none; border: none; color: white; font-size: 1.8rem; padding-right: 15px; cursor: pointer; }
-        h1 { font-size: 1.2rem; margin: 0; flex-grow: 1; text-align: center; margin-right: 30px; }
-
-        /* Pasek zakładek */
-        .tabs-header {
-            display: flex;
-            background: #1e1e1e;
-            border-bottom: 2px solid #333;
-            overflow-x: auto;
-        }
-
-        .tab-btn {
-            flex: 1;
-            padding: 15px 5px;
-            border: none;
-            background: none;
-            color: #888;
-            font-weight: bold;
-            font-size: 0.85rem;
-            cursor: pointer;
-            white-space: nowrap;
-            border-bottom: 3px solid transparent;
-            transition: 0.3s;
-        }
-
-        .tab-btn.active {
-            color: #03dac6;
-            border-bottom: 3px solid #03dac6;
-            background: rgba(3, 218, 198, 0.05);
-        }
-
-        .tab-content {
-            flex: 1;
-            width: 100%;
-            border: none;
-        }
-
-        iframe {
+        .acc-content.show { display: block; }
+        /* Styl dla samego iframe, aby wypełnił blok akordeonu */
+        .acc-content iframe {
             width: 100%;
             height: 100%;
             border: none;
+            display: block;
         }
+
+       
     </style>
 </head>
 <body>
 
 <header>
     <button class="btn-back" onclick="window.location.replace('../index.html')">&lt;</button>
-    <h1>Biblioteka SAT</h1>
+    <h1 style="margin:0; font-size: 1.1rem;">Biblioteka SAT</h1>
 </header>
 
-<div class="tabs-header">
-    <button class="tab-btn active" onclick="openTab(this, 'kolorySat.html')">KOLORY KABLI</button>
-    <button class="tab-btn" onclick="openTab(this, 'ParametrySAT.html')">PASMA / LNB</button>
-    <button class="tab-btn" onclick="openTab(this, 'UnicablePB.html')">UNICABLE (UB)</button>
+<div class="container">
+
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">Parametry SAT <span>+</span></div>
+        <div class="acc-content">
+           <iframe id="content-frame" src="docs/ParametrySAT.html"></iframe>
+        </div>
+    </div>
+    
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">KOLORY KABLI (QUATTRO) <span>+</span></div>
+        <div class="acc-content">
+            <iframe id="content-frame" src="docs/kolorySat.html"></iframe>
+        </div>
+    </div>
+
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">UNICABLE (USER BANDS) <span>+</span></div>
+        <div class="acc-content">
+           <iframe id="content-frame" src="docs/UnicablePB.html"></iframe>
+        </div>
+    </div>
+
 </div>
 
-<iframe id="content-frame" src="kolorySat.html"></iframe>
-
 <script>
-    function openTab(btn, fileName) {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById('content-frame').src = fileName;
+    function toggleAcc(header) {
+        const content = header.nextElementSibling;
+        const span = header.querySelector('span');
+        content.classList.toggle('show');
+        span.innerText = content.classList.contains('show') ? '−' : '+';
     }
 </script>
-
 </body>
 </html>

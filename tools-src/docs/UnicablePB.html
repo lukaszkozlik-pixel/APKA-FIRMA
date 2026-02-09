@@ -4,21 +4,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta charset="UTF-8">
 <style>
-    /* --- CIEMNY MOTYW --- */
+ 
+    /* --- JASNY MOTYW DLA UNICABLE (USER BANDS) --- */
     body {
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
         padding: 10px;
         margin: 0;
-        background-color: #121212;
-        color: #e0e0e0;
+        background-color: #ffffff; /* Jasne tło */
+        color: #333333;
     }
     
+    /* Kontener tabeli z delikatnym cieniem */
     .table-wrapper {
         overflow-x: auto;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         border-radius: 8px;
-        background-color: #1e1e1e;
-        border: 1px solid #333;
+        background-color: #ffffff;
+        border: 1px solid #e0e0e0;
     }
 
     table {
@@ -29,64 +31,69 @@
 
     th, td {
         padding: 12px 8px;
-        text-align: center; /* Wyśrodkowanie dla lepszego porównania */
-        border-bottom: 1px solid #333;
+        text-align: center;
+        border-bottom: 1px solid #eeeeee;
         font-size: 14px;
         vertical-align: middle;
     }
 
-    /* Nagłówek */
+    /* Nagłówek spójny z niebieskim motywem SAT */
     thead tr {
-        background-color: #2c2c2c;
-        color: #ffffff;
+        background-color: #f5f5f5;
+        color: #004ba0; /* Niebieski SAT */
         font-weight: bold;
-        border-bottom: 2px solid #555;
+        border-bottom: 2px solid #004ba0;
     }
 
     th {
         white-space: nowrap;
     }
 
+    /* Paski dla lepszej orientacji w rzędach */
     tbody tr:nth-of-type(even) {
-        background-color: #252525;
+        background-color: #fafafa;
     }
     
-    tbody tr:hover {
-        background-color: #303030;
+    /* Podświetlenie przy dotknięciu na telefonie */
+    tbody tr:active {
+        background-color: #f0f4f8;
     }
 
-    /* Kolumna 1: Kanał (UB) */
+    /* Kolumna 1: Kanał (UB) - wyraźny numer */
     td:nth-child(1) {
         font-weight: bold;
-        color: #90caf9; 
+        color: #1a73e8; 
         width: 15%;
         text-align: left;
         padding-left: 15px;
     }
 
-    /* Kolumna 2: Polsat Box / Inverto (Wyróżniona) */
+    /* Kolumna 2: Polsat Box / Inverto (Główna) */
     td:nth-child(2) {
         font-weight: bold;
-        color: #a5d6a7; /* Zielonkawy - sugeruje "Ten właściwy" dla Polsatu */
-        background-color: rgba(46, 125, 50, 0.1); /* Lekkie tło */
+        color: #2e7d32; /* Ciemniejsza zieleń */
+        background-color: #f1f8e9; /* Bardzo jasne zielone tło wyróżniające tę kolumnę */
     }
 
-    /* Kolumna 3: Inne / GT-Sat */
+    /* Kolumna 3: Standard / Inne */
     td:nth-child(3) {
-        color: #bdbdbd; /* Szary - sugeruje alternatywę */
+        color: #757575; /* Szary dla alternatywy */
     }
 
-    /* Klasa dla różnic */
+    /* Klasa dla różnic - kolor pomarańczowy, by ostrzec o innej częstotliwości */
     .diff {
-        color: #ffcc80; /* Pomarańczowy, gdy częstotliwości są inne */
+        color: #e65100 !important; 
+        font-weight: bold;
     }
     
+    /* Małe dopiski pod nagłówkami */
     .note {
         display: block;
-        font-size: 0.7em;
-        opacity: 0.6;
+        font-size: 0.75rem;
+        color: #666;
         margin-top: 2px;
         font-weight: normal;
+        text-transform: none;
     }
 
 </style>
