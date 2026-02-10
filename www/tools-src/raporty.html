@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Raporty Instalacyjne</title>
+    <style>
+        :root {
+            --primary: #1a73e8;
+            --bg: #f8f9fa;
+            --text: #202124;
+            --success: #34a853;
+            --danger: #ea4335;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            line-height: 1.5;
+        }
+
+        /* NAGŁÓWEK Z CENNIKA */
+        header {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            background: var(--primary);
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.3rem;
+            flex-grow: 1;
+            text-align: center;
+            margin-right: 40px;
+        }
+
+        .btn-back {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.8rem;
+            padding: 5px 15px 5px 0;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        /* PASEK WYSZUKIWANIA */
+        .search-container {
+            padding: 15px 15px 5px 15px;
+            background: var(--bg);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        /* LISTA RAPORTÓW */
+        #reportsList {
+            padding: 15px;
+            padding-bottom: 100px;
+        }
+
+        .report-card {
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .report-info div { font-weight: bold; font-size: 16px; color: #333; }
+        .report-info span { font-size: 12px; color: #777; }
+
+        .report-actions-row {
+            display: flex;
+            gap: 10px;
+            border-top: 1px solid #f1f1f1;
+            padding-top: 12px;
+            margin-top: 12px;
+        }
+
+        .btn-view {
+            flex: 1;
+            background: white;
+            color: var(--primary);
+            border: 1.5px solid var(--primary);
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        .btn-delete {
+            background: #fff5f5;
+            color: var(--danger);
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+        }
+
+        /* PŁYWAJĄCY PRZYCISK (FAB) */
+        .fab {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            width: 60px;
+            height: 60px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 35px;
+            box-shadow: 0 4px 15px rgba(26, 115, 232, 0.4);
+            border: none;
+            z-index: 500;
+        }
+
+        /* MODALE I FORMULARZE */
+        #formOverlay, #previewModal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: white;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .overlay-header {
+            background: var(--primary);
+            color: white;
+            padding: 15px;
+            font-size: 1.2rem;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .form-container, #previewContent { padding: 20px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 11px; font-weight: bold; color: #888; text-transform: uppercase; margin-bottom: 6px; }
+        
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+
+        .preview-photo { width: 100%; border-radius: 4px; margin-top: 15px; border: 1px solid #eee; }
+        
+        .sticky-bottom-actions {
+            padding: 20px;
+            background: #f8f9fa;
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-save { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 10px; font-weight: bold; flex: 2; }
+        .btn-cancel { background: #eee; color: #444; border: none; padding: 16px; border-radius: 10px; font-weight: bold; flex: 1; }
+    </style>
+</head>
+<body>
+
+<header>
+    <button class="btn-back" onclick="window.location.replace('../index.html')">&lt;</button>
+    <h1>Raporty Instalacyjne</h1>
+</header>
+
+<div class="search-container">
+    <input type="text" id="searchInput" class="search-input" placeholder="🔍 Szukaj adresu lub klienta..." oninput="loadReports()">
+</div>
+
+<div id="reportsList"></div>
+
+<button class="fab" onclick="openForm()">+</button>
+
+<div id="formOverlay">
+    <div class="overlay-header">Nowy Raport</div>
+    <div class="form-container">
+        <div class="form-group">
+            <label>Lokalizacja / Adres</label>
+            <input type="text" id="reportAddress" placeholder="Wpisz adres">
+        </div>
+        <div class="form-group">
+            <label>Opis prac</label>
+            <textarea id="reportText" rows="10" placeholder="Co zostało zrobione?"></textarea>
+        </div>
+        <div class="form-group">
+            <label>Zdjęcia</label>
+            <input type="file" id="reportImages" accept="image/*" multiple>
+        </div>
+        <div class="sticky-bottom-actions" style="padding:0; background:transparent;">
+            <button class="btn-cancel" onclick="closeForm()">ANULUJ</button>
+            <button class="btn-save" id="saveBtn" onclick="saveReport()">ZAPISZ RAPORT</button>
+        </div>
+    </div>
+</div>
+
+<div id="previewModal">
+    <div id="previewContent"></div>
+    <div class="sticky-bottom-actions">
+        <button class="btn-save" onclick="closePreview()" style="flex: 1; background: #eee; color: #444;">WRÓĆ DO LISTY</button>
+    </div>
+</div>
+
+<script>
+    let db;
+    let selectedReportId = null;
+    const dbName = "AntenaReportsDB";
+
+    // INICJALIZACJA BAZY INDEXED DB
+    const request = indexedDB.open(dbName, 1);
+    request.onupgradeneeded = (e) => {
+        db = e.target.result;
+        if (!db.objectStoreNames.contains("raporty")) {
+            db.createObjectStore("raporty", { keyPath: "id" });
+        }
+    };
+    request.onsuccess = (e) => { 
+        db = e.target.result; 
+        loadReports(); 
+    };
+
+    function openForm() { document.getElementById('formOverlay').style.display = 'block'; }
+    function closeForm() { document.getElementById('formOverlay').style.display = 'none'; }
+
+    // SKALOWANIE ZDJĘCIA (MAX 1200px)
+    function processImage(file) {
+        return new Promise((res) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (ev) => {
+                const img = new Image();
+                img.src = ev.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 1200;
+                    let width = img.width;
+                    let height = img.height;
+                    if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                    canvas.width = width; canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    res(canvas.toDataURL('image/jpeg', 0.7));
+                };
+            };
+        });
+    }
+
+    async function saveReport() {
+        const addr = document.getElementById('reportAddress').value;
+        const txt = document.getElementById('reportText').value;
+        const files = document.getElementById('reportImages').files;
+        if (!txt && !addr) return;
+
+        const btn = document.getElementById('saveBtn');
+        btn.disabled = true; btn.innerText = "ZAPISYWANIE...";
+
+        const images = [];
+        for (let f of files) { images.push(await processImage(f)); }
+
+        const report = {
+            id: Date.now(),
+            timestamp: new Date().toLocaleString('pl-PL'),
+            address: addr,
+            text: txt,
+            images: images
+        };
+
+        const transaction = db.transaction(["raporty"], "readwrite");
+        transaction.objectStore("raporty").add(report);
+        transaction.oncomplete = () => {
+            btn.disabled = false; btn.innerText = "ZAPISZ RAPORT";
+            document.getElementById('reportAddress').value = '';
+            document.getElementById('reportText').value = '';
+            document.getElementById('reportImages').value = '';
+            closeForm();
+            loadReports();
+        };
+    }
+
+    function loadReports() {
+        const container = document.getElementById('reportsList');
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        container.innerHTML = "";
+
+        const transaction = db.transaction(["raporty"], "readonly");
+        const store = transaction.objectStore("raporty");
+        const request = store.getAll();
+
+        request.onsuccess = () => {
+            let reports = request.result.reverse();
+            
+            // FILTROWANIE
+            if (searchTerm) {
+                reports = reports.filter(r => 
+                    (r.address && r.address.toLowerCase().includes(searchTerm)) || 
+                    (r.text && r.text.toLowerCase().includes(searchTerm))
+                );
+            }
+
+            if (reports.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:50px; color:#aaa;">Brak wyników.</div>';
+                return;
+            }
+
+            reports.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'report-card';
+                card.innerHTML = `
+                    <div class="report-info">
+                        <div>${item.address || 'Brak tytułu'}</div>
+                        <span>📅 ${item.timestamp}</span>
+                    </div>
+                    <div class="report-actions-row">
+                        <button class="btn-view" onclick="openPreview(${item.id})">PODGLĄD / SCREEN</button>
+                        <button class="btn-delete" onclick="removeReport(${item.id})">🗑️</button>
+                    </div>`;
+                container.appendChild(card);
+            });
+        };
+    }
+
+    function openPreview(id) {
+        const transaction = db.transaction(["raporty"], "readonly");
+        const req = transaction.objectStore("raporty").get(id);
+        req.onsuccess = () => {
+            const item = req.result;
+            selectedReportId = id;
+            let html = `<div style="border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 25px;">
+                <h1 style="margin:0; font-size: 24px;">PROTOKÓŁ INSTALACJI</h1><p style="margin:5px 0; color:#666;">Data: ${item.timestamp}</p></div>
+                <p style="font-size:11px; font-weight:bold; color:#888;">ADRES:</p><div style="font-size: 19px; margin-bottom: 20px;">${item.address || '-'}</div>
+                <p style="font-size:11px; font-weight:bold; color:#888;">OPIS PRAC:</p><div style="font-size: 16px; white-space: pre-wrap; line-height: 1.6;">${item.text}</div>`;
+            
+            item.images.forEach(img => { html += `<img src="${img}" class="preview-photo">`; });
+            
+            document.getElementById('previewContent').innerHTML = html;
+            document.getElementById('previewModal').style.display = 'block';
+        };
+    }
+
+    function closePreview() { document.getElementById('previewModal').style.display = 'none'; }
+
+    function removeReport(id) {
+        if (confirm("Usunąć ten raport?")) {
+            const transaction = db.transaction(["raporty"], "readwrite");
+            transaction.objectStore("raporty").delete(id);
+            transaction.oncomplete = () => loadReports();
+        }
+    }
+
+    
+</script>
+</body>
+</html>
