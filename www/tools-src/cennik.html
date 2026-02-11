@@ -115,10 +115,7 @@
                 <hr>
                 <h2 id="modal-total" style="text-align: center;"></h2>
                 <div class="modal-btns">
-                    <button class="btn-modal" onclick="shareSummary()" style="background: #1a73e8; color: white; grid-column: span 2;">UDOSTĘPNIJ</button>
-                    
-                   
-                    
+                    <button class="btn-modal" onclick="sendToReports()" style="background: #1a73e8; color: white; grid-column: span 2;">WYGENERUJ RAPORT</button>
                     <button class="btn-modal" onclick="closeSummaryModal()" style="background: #70757a; color: white;">Wróć</button>
                     <button class="btn-modal" onclick="resetAll()" style="background: #d93025; color: white;">Nowe</button>
                 </div>
@@ -299,7 +296,7 @@
             if (!p) return;
             let price = parseInt(p.replace(/[^0-9]/g, ''));
             if (price > 0) {
-                const name = "Montaż (indywidualny)";
+                const name = "Montaż";
                 let item = selectedItems.find(i => i.name === name);
                 if (item) { item.qty++; total += price; } 
                 else { selectedItems.push({ name, price, qty: 1 }); total += price; }
@@ -416,6 +413,16 @@
 
         function closeSummaryModal() { document.getElementById('modal-summary').style.display = 'none'; }
         function resetAll() { total = 0; selectedItems = []; updateDisplay(); closeSummaryModal(); }
+
+       
+        function sendToReports() {
+            const t = generateSummaryText();
+            // Zapisujemy podsumowanie w pamięci tymczasowej
+            localStorage.setItem('pending_report_text', t);
+            // Przekierowanie do pliku raporty.html
+            window.location.replace("raporty.html");
+        }
+
     </script>
 </body>
 </html>
