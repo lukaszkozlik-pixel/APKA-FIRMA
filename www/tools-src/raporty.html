@@ -11,6 +11,7 @@
             --text: #202124;
             --success: #34a853;
             --danger: #ea4335;
+            --warning: #fbbc04;
         }
 
         * { box-sizing: border-box; }
@@ -24,7 +25,6 @@
             line-height: 1.5;
         }
 
-        /* NAGŁÓWEK Z CENNIKA */
         header {
             display: flex;
             align-items: center;
@@ -57,7 +57,6 @@
             align-items: center;
         }
 
-        /* PASEK WYSZUKIWANIA */
         .search-container {
             padding: 15px 15px 5px 15px;
             background: var(--bg);
@@ -73,7 +72,6 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
 
-        /* LISTA RAPORTÓW */
         #reportsList {
             padding: 15px;
             padding-bottom: 100px;
@@ -108,6 +106,16 @@
             font-weight: bold;
         }
 
+        .btn-edit {
+            flex: 1;
+            background: white;
+            color: var(--warning);
+            border: 1.5px solid var(--warning);
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
         .btn-delete {
             background: #fff5f5;
             color: var(--danger);
@@ -116,7 +124,6 @@
             border-radius: 8px;
         }
 
-        /* PŁYWAJĄCY PRZYCISK (FAB) */
         .fab {
             position: fixed;
             bottom: 25px;
@@ -135,7 +142,6 @@
             z-index: 500;
         }
 
-        /* MODALE I FORMULARZE */
         #formOverlay, #previewModal {
             display: none;
             position: fixed;
@@ -158,7 +164,7 @@
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; font-size: 11px; font-weight: bold; color: #888; text-transform: uppercase; margin-bottom: 6px; }
         
-        input[type="text"], textarea {
+        input[type="text"], input[type="datetime-local"], textarea {
             width: 100%;
             padding: 14px;
             border: 1px solid #ddd;
@@ -195,8 +201,14 @@
 <button class="fab" onclick="openForm()">+</button>
 
 <div id="formOverlay">
-    <div class="overlay-header">Nowy Raport</div>
+    <div class="overlay-header" id="formTitle">Nowy Raport</div>
     <div class="form-container">
+        <input type="hidden" id="editReportId">
+        
+        <div class="form-group">
+            <label>Data wykonania</label>
+            <input type="datetime-local" id="reportDate">
+        </div>
         <div class="form-group">
             <label>Lokalizacja / Adres</label>
             <input type="text" id="reportAddress" placeholder="Wpisz adres">
@@ -206,7 +218,7 @@
             <textarea id="reportText" rows="10" placeholder="Co zostało zrobione?"></textarea>
         </div>
         <div class="form-group">
-            <label>Zdjęcia</label>
+            <label>Zdjęcia (nowe zastąpią obecne)</label>
             <input type="file" id="reportImages" accept="image/*" multiple>
         </div>
         <div class="sticky-bottom-actions" style="padding:0; background:transparent;">
@@ -225,10 +237,9 @@
 
 <script>
     let db;
-    let selectedReportId = null;
     const dbName = "AntenaReportsDB";
 
-    // INICJALIZACJA BAZY INDEXED DB
+    // INICJALIZACJA BAZY
     const request = indexedDB.open(dbName, 1);
     request.onupgradeneeded = (e) => {
         db = e.target.result;
@@ -239,12 +250,54 @@
     request.onsuccess = (e) => { 
         db = e.target.result; 
         loadReports(); 
+        checkPendingData(); 
     };
 
-    function openForm() { document.getElementById('formOverlay').style.display = 'block'; }
+    function openForm(isEdit = false) { 
+        document.getElementById('formOverlay').style.display = 'block'; 
+        if (!isEdit) {
+            document.getElementById('formTitle').innerText = "Nowy Raport";
+            document.getElementById('editReportId').value = "";
+            document.getElementById('reportAddress').value = "";
+            document.getElementById('reportText').value = "";
+            document.getElementById('reportImages').value = "";
+            
+            // Ustawienie domyślnej daty na teraz
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('reportDate').value = now.toISOString().slice(0, 16);
+        }
+    }
+
     function closeForm() { document.getElementById('formOverlay').style.display = 'none'; }
 
-    // SKALOWANIE ZDJĘCIA (MAX 1200px)
+    // EDYCJA RAPORTU
+    function editReport(id) {
+        const transaction = db.transaction(["raporty"], "readonly");
+        const req = transaction.objectStore("raporty").get(id);
+        req.onsuccess = () => {
+            const item = req.result;
+            openForm(true);
+            document.getElementById('formTitle').innerText = "Edytuj Raport";
+            document.getElementById('editReportId').value = item.id;
+            document.getElementById('reportAddress').value = item.address || "";
+            document.getElementById('reportText').value = item.text || "";
+            document.getElementById('reportImages').value = "";
+
+            // Konwersja daty z "DD.MM.RRRR, GG:MM" na format pola HTML
+            try {
+                const parts = item.timestamp.split(', ');
+                const dateParts = parts[0].split('.');
+                const time = parts[1];
+                const isoStr = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}T${time}`;
+                document.getElementById('reportDate').value = isoStr;
+            } catch(e) {
+                console.error("Błąd parsowania daty");
+            }
+        };
+    }
+
+    // SKALOWANIE ZDJĘĆ
     function processImage(file) {
         return new Promise((res) => {
             const reader = new FileReader();
@@ -267,33 +320,59 @@
         });
     }
 
+    // ZAPIS (NOWY LUB EDYCJA)
     async function saveReport() {
+        const editId = document.getElementById('editReportId').value;
         const addr = document.getElementById('reportAddress').value;
         const txt = document.getElementById('reportText').value;
+        const dateVal = document.getElementById('reportDate').value;
         const files = document.getElementById('reportImages').files;
+
         if (!txt && !addr) return;
 
         const btn = document.getElementById('saveBtn');
         btn.disabled = true; btn.innerText = "ZAPISYWANIE...";
 
-        const images = [];
-        for (let f of files) { images.push(await processImage(f)); }
+        // Formatowanie daty do wyświetlania
+        const formattedDate = new Date(dateVal).toLocaleString('pl-PL', {
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        });
 
-        const report = {
-            id: Date.now(),
-            timestamp: new Date().toLocaleString('pl-PL'),
-            address: addr,
-            text: txt,
-            images: images
-        };
+        const newImages = [];
+        for (let f of files) { newImages.push(await processImage(f)); }
 
         const transaction = db.transaction(["raporty"], "readwrite");
-        transaction.objectStore("raporty").add(report);
+        const store = transaction.objectStore("raporty");
+
+        if (editId) {
+            // Logika edycji: zachowaj stare zdjęcia jeśli nie wybrano nowych
+            const req = store.get(Number(editId));
+            req.onsuccess = () => {
+                const oldData = req.result;
+                const updatedReport = {
+                    id: Number(editId),
+                    timestamp: formattedDate,
+                    address: addr,
+                    text: txt,
+                    images: newImages.length > 0 ? newImages : oldData.images
+                };
+                store.put(updatedReport);
+            };
+        } else {
+            // Nowy raport
+            const report = {
+                id: Date.now(),
+                timestamp: formattedDate,
+                address: addr,
+                text: txt,
+                images: newImages
+            };
+            store.add(report);
+        }
+
         transaction.oncomplete = () => {
             btn.disabled = false; btn.innerText = "ZAPISZ RAPORT";
-            document.getElementById('reportAddress').value = '';
-            document.getElementById('reportText').value = '';
-            document.getElementById('reportImages').value = '';
             closeForm();
             loadReports();
         };
@@ -311,7 +390,6 @@
         request.onsuccess = () => {
             let reports = request.result.reverse();
             
-            // FILTROWANIE
             if (searchTerm) {
                 reports = reports.filter(r => 
                     (r.address && r.address.toLowerCase().includes(searchTerm)) || 
@@ -333,7 +411,8 @@
                         <span>📅 ${item.timestamp}</span>
                     </div>
                     <div class="report-actions-row">
-                        <button class="btn-view" onclick="openPreview(${item.id})">PODGLĄD / SCREEN</button>
+                        <button class="btn-view" onclick="openPreview(${item.id})">PODGLĄD</button>
+                        <button class="btn-edit" onclick="editReport(${item.id})">EDYTUJ</button>
                         <button class="btn-delete" onclick="removeReport(${item.id})">🗑️</button>
                     </div>`;
                 container.appendChild(card);
@@ -346,13 +425,14 @@
         const req = transaction.objectStore("raporty").get(id);
         req.onsuccess = () => {
             const item = req.result;
-            selectedReportId = id;
             let html = `<div style="border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 25px;">
                 <h1 style="margin:0; font-size: 24px;">PROTOKÓŁ INSTALACJI</h1><p style="margin:5px 0; color:#666;">Data: ${item.timestamp}</p></div>
                 <p style="font-size:11px; font-weight:bold; color:#888;">ADRES:</p><div style="font-size: 19px; margin-bottom: 20px;">${item.address || '-'}</div>
                 <p style="font-size:11px; font-weight:bold; color:#888;">OPIS PRAC:</p><div style="font-size: 16px; white-space: pre-wrap; line-height: 1.6;">${item.text}</div>`;
             
-            item.images.forEach(img => { html += `<img src="${img}" class="preview-photo">`; });
+            if(item.images) {
+                item.images.forEach(img => { html += `<img src="${img}" class="preview-photo">`; });
+            }
             
             document.getElementById('previewContent').innerHTML = html;
             document.getElementById('previewModal').style.display = 'block';
@@ -369,7 +449,15 @@
         }
     }
 
-    
+    function checkPendingData() {
+        const pendingText = localStorage.getItem('pending_report_text');
+        if (pendingText) {
+            openForm();
+            document.getElementById('reportText').value = pendingText;
+            localStorage.removeItem('pending_report_text');
+            setTimeout(() => { document.getElementById('reportAddress').focus(); }, 300);
+        }
+    }
 </script>
 </body>
 </html>

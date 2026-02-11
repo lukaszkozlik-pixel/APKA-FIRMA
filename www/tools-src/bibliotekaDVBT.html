@@ -42,6 +42,25 @@
 <div class="container">
     
     <div class="accordion">
+    <div class="acc-header" onclick="toggleAcc(this)">PRZYDATNE STRONY <span>+</span></div>
+    <div class="acc-content" style="height: auto; padding: 15px;">
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+            <a href="https://mapy.radiopolska.pl/" target="_blank" 
+               style="display: block; padding: 15px; background: #e8f0fe; color: #1a73e8; text-decoration: none; border-radius: 8px; font-weight: bold; text-align: center;">
+               📍 RadioPolska - Mapa Interaktywna
+            </a>
+            <a href="https://emi.emitel.pl/plan_www/" target="_blank" 
+               style="display: block; padding: 15px; background: #e8f0fe; color: #1a73e8; text-decoration: none; border-radius: 8px; font-weight: bold; text-align: center;">
+               📡 Emitel - Planowanie Emisji
+            </a>
+            <p style="font-size: 12px; color: #666; margin: 0; text-align: center;">
+                Kliknięcie otworzy mapę w nowym oknie przeglądarki.
+            </p>
+        </div>
+    </div>
+</div>
+
+    <div class="accordion">
         <div class="acc-header" onclick="toggleAcc(this)">CZĘSTOTLIWOŚCI (KANAŁY) <span>+</span></div>
         <div class="acc-content">
             <iframe src="docs/czestotliwosciDVBT.html"></iframe>
@@ -66,11 +85,24 @@
 
 <script>
     function toggleAcc(header) {
-        const content = header.nextElementSibling;
-        const span = header.querySelector('span');
-        content.classList.toggle('show');
-        span.innerText = content.classList.contains('show') ? '−' : '+';
+    const content = header.nextElementSibling;
+    const span = header.querySelector('span');
+    const allContents = document.querySelectorAll('.acc-content');
+    const allSpans = document.querySelectorAll('.acc-header span');
+
+    // 1. Sprawdzamy, czy kliknięty element już nie jest otwarty
+    const isOpening = !content.classList.contains('show');
+
+    // 2. Zamykamy wszystkie otwarte sekcje i resetujemy znaki "+"
+    allContents.forEach(c => c.classList.remove('show'));
+    allSpans.forEach(s => s.innerText = '+');
+
+    // 3. Jeśli kliknięty element był zamknięty, otwieramy go i zmieniamy znak na "-"
+    if (isOpening) {
+        content.classList.add('show');
+        span.innerText = '−';
     }
+}
 </script>
 </body>
 </html>

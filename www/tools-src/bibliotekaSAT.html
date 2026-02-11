@@ -42,6 +42,7 @@
 </header>
 
 <div class="container">
+    
 
     <div class="accordion">
         <div class="acc-header" onclick="toggleAcc(this)">Parametry SAT <span>+</span></div>
@@ -67,12 +68,28 @@
 </div>
 
 <script>
-    function toggleAcc(header) {
-        const content = header.nextElementSibling;
-        const span = header.querySelector('span');
-        content.classList.toggle('show');
-        span.innerText = content.classList.contains('show') ? '−' : '+';
+    // Podmień istniejącą funkcję toggleAcc na tę poniżej:
+function toggleAcc(header) {
+    const content = header.nextElementSibling;
+    const span = header.querySelector('span');
+    
+    // Pobieramy wszystkie sekcje i znaki +/- w kontenerze
+    const allContents = document.querySelectorAll('.acc-content');
+    const allSpans = document.querySelectorAll('.acc-header span');
+
+    // Sprawdzamy, czy kliknięta sekcja jest już otwarta
+    const isOpening = !content.classList.contains('show');
+
+    // 1. Zamykamy wszystkie sekcje i resetujemy wszystkie znaki na "+"
+    allContents.forEach(c => c.classList.remove('show'));
+    allSpans.forEach(s => s.innerText = '+');
+
+    // 2. Jeśli kliknięta sekcja była zamknięta, otwieramy ją i zmieniamy znak na "−"
+    if (isOpening) {
+        content.classList.add('show');
+        span.innerText = '−';
     }
+}
 </script>
 </body>
 </html>

@@ -79,7 +79,16 @@ h1 {
 </header>
 
 <div class="container">
-    
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">AWARIE SIECI <span>+</span></div>
+        <div class="acc-content">
+            
+            <a href="https://downdetector.pl/" target="_blank" class="tool-btn" style="background: #73862e; color: white; border-color: #141526;">DOWNDETECTOR.pl</a>
+            
+        </div>
+        </div>
+        
+
     <div class="accordion">
         <div class="acc-header" onclick="toggleAcc(this)">LOKALIZACJA NADAJNIKÓW (BTS) <span>+</span></div>
         <div class="acc-content">
@@ -87,6 +96,7 @@ h1 {
             <a href="https://beta.btsearch.pl/" target="_blank" class="tool-btn">OTWÓRZ BTSEARCH.PL</a>
         </div>
     </div>
+   
 
     <div class="accordion">
         <div class="acc-header" onclick="toggleAcc(this)">PRZELICZNIK PRĘDKOŚCI <span>+</span></div>
@@ -100,17 +110,24 @@ h1 {
         </div>
     </div>
 
-    <div class="accordion">
-        <div class="acc-header" onclick="toggleAcc(this)">ADRESY IP I LOGOWANIE <span>+</span></div>
+   
+     <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">POMIAR PRĘDKOŚCI (SPEEDTEST) <span>+</span></div>
         <div class="acc-content">
-            <div class="ip-row"><span>TP-Link / ASUS</span> <b>192.168.1.1</b></div>
-            <div class="ip-row"><span>D-Link / Huawei</span> <b>192.168.0.1</b></div>
-            <div class="ip-row"><span>Tenda / Mercusys</span> <b>192.168.0.1</b></div>
-            <div class="ip-row"><span>MikroTik</span> <b>192.168.88.1</b></div>
-            <div class="ip-row"><span>Adres awaryjny</span> <b>192.168.100.1</b></div>
+            <p style="font-size: 0.85rem; margin-bottom: 15px;">Wybierz narzędzie do pomiaru parametrów łącza (Download/Upload/Ping):</p>
+            
+            <a href="https://www.speedtest.net" target="_blank" class="tool-btn" style="background: #141526; color: white; border-color: #141526;">SPEEDTEST.NET</a>
+            
+            <a href="https://fast.com/pl/" target="_blank" class="tool-btn" style="background: #db0000; color: white; border-color: #db0000;">FAST.COM (Netflix)</a>
+            
+            <a href="https://speed.cloudflare.com" target="_blank" class="tool-btn" style="background: #f38020; color: white; border-color: #f38020;">CLOUDFLARE SPEED</a>
+
+            <p style="font-size: 0.7rem; color: #666; margin-top: 10px;">
+                <i>Pamiętaj: Najdokładniejszy wynik uzyskasz na kablu, przy wyłączonych innych urządzeniach.</i>
+            </p>
         </div>
     </div>
-
+    
    <div class="accordion">
         <div class="acc-header" onclick="toggleAcc(this)">SCHEMATY ZAKUWANIA RJ45 <span>+</span></div>
         <div class="acc-content">
@@ -131,6 +148,7 @@ h1 {
                     B-Pom | Pom | B-Zie | Nie | B-Nie | Zie | B-Brą | Brą
                 </div>
             </div>
+            
 
             <div style="margin-bottom: 20px;">
                 <p style="font-weight: bold; color: #2e7d32; margin-bottom: 5px;">Standard T568A</p>
@@ -162,22 +180,7 @@ h1 {
             </p>
         </div>
     </div>
-    <div class="accordion">
-        <div class="acc-header" onclick="toggleAcc(this)">POMIAR PRĘDKOŚCI (SPEEDTEST) <span>+</span></div>
-        <div class="acc-content">
-            <p style="font-size: 0.85rem; margin-bottom: 15px;">Wybierz narzędzie do pomiaru parametrów łącza (Download/Upload/Ping):</p>
-            
-            <a href="https://www.speedtest.net" target="_blank" class="tool-btn" style="background: #141526; color: white; border-color: #141526;">SPEEDTEST.NET</a>
-            
-            <a href="https://fast.com/pl/" target="_blank" class="tool-btn" style="background: #db0000; color: white; border-color: #db0000;">FAST.COM (Netflix)</a>
-            
-            <a href="https://speed.cloudflare.com" target="_blank" class="tool-btn" style="background: #f38020; color: white; border-color: #f38020;">CLOUDFLARE SPEED</a>
-
-            <p style="font-size: 0.7rem; color: #666; margin-top: 10px;">
-                <i>Pamiętaj: Najdokładniejszy wynik uzyskasz na kablu, przy wyłączonych innych urządzeniach.</i>
-            </p>
-        </div>
-    </div>
+   
     <div class="accordion">
         <div class="acc-header" onclick="toggleAcc(this)">KATEGORIE KABLI (SKRĘTKA) <span>+</span></div>
         <div class="acc-content">
@@ -245,8 +248,8 @@ h1 {
             </div>
         </div>
     </div>
-
 </div>
+
 
 <script>
     // Funkcja rozwijania sekcji
