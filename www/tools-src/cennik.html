@@ -18,23 +18,22 @@
             font-size: 1.3rem;
             flex-grow: 1;
             text-align: center;
-            margin-right: 40px; /* Balansuje przesunięcie przycisku wstecz, by tytuł był na środku */
+            margin-right: 40px;
         }
 
         .btn-back {
             background: none;
             border: none;
             color: white;
-            font-size: 1.8rem; /* Duży, wyraźny znak */
+            font-size: 1.8rem;
             font-weight: 300;
-            padding: 5px 15px 5px 0; /* Większe pole dotyku */
+            padding: 5px 15px 5px 0;
             cursor: pointer;
             line-height: 1;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        /* Style specyficzne dla cennika */
         .item-list { padding: 15px; flex: 1; overflow-y: auto; padding-bottom: 100px; }
         .price-item {
             background: white; margin-bottom: 10px; padding: 15px; border-radius: 10px;
@@ -56,12 +55,11 @@
         }
         .btn-done { background: #03dac6; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; }
         
-        /* Style Modali */
         .modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.8); justify-content: center; align-items: center; padding: 20px; z-index: 100;
         }
-        .modal-content { background: white; padding: 20px; border-radius: 15px; width: 100%; max-width: 400px; }
+        .modal-content { background: white; padding: 20px; border-radius: 15px; width: 95%; max-width: 400px; }
         .modal-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
         .btn-modal { padding: 12px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
         
@@ -77,56 +75,85 @@
         </header>
 
         <div class="item-list" id="menu">
-
-
-            <div class="price-item" onclick="addMountingPrice()" onmousedown="startPress(this)" onmouseup="endPress()" ontouchstart="startPress(this)"                                  ontouchend="endPress()" oncontextmenu="return false;" data-name="Montaż (indywidualny)">
+            <div class="price-item" onclick="addMountingPrice()" onmousedown="startPress(this)" onmouseup="endPress()" ontouchstart="startPress(this)" ontouchend="endPress()" oncontextmenu="return false;" data-name="Montaż (indywidualny)">
                 <div><span class="qty"></span><span>Montaż (podaj cenę)</span></div>
                 <span class="price-value" id="mount-val">--- zł</span>
             </div>
 
             <div class="price-item item-other" onclick="openCustomModal()">+ Dodaj inne</div>
-            </div>
+        </div>
 
-            <div class="summary-bar">
-                <div>Suma: <span id="total-price">0</span> zł</div>
-                <button id="btn-submit" class="btn-done" onclick="showSummary()" disabled style="opacity: 0.5;">GOTOWE</button>
-            </div>
-            </div>
+        <div class="summary-bar">
+            <div>Suma: <span id="total-price">0</span> zł</div>
+            <button id="btn-submit" class="btn-done" onclick="showSummary()" disabled style="opacity: 0.5;">GOTOWE</button>
+        </div>
+    </div>
         
-        <div id="modal-custom" class="modal">
-            <div class="modal-content">
-                <h3>Własna usługa</h3>
-                <div class="custom-form">
-                    <input type="text" id="custom-name" placeholder="Nazwa">
-                    <input type="number" id="custom-price" placeholder="Cena (zł)" inputmode="decimal" onkeydown="if(['e', 'E', '+', '-'].includes(event.key)) event.preventDefault();">
-                </div>
-                <div class="modal-btns">
-                    <button class="btn-modal" onclick="closeCustomModal()" style="background:#eee;">Anuluj</button>
-                    <button class="btn-modal" onclick="addCustomItem()" style="background:#1a73e8; color:white;">Dodaj</button>
-                </div>
+    <div id="modal-custom" class="modal">
+        <div class="modal-content">
+            <h3>Własna usługa</h3>
+            <div class="custom-form">
+                <input type="text" id="custom-name" placeholder="Nazwa">
+                <input type="number" id="custom-price" placeholder="Cena (zł)" inputmode="decimal" step="0.01" onkeydown="if(['e', 'E', '+', '-'].includes(event.key)) event.preventDefault();">
+            </div>
+            <div class="modal-btns">
+                <button class="btn-modal" onclick="closeCustomModal()" style="background:#eee;">Anuluj</button>
+                <button class="btn-modal" onclick="addCustomItem()" style="background:#1a73e8; color:white;">Dodaj</button>
             </div>
         </div>
+    </div>
 
-      
-        <div id="modal-summary" class="modal">
-            <div class="modal-content">
-                <h3>Podsumowanie:</h3>
-                <ul id="summary-list" style="margin: 20px 0; list-style: none; padding: 0;"></ul>
-                <hr>
-                <h2 id="modal-total" style="text-align: center;"></h2>
-                <div class="modal-btns">
-                    <button class="btn-modal" onclick="sendToReports()" style="background: #1a73e8; color: white; grid-column: span 2;">WYGENERUJ RAPORT</button>
-                    <button class="btn-modal" onclick="closeSummaryModal()" style="background: #70757a; color: white;">Wróć</button>
-                    <button class="btn-modal" onclick="resetAll()" style="background: #d93025; color: white;">Nowe</button>
-                </div>
+    <div id="modal-input-prompt" class="modal">
+        <div class="modal-content">
+            <h3 id="prompt-title">Podaj wartość</h3>
+            <div class="custom-form">
+                <input type="number" id="prompt-value" inputmode="decimal" step="0.01" placeholder="0.00">
+            </div>
+            <div class="modal-btns">
+                <button class="btn-modal" onclick="closeInputPrompt()" style="background:#eee;">Anuluj</button>
+                <button class="btn-modal" id="prompt-confirm-btn" style="background:#1a73e8; color:white;">OK</button>
             </div>
         </div>
+    </div>
+
+    <div id="modal-summary" class="modal">
+        <div class="modal-content">
+            <h3>Podsumowanie:</h3>
+            <ul id="summary-list" style="margin: 20px 0; list-style: none; padding: 0; max-height: 50vh; overflow-y: auto;"></ul>
+            <hr>
+            <h2 id="modal-total" style="text-align: center;"></h2>
+            <div class="modal-btns">
+                <button class="btn-modal" onclick="sendToReports()" style="background: #1a73e8; color: white; grid-column: span 2;">WYGENERUJ RAPORT</button>
+                <button class="btn-modal" onclick="closeSummaryModal()" style="background: #70757a; color: white;">Wróć</button>
+                <button class="btn-modal" onclick="resetAll()" style="background: #d93025; color: white;">Nowe</button>
+            </div>
+        </div>
+    </div>
 
     <script>
         let total = 0;
         let selectedItems = [];
         let pressTimer;
         let isLongPress = false;
+
+        // --- FUNKCJA WSPOMAGAJĄCA KLAWIATURĘ NUMERYCZNĄ ZAMIAST PROMPT ---
+        function openInputPrompt(title, defaultValue, callback) {
+            document.getElementById('prompt-title').innerText = title;
+            const input = document.getElementById('prompt-value');
+            input.value = defaultValue;
+            document.getElementById('modal-input-prompt').style.display = 'flex';
+            input.focus();
+            
+            document.getElementById('prompt-confirm-btn').onclick = function() {
+                const val = parseFloat(input.value.replace(',', '.'));
+                closeInputPrompt();
+                if (!isNaN(val)) callback(val);
+            };
+        }
+
+        function closeInputPrompt() {
+            document.getElementById('modal-input-prompt').style.display = 'none';
+        }
 
         function updateDisplay() {
             document.getElementById('total-price').innerText = total;
@@ -153,105 +180,83 @@
             btn.style.opacity = total > 0 ? "1" : "0.5";
         }
 
-        // Ta funkcja uruchomi się sama przy starcie strony
-        window.onload = function() {
-            initPrices();
-        };
+        window.onload = function() { initPrices(); };
 
         async function initPrices() {
-            // 1. Definiujesz adres serwera
             const urlSerwera = 'https://gist.githubusercontent.com/lukaszkozlik-pixel/cc9860262022f28a759d1790020381fe/raw/uslugi.json';
-          
-            // Pobranie danych z pamięci podręcznej (Local Storage)
             const localData = localStorage.getItem('cachedServices');
-            if (localData) {
-                renderServices(JSON.parse(localData));
-            }
+            if (localData) renderServices(JSON.parse(localData));
 
-            // 2. Próba pobrania świeżych danych z serwera
             try {
                 const response = await fetch(urlSerwera + '?t=' + Date.now());
                 if (response.ok) {
                     const freshServices = await response.json();
-                    
-                    // Zapisujemy nowe dane w pamięci telefonu
                     localStorage.setItem('cachedServices', JSON.stringify(freshServices));
-                    
-                    // Czyścimy stare kafelki i rysujemy nowe (tylko jeśli dane się zmieniły)
                     document.querySelectorAll('.standard-item').forEach(el => el.remove());
                     renderServices(freshServices);
                 }
-            } catch (error) {
-                console.log("Brak internetu lub błąd serwera. Korzystam z wersji offline.");
-            }
+            } catch (error) { console.log("Tryb offline."); }
         }
-
-        function addCableFromJSON(element) {
-            if (isLongPress) { isLongPress = false; return; }
-            
-            const name = element.getAttribute('data-name');
-            const unitPrice = parseFloat(element.getAttribute('data-price'));
-            
-            let m = prompt(`Ile metrów produktu: ${name}?`, "1");
-            if (!m) return;
-            
-            // Zamiana przecinka na kropkę i wyciągnięcie samej liczby
-            let qty = parseFloat(m.replace(',', '.').replace(/[^0-9.]/g, ''));
-            
-            if (qty > 0) {
-                let item = selectedItems.find(i => i.name === name);
-                if (item) {
-                    item.qty += qty;
-                } else {
-                    selectedItems.push({ name: name, price: unitPrice, qty: qty });
-                }
-                total += (unitPrice * qty);
-                // Zaokrąglenie do 2 miejsc po przecinku (przydatne przy cenach typu 2.50)
-                total = Math.round(total * 100) / 100;
-                updateDisplay();
-            }
-        }
-        
 
         function renderServices(services) {
             const menuContainer = document.getElementById('menu');
-            if (!menuContainer) return;
-            
             services.forEach(service => {
                 const div = document.createElement('div');
                 div.className = 'price-item standard-item';
                 div.setAttribute('data-name', service.name);
                 div.setAttribute('data-price', service.price);
-                
-                // Logika wyboru funkcji: kabel vs reszta
                 const isKabel = service.name.toLowerCase().includes('kabel');
-                
-                div.onclick = function() { 
-                    if (isKabel) {
-                        // Dla kabla używamy ceny z JSON jako ceny za metr
-                        addCableFromJSON(this); 
-                    } else {
-                        addItem(this); 
-                    }
-                };
-        
+                div.onclick = function() { isKabel ? addCableFromJSON(this) : addItem(this); };
                 div.onmousedown = function() { startPress(this); };
                 div.onmouseup = function() { endPress(); };
                 div.ontouchstart = function() { startPress(this); };
                 div.ontouchend = function() { endPress(); };
-                
-                div.innerHTML = `
-                    <div><span class="qty"></span><span>${service.name}</span></div>
-                    <span class="price-value">${service.price} zł${isKabel ? '/m' : ''}</span>
-                `;
-                
-                const otherBtn = document.querySelector('.item-other');
-                menuContainer.insertBefore(div, otherBtn);
+                div.innerHTML = `<div><span class="qty"></span><span>${service.name}</span></div>
+                                 <span class="price-value">${service.price} zł${isKabel ? '/m' : ''}</span>`;
+                menuContainer.insertBefore(div, document.querySelector('.item-other'));
             });
             updateDisplay();
-}
+        }
 
-        // UNIWERSALNE USUWANIE PRZEZ LONG CLICK
+        function addCableFromJSON(element) {
+            if (isLongPress) return;
+            const name = element.getAttribute('data-name');
+            const unitPrice = parseFloat(element.getAttribute('data-price'));
+            
+            openInputPrompt(`Ile metrów: ${name}?`, "1", function(qty) {
+                if (qty > 0) {
+                    let item = selectedItems.find(i => i.name === name);
+                    if (item) item.qty += qty; else selectedItems.push({ name: name, price: unitPrice, qty: qty });
+                    total = Math.round((total + (unitPrice * qty)) * 100) / 100;
+                    updateDisplay();
+                }
+            });
+        }
+
+        function addItem(element) {
+            if (isLongPress) return;
+            const name = element.getAttribute('data-name');
+            const price = parseFloat(element.getAttribute('data-price'));
+            let item = selectedItems.find(i => i.name === name);
+            if (item) item.qty++; else selectedItems.push({ name, price, qty: 1 });
+            total = Math.round((total + price) * 100) / 100;
+            updateDisplay();
+        }
+
+        function addMountingPrice() {
+            if (isLongPress) return;
+            openInputPrompt("Podaj cenę montażu:", "", function(price) {
+                if (price > 0) {
+                    const name = "Montaż (indywidualny)";
+                    let item = selectedItems.find(i => i.name === name);
+                    if (item) { item.qty++; total += price; } 
+                    else { selectedItems.push({ name, price, qty: 1 }); total += price; }
+                    total = Math.round(total * 100) / 100;
+                    updateDisplay();
+                }
+            });
+        }
+
         function removeItemAll(element) {
             const name = element.getAttribute('data-name');
             let idx = selectedItems.findIndex(i => i.name === name);
@@ -259,52 +264,10 @@
                 total -= (selectedItems[idx].price * selectedItems[idx].qty);
                 selectedItems.splice(idx, 1);
             }
+            total = Math.round(total * 100) / 100;
             updateDisplay();
         }
 
-        // DODAWANIE STANDARDOWE
-        function addItem(element) {
-            if (isLongPress) { isLongPress = false; return; }
-            const name = element.getAttribute('data-name');
-            const price = parseInt(element.getAttribute('data-price'));
-            let item = selectedItems.find(i => i.name === name);
-            if (item) item.qty++; else selectedItems.push({ name, price, qty: 1 });
-            total += price;
-            updateDisplay();
-        }
-
-        // DODAWANIE KABLI (METRY)
-        function addCable(element) {
-            if (isLongPress) { isLongPress = false; return; }
-            const name = element.getAttribute('data-name');
-            const unitPrice = parseInt(element.getAttribute('data-unit-price'));
-            let m = prompt("Ile metrów?", "1");
-            if (!m) return;
-            let qty = parseInt(m.replace(/[^0-9]/g, ''));
-            if (qty > 0) {
-                let item = selectedItems.find(i => i.name === name);
-                if (item) item.qty += qty; else selectedItems.push({ name: name, price: unitPrice, qty });
-                total += (unitPrice * qty);
-                updateDisplay();
-            }
-        }
-
-        // MONTAŻ Z CENĄ Z RĘKI
-        function addMountingPrice() {
-            if (isLongPress) { isLongPress = false; return; }
-            let p = prompt("Podaj cenę montażu:");
-            if (!p) return;
-            let price = parseInt(p.replace(/[^0-9]/g, ''));
-            if (price > 0) {
-                const name = "Montaż";
-                let item = selectedItems.find(i => i.name === name);
-                if (item) { item.qty++; total += price; } 
-                else { selectedItems.push({ name, price, qty: 1 }); total += price; }
-                updateDisplay();
-            }
-        }
-
-        // SYSTEMOWY LONG PRESS
         function startPress(element) {
             isLongPress = false;
             pressTimer = setTimeout(() => { 
@@ -315,15 +278,14 @@
         }
         function endPress() { clearTimeout(pressTimer); }
 
-        // OBSŁUGA MODALA "INNE"
         function openCustomModal() { document.getElementById('modal-custom').style.display = 'flex'; }
         function closeCustomModal() { document.getElementById('modal-custom').style.display = 'none'; }
         function addCustomItem() {
             const name = document.getElementById('custom-name').value.trim();
-            const price = parseInt(document.getElementById('custom-price').value);
+            const price = parseFloat(document.getElementById('custom-price').value);
             if (name && !isNaN(price)) {
                 selectedItems.push({ name, price, qty: 1 });
-                total += price;
+                total = Math.round((total + price) * 100) / 100;
                 updateDisplay();
                 document.getElementById('custom-name').value = '';
                 document.getElementById('custom-price').value = '';
@@ -331,97 +293,40 @@
             }
         }
 
-        // PODSUMOWANIE I UDOSTĘPNIANIE
         function showSummary() {
             const list = document.getElementById('summary-list');
             list.innerHTML = '';
             selectedItems.forEach(item => {
                 list.innerHTML += `<li style="display:flex; justify-content:space-between; margin-bottom:5px;">
                     <span>${item.name} x${item.qty}</span>
-                    <span>${item.price * item.qty} zł</span>
+                    <span>${(item.price * item.qty).toFixed(2)} zł</span>
                 </li>`;
             });
-            document.getElementById('modal-total').innerText = `Razem: ${total} zł`;
+            document.getElementById('modal-total').innerText = `Razem: ${total.toFixed(2)} zł`;
             document.getElementById('modal-summary').style.display = 'flex';
         }
-        
+
         function generateSummaryText() {
             if (selectedItems.length === 0) return "Brak wybranych pozycji.";
-
-            // Pobieranie aktualnej daty i godziny
             const now = new Date();
-            const dateStr = now.toLocaleDateString('pl-PL', { 
-                year: 'numeric', month: '2-digit', day: '2-digit',
-                hour: '2-digit', minute: '2-digit' 
-            });
-
-            let text = `Data: ${dateStr}\n\n`;
-            text += `--------------------------\n\n`;
-
+            const dateStr = now.toLocaleDateString('pl-PL', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+            let text = `Data: ${dateStr}\n\n--------------------------\n\n`;
             selectedItems.forEach((item, index) => {
-                // Obliczamy cenę za daną pozycję
                 const linePrice = (item.price * item.qty).toFixed(2);
-                
-                // Logika jednostek: kabel = m, reszta = szt.
                 const unit = item.name.toLowerCase().includes('kabel') ? 'm' : 'szt.';
-                
-                text += `${index + 1}. ${item.name}\n`;
-                text += `   ${item.qty} ${unit} x ${item.price} zł = ${linePrice} zł\n`;
+                text += `${index + 1}. ${item.name}\n   ${item.qty} ${unit} x ${item.price} zł = ${linePrice} zł\n`;
             });
-
-            text += "\n--------------------------\n";
-            text += `SUMA DO ZAPŁATY: ${total.toFixed(2)} zł\n`;
-            text += "--------------------------\n";
-            
-
+            text += `\n--------------------------\nSUMA DO ZAPŁATY: ${total.toFixed(2)} zł\n--------------------------\n`;
             return text;
         }
 
-        async function shareSummary() {
-            const t = generateSummaryText();
-            
-            // 1. Próba natywnego udostępniania
-            if (navigator.share) {
-                try {
-                    await navigator.share({
-                        title: 'Rachunek',
-                        text: t
-                    });
-                    return; // Jeśli poszło, kończymy
-                } catch (err) {
-                    console.log("Błąd lub anulowanie share:", err);
-                    // Jeśli to nie było anulowanie przez Ciebie, przejdź do kopiowania
-                    if (err.name !== 'AbortError') {
-                        performCopy(t);
-                    }
-                }
-            } else {
-                performCopy(t);
-            }
-        }
-
-        function performCopy(text) {
-            const tempInput = document.createElement("textarea");
-            tempInput.value = text;
-            document.body.appendChild(tempInput);
-            tempInput.select();
-            document.execCommand("copy");
-            document.body.removeChild(tempInput);
-            alert("RACHUNEK SKOPIOWANY DO SCHOWKA!\nMożesz go teraz wkleić w wybranej aplikacji.");
+        function sendToReports() {
+            localStorage.setItem('pending_report_text', generateSummaryText());
+            window.location.replace("raporty.html");
         }
 
         function closeSummaryModal() { document.getElementById('modal-summary').style.display = 'none'; }
         function resetAll() { total = 0; selectedItems = []; updateDisplay(); closeSummaryModal(); }
-
-       
-        function sendToReports() {
-            const t = generateSummaryText();
-            // Zapisujemy podsumowanie w pamięci tymczasowej
-            localStorage.setItem('pending_report_text', t);
-            // Przekierowanie do pliku raporty.html
-            window.location.replace("raporty.html");
-        }
-
     </script>
 </body>
 </html>

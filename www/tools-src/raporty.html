@@ -11,7 +11,6 @@
             --text: #202124;
             --success: #34a853;
             --danger: #ea4335;
-            --warning: #fbbc04;
         }
 
         * { box-sizing: border-box; }
@@ -26,15 +25,31 @@
         .app-interface { display: block; }
 
         header {
-            display: flex; align-items: center; padding: 10px 15px;
-            background: var(--primary); color: white;
-            position: sticky; top: 0; z-index: 100;
+            background: var(--primary);
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 100;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        header h1 { margin: 0; font-size: 1.3rem; flex-grow: 1; text-align: center; margin-right: 40px; }
+        .header-top { display: flex; align-items: center; padding: 10px 15px; }
+        .header-top h1 { margin: 0; font-size: 1.2rem; flex-grow: 1; text-align: center; margin-right: 40px; }
         .btn-back { background: none; border: none; color: white; font-size: 1.8rem; cursor: pointer; padding: 5px; }
-        .container { padding: 15px; padding-bottom: 80px; }
+
+        /* WYSZUKIWARKA */
+        .search-container { padding: 0 15px 10px 15px; }
+        .search-bar {
+            width: 100%;
+            padding: 10px 15px;
+            border-radius: 20px;
+            border: none;
+            font-size: 0.9rem;
+            outline: none;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .container { padding: 15px; padding-bottom: 100px; }
 
         /* --- LISTA --- */
         .report-card {
@@ -89,12 +104,10 @@
         body.screenshot-mode { background: white !important; overflow: visible !important; height: auto !important; }
         body.screenshot-mode .app-interface, body.screenshot-mode .fab, body.screenshot-mode .modal-actions, body.screenshot-mode #formModal { display: none !important; }
         body.screenshot-mode #previewModal { position: static !important; display: block !important; height: auto !important; width: 100% !important; overflow: visible !important; }
-        
-        /* Dodajemy duży margines na dole treści raportu, by przycisk nic nie zasłaniał */
         body.screenshot-mode .modal-content { 
             box-shadow: none !important; margin: 0 !important; width: 100% !important; height: auto !important; 
             padding: 20px !important; overflow: visible !important; 
-            padding-bottom: 120px !important; 
+            padding-bottom: 150px !important; 
         }
         body.screenshot-mode .preview-body { overflow: visible !important; height: auto !important; }
 
@@ -112,10 +125,17 @@
 
     <div class="app-interface">
         <header>
-            <button class="btn-back" onclick="window.location.replace('../index.html')">‹</button>
-            <h1>Baza Raportów</h1>
+            <div class="header-top">
+                <button class="btn-back" onclick="window.location.replace('../index.html')">‹</button>
+                <h1>Baza Raportów</h1>
+            </div>
+            <div class="search-container">
+                <input type="text" id="searchInput" class="search-bar" placeholder="Szukaj adresu lub treści..." oninput="loadReports()">
+            </div>
         </header>
-        <div class="container" id="reportList"></div>
+        <div class="container" id="reportList">
+            <p style="text-align:center; color:#888;">Ładowanie raportów...</p>
+        </div>
         <div class="fab" onclick="openForm()">+</div>
     </div>
 
@@ -160,62 +180,98 @@
         let currentReportId = null;
         let tempPhotos = [];
 
-        const req = indexedDB.open("InstalatorDB", 1);
-        req.onupgradeneeded = e => { e.target.result.createObjectStore("raporty", { keyPath: "id", autoIncrement: true }); };
-        req.onsuccess = e => { db = e.target.result; loadReports(); checkPending(); };
+        const dbRequest = indexedDB.open("InstalatorDB", 1);
+        dbRequest.onupgradeneeded = e => {
+            let database = e.target.result;
+            if (!database.objectStoreNames.contains("raporty")) {
+                database.createObjectStore("raporty", { keyPath: "id", autoIncrement: true });
+            }
+        };
+        dbRequest.onsuccess = e => { db = e.target.result; loadReports(); checkPending(); };
 
         function loadReports() {
-            const store = db.transaction("raporty", "readonly").objectStore("raporty");
+            if (!db) return;
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const transaction = db.transaction(["raporty"], "readonly");
+            const store = transaction.objectStore("raporty");
+            
             store.getAll().onsuccess = e => {
-                const reports = e.target.result.sort((a,b) => new Date(b.date) - new Date(a.date));
-                document.getElementById('reportList').innerHTML = reports.map(r => `
-                    <div class="report-card" onclick="showPreview(${r.id})">
-                        <div class="report-header"><span class="report-date">${new Date(r.date).toLocaleString()}</span></div>
-                        <div class="report-address">${r.address || 'Brak adresu'}</div>
-                    </div>
-                `).join('') || '<p style="text-align:center; color:#888;">Brak raportów</p>';
+                let reports = e.target.result;
+                
+                // Filtrowanie
+                if (searchTerm) {
+                    reports = reports.filter(r => 
+                        (r.address && r.address.toLowerCase().includes(searchTerm)) || 
+                        (r.text && r.text.toLowerCase().includes(searchTerm))
+                    );
+                }
+
+                reports.sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                const listContainer = document.getElementById('reportList');
+                if (reports.length === 0) {
+                    listContainer.innerHTML = `<p style="text-align:center; margin-top:50px; color:#888;">${searchTerm ? 'Nie znaleziono pasujących raportów.' : 'Brak zapisanych raportów.'}</p>`;
+                } else {
+                    listContainer.innerHTML = reports.map(r => `
+                        <div class="report-card" onclick="showPreview(${r.id})">
+                            <div class="report-header">
+                                <span class="report-date">${new Date(r.date).toLocaleString('pl-PL')}</span>
+                                ${ (r.images && r.images.length > 0) ? '<span>📷</span>' : '' }
+                            </div>
+                            <div class="report-address">${r.address || 'Brak adresu'}</div>
+                        </div>
+                    `).join('');
+                }
             };
         }
 
-        function openForm(editId = null) {
-            currentReportId = editId;
-            document.getElementById('formModal').style.display = 'block';
-            if(!editId) {
-                document.getElementById('formTitle').innerText = "Nowy Raport";
-                document.getElementById('reportDate').value = new Date().toISOString().slice(0,16);
-                document.getElementById('reportAddress').value = "";
-                document.getElementById('reportText').value = "";
-                tempPhotos = [];
-            }
-            renderTempPhotos();
+        function showPreview(id) {
+            currentReportId = id;
+            db.transaction(["raporty"], "readonly").objectStore("raporty").get(id).onsuccess = e => {
+                const r = e.target.result;
+                let html = `
+                    <div style="padding-bottom:10px; border-bottom:2px solid var(--primary); margin-bottom:15px;">
+                        <h2 style="margin:0; color:var(--primary);">RAPORT INSTALACYJNY</h2>
+                    </div>
+                    <p><b>Data:</b> ${new Date(r.date).toLocaleString('pl-PL')}</p>
+                    <p><b>Adres:</b> ${r.address || '-'}</p>
+                    <div style="white-space:pre-wrap; background:#f9f9f9; padding:15px; border-radius:8px; border:1px solid #eee; margin-top:10px;">${r.text}</div>
+                `;
+                if(r.images && r.images.length > 0) {
+                    html += `<p style="margin-top:20px; font-weight:bold; color:var(--primary);">DOKUMENTACJA ZDJĘCIOWA:</p>`;
+                    r.images.forEach(img => html += `<img src="${img}" class="preview-photo">`);
+                }
+                document.getElementById('previewContent').innerHTML = html;
+                document.getElementById('previewModal').style.display = 'block';
+            };
+        }
+
+        function saveReport() {
+            const reportData = {
+                date: document.getElementById('reportDate').value,
+                address: document.getElementById('reportAddress').value,
+                text: document.getElementById('reportText').value,
+                images: tempPhotos
+            };
+            if (currentReportId) reportData.id = currentReportId;
+
+            const tx = db.transaction(["raporty"], "readwrite");
+            tx.objectStore("raporty").put(reportData);
+            tx.oncomplete = () => { closeForm(); loadReports(); resetForm(); };
         }
 
         function editCurrentReport() {
-            const id = currentReportId;
-            db.transaction("raporty").objectStore("raporty").get(id).onsuccess = e => {
+            db.transaction(["raporty"]).objectStore("raporty").get(currentReportId).onsuccess = e => {
                 const r = e.target.result;
                 openForm(r.id);
                 document.getElementById('formTitle').innerText = "Edytuj Raport";
-                document.getElementById('reportDate').value = r.date.slice(0,16);
+                document.getElementById('reportDate').value = r.date;
                 document.getElementById('reportAddress').value = r.address;
                 document.getElementById('reportText').value = r.text;
                 tempPhotos = r.images || [];
                 renderTempPhotos();
                 closePreview();
             };
-        }
-
-        function saveReport() {
-            const data = {
-                date: document.getElementById('reportDate').value,
-                address: document.getElementById('reportAddress').value,
-                text: document.getElementById('reportText').value,
-                images: tempPhotos
-            };
-            if(currentReportId) data.id = currentReportId;
-            const tx = db.transaction("raporty", "readwrite");
-            tx.objectStore("raporty").put(data);
-            tx.oncomplete = () => { closeForm(); loadReports(); };
         }
 
         function handlePhoto(input) {
@@ -227,9 +283,12 @@
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
-                    const scale = Math.min(800/img.width, 800/img.height, 1);
-                    canvas.width = img.width * scale; canvas.height = img.height * scale;
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    const max_size = 800;
+                    let w = img.width, h = img.height;
+                    if (w > h) { if (w > max_size) { h *= max_size / w; w = max_size; } }
+                    else { if (h > max_size) { w *= max_size / h; h = max_size; } }
+                    canvas.width = w; canvas.height = h;
+                    ctx.drawImage(img, 0, 0, w, h);
                     tempPhotos.push(canvas.toDataURL('image/jpeg', 0.7));
                     renderTempPhotos();
                 };
@@ -239,41 +298,39 @@
 
         function renderTempPhotos() {
             document.getElementById('temp-photos').innerHTML = tempPhotos.map((p, i) => 
-                `<img src="${p}" class="temp-thumb" onclick="tempPhotos.splice(${i},1); renderTempPhotos()">`
+                `<img src="${p}" class="temp-thumb" onclick="if(confirm('Usunąć?')){tempPhotos.splice(${i},1); renderTempPhotos();}">`
             ).join('');
-        }
-
-        function showPreview(id) {
-            currentReportId = id;
-            db.transaction("raporty").objectStore("raporty").get(id).onsuccess = e => {
-                const r = e.target.result;
-                let html = `<div style="padding-bottom:10px; border-bottom:1px solid #eee; margin-bottom:15px;"><h2 style="margin:0; color:var(--primary);">RAPORT INSTALACYJNY</h2></div>
-                            <p><b>Data:</b> ${new Date(r.date).toLocaleString()}</p>
-                            <p><b>Adres:</b> ${r.address}</p>
-                            <div style="white-space:pre-wrap; background:#f9f9f9; padding:15px; border-radius:8px; border:1px solid #eee; margin-top:10px;">${r.text}</div>`;
-                if(r.images && r.images.length > 0) {
-                    html += `<p style="margin-top:20px; font-weight:bold; color:var(--primary);">DOKUMENTACJA ZDJĘCIOWA:</p>`;
-                    r.images.forEach(img => html += `<img src="${img}" class="preview-photo">`);
-                }
-                document.getElementById('previewContent').innerHTML = html;
-                document.getElementById('previewModal').style.display = 'block';
-            };
-        }
-
-        function toggleScreenshotMode(on) {
-            document.body.classList.toggle('screenshot-mode', on);
-            window.scrollTo(0,0); // Przewiń na górę przy włączaniu
         }
 
         function removeReport(id) {
             if(confirm("Usunąć ten raport?")) {
-                db.transaction("raporty", "readwrite").objectStore("raporty").delete(id).onsuccess = () => { closePreview(); loadReports(); };
+                db.transaction(["raporty"], "readwrite").objectStore("raporty").delete(id).onsuccess = () => { closePreview(); loadReports(); };
             }
+        }
+
+        function toggleScreenshotMode(on) {
+            document.body.classList.toggle('screenshot-mode', on);
+            if(on) window.scrollTo(0,0);
         }
 
         function checkPending() {
             const t = localStorage.getItem('pending_report_text');
             if(t) { openForm(); document.getElementById('reportText').value = t; localStorage.removeItem('pending_report_text'); }
+        }
+
+        function openForm(editId = null) {
+            currentReportId = editId;
+            document.getElementById('formModal').style.display = 'block';
+            if(!editId) resetForm();
+        }
+
+        function resetForm() {
+            document.getElementById('formTitle').innerText = "Nowy Raport";
+            document.getElementById('reportDate').value = new Date().toISOString().slice(0,16);
+            document.getElementById('reportAddress').value = "";
+            document.getElementById('reportText').value = "";
+            tempPhotos = [];
+            renderTempPhotos();
         }
 
         function closeForm() { document.getElementById('formModal').style.display = 'none'; }
