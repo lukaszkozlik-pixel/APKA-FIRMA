@@ -192,13 +192,28 @@ h1 {
         displayNotes();
     }
 
-    function deleteNote(id) {
-        if (confirm("Usunąć?")) {
-            const notes = getNotes().filter(n => n.id !== id);
-            localStorage.setItem('inst-notes', JSON.stringify(notes));
-            displayNotes();
+        function deleteNote(id) {
+            if (navigator.notification) {
+                navigator.notification.confirm(
+                    "Usunąć tę notatkę?",
+                    function(buttonIndex) {
+                        if (buttonIndex === 1) {
+                            const notes = getNotes().filter(n => n.id !== id);
+                            localStorage.setItem('inst-notes', JSON.stringify(notes));
+                            displayNotes();
+                        }
+                    },
+                    "Notatki",
+                    ["Tak", "Nie"]
+                );
+            } else {
+                if (confirm("Usunąć?")) {
+                    const notes = getNotes().filter(n => n.id !== id);
+                    localStorage.setItem('inst-notes', JSON.stringify(notes));
+                    displayNotes();
+                }
+            }
         }
-    }
 
     // Funkcja zapisu edytowanej treści
     function updateNote(id, newText) {

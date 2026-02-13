@@ -355,8 +355,7 @@
                 hour: '2-digit', minute: '2-digit' 
             });
 
-            let text = "--- RACHUNEK ZA MONTAŻ ---\n";
-            text += `Data: ${dateStr}\n\n`;
+            let text = `Data: ${dateStr}\n\n`;
             text += `--------------------------\n\n`;
 
             selectedItems.forEach((item, index) => {
@@ -373,7 +372,7 @@
             text += "\n--------------------------\n";
             text += `SUMA DO ZAPŁATY: ${total.toFixed(2)} zł\n`;
             text += "--------------------------\n";
-            text += "Dziękujemy za skorzystanie z usług!";
+            
 
             return text;
         }

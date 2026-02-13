@@ -20,444 +20,264 @@
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg);
             color: var(--text);
-            margin: 0;
-            padding: 0;
-            line-height: 1.5;
+            margin: 0; padding: 0; line-height: 1.5;
         }
 
+        .app-interface { display: block; }
+
         header {
-            display: flex;
-            align-items: center;
-            padding: 10px 15px;
-            background: var(--primary);
-            color: white;
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            display: flex; align-items: center; padding: 10px 15px;
+            background: var(--primary); color: white;
+            position: sticky; top: 0; z-index: 100;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        header h1 {
-            margin: 0;
-            font-size: 1.3rem;
-            flex-grow: 1;
-            text-align: center;
-            margin-right: 40px;
-        }
+        header h1 { margin: 0; font-size: 1.3rem; flex-grow: 1; text-align: center; margin-right: 40px; }
+        .btn-back { background: none; border: none; color: white; font-size: 1.8rem; cursor: pointer; padding: 5px; }
+        .container { padding: 15px; padding-bottom: 80px; }
 
-        .btn-back {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.8rem;
-            padding: 5px 15px 5px 0;
-            cursor: pointer;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-        }
-
-        .search-container {
-            padding: 15px 15px 5px 15px;
-            background: var(--bg);
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1px solid #ddd;
-            border-radius: 25px;
-            font-size: 16px;
-            outline: none;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-
-        #reportsList {
-            padding: 15px;
-            padding-bottom: 100px;
-        }
-
+        /* --- LISTA --- */
         .report-card {
-            background: white;
-            padding: 16px;
-            border-radius: 12px;
-            margin-bottom: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            background: white; border-radius: 12px; padding: 15px; margin-bottom: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 5px solid var(--primary);
         }
+        .report-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .report-date { font-size: 0.85rem; color: #666; font-weight: 500; }
+        .report-address { font-weight: bold; font-size: 1.1rem; margin-bottom: 5px; }
 
-        .report-info div { font-weight: bold; font-size: 16px; color: #333; }
-        .report-info span { font-size: 12px; color: #777; }
-
-        .report-actions-row {
-            display: flex;
-            gap: 10px;
-            border-top: 1px solid #f1f1f1;
-            padding-top: 12px;
-            margin-top: 12px;
-        }
-
-        .btn-view {
-            flex: 1;
-            background: white;
-            color: var(--primary);
-            border: 1.5px solid var(--primary);
-            padding: 10px;
-            border-radius: 8px;
-            font-weight: bold;
-        }
-
-        .btn-edit {
-            flex: 1;
-            background: white;
-            color: var(--warning);
-            border: 1.5px solid var(--warning);
-            padding: 10px;
-            border-radius: 8px;
-            font-weight: bold;
-        }
-
-        .btn-delete {
-            background: #fff5f5;
-            color: var(--danger);
-            border: none;
-            padding: 10px 15px;
-            border-radius: 8px;
-        }
-
+        /* --- FAB --- */
         .fab {
-            position: fixed;
-            bottom: 25px;
-            right: 25px;
-            width: 60px;
-            height: 60px;
-            background: var(--primary);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 35px;
-            box-shadow: 0 4px 15px rgba(26, 115, 232, 0.4);
-            border: none;
-            z-index: 500;
+            position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px;
+            background-color: var(--primary); color: white; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 90;
         }
 
-        #formOverlay, #previewModal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: white;
-            z-index: 1000;
-            overflow-y: auto;
+        /* --- MODALE --- */
+        #previewModal, #formModal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 1000; backdrop-filter: blur(3px);
         }
+        #formModal { background: white; z-index: 2000; overflow-y: auto; padding: 20px; }
 
-        .overlay-header {
-            background: var(--primary);
-            color: white;
-            padding: 15px;
-            font-size: 1.2rem;
-            text-align: center;
-            font-weight: bold;
+        .modal-content {
+            background: white; margin: 5% auto; width: 95%; height: 90%;
+            border-radius: 12px; padding: 20px; overflow-y: auto;
+            display: flex; flex-direction: column;
         }
-
-        .form-container, #previewContent { padding: 20px; }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; font-size: 11px; font-weight: bold; color: #888; text-transform: uppercase; margin-bottom: 6px; }
+        .preview-body { flex-grow: 1; overflow-y: auto; }
         
-        input[type="text"], input[type="datetime-local"], textarea {
-            width: 100%;
-            padding: 14px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            font-size: 16px;
+        .modal-actions {
+            margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
         }
+        .btn { padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-align: center; }
+        .btn-close { background: #f1f3f4; }
+        .btn-delete { background: #fee2e2; color: var(--danger); }
+        .btn-edit { background: #e8f0fe; color: var(--primary); }
+        .btn-print { background: var(--success); color: white; grid-column: span 2; }
 
-        .preview-photo { width: 100%; border-radius: 4px; margin-top: 15px; border: 1px solid #eee; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-control { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; }
         
-        .sticky-bottom-actions {
-            padding: 20px;
-            background: #f8f9fa;
-            display: flex;
-            gap: 12px;
-        }
+        .btn-photo { background: #e8f0fe; color: var(--primary); width: 100%; border: 2px dashed var(--primary); padding: 15px; border-radius: 8px; margin-bottom: 10px; }
+        .temp-thumb { width: 70px; height: 70px; object-fit: cover; border-radius: 8px; margin-right: 5px; }
+        .preview-photo { width: 100%; border-radius: 8px; margin-top: 10px; display: block; }
 
-        .btn-save { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 10px; font-weight: bold; flex: 2; }
-        .btn-cancel { background: #eee; color: #444; border: none; padding: 16px; border-radius: 10px; font-weight: bold; flex: 1; }
+        /* --- TRYB SCREENSHOT --- */
+        body.screenshot-mode { background: white !important; overflow: visible !important; height: auto !important; }
+        body.screenshot-mode .app-interface, body.screenshot-mode .fab, body.screenshot-mode .modal-actions, body.screenshot-mode #formModal { display: none !important; }
+        body.screenshot-mode #previewModal { position: static !important; display: block !important; height: auto !important; width: 100% !important; overflow: visible !important; }
+        
+        /* Dodajemy duży margines na dole treści raportu, by przycisk nic nie zasłaniał */
+        body.screenshot-mode .modal-content { 
+            box-shadow: none !important; margin: 0 !important; width: 100% !important; height: auto !important; 
+            padding: 20px !important; overflow: visible !important; 
+            padding-bottom: 120px !important; 
+        }
+        body.screenshot-mode .preview-body { overflow: visible !important; height: auto !important; }
+
+        #exit-screenshot-btn {
+            display: none; position: fixed; bottom: 20px; right: 20px;
+            background: var(--danger); color: white; padding: 15px 20px; border-radius: 30px; 
+            z-index: 9999; border: none; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        body.screenshot-mode #exit-screenshot-btn { display: block; }
     </style>
 </head>
 <body>
 
-<header>
-    <button class="btn-back" onclick="window.location.replace('../index.html')">&lt;</button>
-    <h1>Raporty Instalacyjne</h1>
-</header>
+    <button id="exit-screenshot-btn" onclick="toggleScreenshotMode(false)">❌ WYJDŹ Z PODGLĄDU</button>
 
-<div class="search-container">
-    <input type="text" id="searchInput" class="search-input" placeholder="🔍 Szukaj adresu lub klienta..." oninput="loadReports()">
-</div>
+    <div class="app-interface">
+        <header>
+            <button class="btn-back" onclick="window.location.replace('../index.html')">‹</button>
+            <h1>Baza Raportów</h1>
+        </header>
+        <div class="container" id="reportList"></div>
+        <div class="fab" onclick="openForm()">+</div>
+    </div>
 
-<div id="reportsList"></div>
-
-<button class="fab" onclick="openForm()">+</button>
-
-<div id="formOverlay">
-    <div class="overlay-header" id="formTitle">Nowy Raport</div>
-    <div class="form-container">
-        <input type="hidden" id="editReportId">
-        
-        <div class="form-group">
-            <label>Data wykonania</label>
-            <input type="datetime-local" id="reportDate">
-        </div>
-        <div class="form-group">
-            <label>Lokalizacja / Adres</label>
-            <input type="text" id="reportAddress" placeholder="Wpisz adres">
-        </div>
-        <div class="form-group">
-            <label>Opis prac</label>
-            <textarea id="reportText" rows="10" placeholder="Co zostało zrobione?"></textarea>
-        </div>
-        <div class="form-group">
-            <label>Zdjęcia (nowe zastąpią obecne)</label>
-            <input type="file" id="reportImages" accept="image/*" multiple>
-        </div>
-        <div class="sticky-bottom-actions" style="padding:0; background:transparent;">
-            <button class="btn-cancel" onclick="closeForm()">ANULUJ</button>
-            <button class="btn-save" id="saveBtn" onclick="saveReport()">ZAPISZ RAPORT</button>
+    <div id="previewModal">
+        <div class="modal-content">
+            <div id="previewContent" class="preview-body"></div>
+            <div class="modal-actions">
+                <button class="btn btn-print" onclick="toggleScreenshotMode(true)">📷 PRZYGOTUJ DO SCREENA</button>
+                <button class="btn btn-edit" onclick="editCurrentReport()">EDYTUJ</button>
+                <button class="btn btn-delete" onclick="removeReport(currentReportId)">USUŃ</button>
+                <button class="btn btn-close" style="grid-column: span 2;" onclick="closePreview()">ZAMKNIJ</button>
+            </div>
         </div>
     </div>
-</div>
 
-<div id="previewModal">
-    <div id="previewContent"></div>
-    <div class="sticky-bottom-actions">
-        <button class="btn-save" onclick="closePreview()" style="flex: 1; background: #eee; color: #444;">WRÓĆ DO LISTY</button>
+    <div id="formModal">
+        <h2 id="formTitle">Nowy Raport</h2>
+        <div class="form-group">
+            <label>Data instalacji</label>
+            <input type="datetime-local" id="reportDate" class="form-control">
+        </div>
+        <div class="form-group">
+            <label>Adres / Klient</label>
+            <input type="text" id="reportAddress" class="form-control">
+        </div>
+        <div class="form-group">
+            <label>Opis prac / Materiały</label>
+            <textarea id="reportText" class="form-control" style="min-height: 150px;"></textarea>
+        </div>
+        <div class="form-group">
+            <label>Zdjęcia</label>
+            <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="handlePhoto(this)">
+            <button class="btn-photo" onclick="document.getElementById('photoInput').click()">📷 DODAJ ZDJĘCIE</button>
+            <div id="temp-photos"></div>
+        </div>
+        <button class="btn" style="background:var(--primary); color:white; width:100%; padding:15px;" onclick="saveReport()">ZAPISZ RAPORT</button>
+        <button class="btn-close" style="width:100%; border:none; padding:15px; margin-top:10px;" onclick="closeForm()">ANULUJ</button>
     </div>
-</div>
 
-<script>
-    let db;
-    const dbName = "AntenaReportsDB";
+    <script>
+        let db;
+        let currentReportId = null;
+        let tempPhotos = [];
 
-    // INICJALIZACJA BAZY
-    const request = indexedDB.open(dbName, 1);
-    request.onupgradeneeded = (e) => {
-        db = e.target.result;
-        if (!db.objectStoreNames.contains("raporty")) {
-            db.createObjectStore("raporty", { keyPath: "id" });
+        const req = indexedDB.open("InstalatorDB", 1);
+        req.onupgradeneeded = e => { e.target.result.createObjectStore("raporty", { keyPath: "id", autoIncrement: true }); };
+        req.onsuccess = e => { db = e.target.result; loadReports(); checkPending(); };
+
+        function loadReports() {
+            const store = db.transaction("raporty", "readonly").objectStore("raporty");
+            store.getAll().onsuccess = e => {
+                const reports = e.target.result.sort((a,b) => new Date(b.date) - new Date(a.date));
+                document.getElementById('reportList').innerHTML = reports.map(r => `
+                    <div class="report-card" onclick="showPreview(${r.id})">
+                        <div class="report-header"><span class="report-date">${new Date(r.date).toLocaleString()}</span></div>
+                        <div class="report-address">${r.address || 'Brak adresu'}</div>
+                    </div>
+                `).join('') || '<p style="text-align:center; color:#888;">Brak raportów</p>';
+            };
         }
-    };
-    request.onsuccess = (e) => { 
-        db = e.target.result; 
-        loadReports(); 
-        checkPendingData(); 
-    };
 
-    function openForm(isEdit = false) { 
-        document.getElementById('formOverlay').style.display = 'block'; 
-        if (!isEdit) {
-            document.getElementById('formTitle').innerText = "Nowy Raport";
-            document.getElementById('editReportId').value = "";
-            document.getElementById('reportAddress').value = "";
-            document.getElementById('reportText').value = "";
-            document.getElementById('reportImages').value = "";
-            
-            // Ustawienie domyślnej daty na teraz
-            const now = new Date();
-            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-            document.getElementById('reportDate').value = now.toISOString().slice(0, 16);
-        }
-    }
-
-    function closeForm() { document.getElementById('formOverlay').style.display = 'none'; }
-
-    // EDYCJA RAPORTU
-    function editReport(id) {
-        const transaction = db.transaction(["raporty"], "readonly");
-        const req = transaction.objectStore("raporty").get(id);
-        req.onsuccess = () => {
-            const item = req.result;
-            openForm(true);
-            document.getElementById('formTitle').innerText = "Edytuj Raport";
-            document.getElementById('editReportId').value = item.id;
-            document.getElementById('reportAddress').value = item.address || "";
-            document.getElementById('reportText').value = item.text || "";
-            document.getElementById('reportImages').value = "";
-
-            // Konwersja daty z "DD.MM.RRRR, GG:MM" na format pola HTML
-            try {
-                const parts = item.timestamp.split(', ');
-                const dateParts = parts[0].split('.');
-                const time = parts[1];
-                const isoStr = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}T${time}`;
-                document.getElementById('reportDate').value = isoStr;
-            } catch(e) {
-                console.error("Błąd parsowania daty");
+        function openForm(editId = null) {
+            currentReportId = editId;
+            document.getElementById('formModal').style.display = 'block';
+            if(!editId) {
+                document.getElementById('formTitle').innerText = "Nowy Raport";
+                document.getElementById('reportDate').value = new Date().toISOString().slice(0,16);
+                document.getElementById('reportAddress').value = "";
+                document.getElementById('reportText').value = "";
+                tempPhotos = [];
             }
-        };
-    }
+            renderTempPhotos();
+        }
 
-    // SKALOWANIE ZDJĘĆ
-    function processImage(file) {
-        return new Promise((res) => {
+        function editCurrentReport() {
+            const id = currentReportId;
+            db.transaction("raporty").objectStore("raporty").get(id).onsuccess = e => {
+                const r = e.target.result;
+                openForm(r.id);
+                document.getElementById('formTitle').innerText = "Edytuj Raport";
+                document.getElementById('reportDate').value = r.date.slice(0,16);
+                document.getElementById('reportAddress').value = r.address;
+                document.getElementById('reportText').value = r.text;
+                tempPhotos = r.images || [];
+                renderTempPhotos();
+                closePreview();
+            };
+        }
+
+        function saveReport() {
+            const data = {
+                date: document.getElementById('reportDate').value,
+                address: document.getElementById('reportAddress').value,
+                text: document.getElementById('reportText').value,
+                images: tempPhotos
+            };
+            if(currentReportId) data.id = currentReportId;
+            const tx = db.transaction("raporty", "readwrite");
+            tx.objectStore("raporty").put(data);
+            tx.oncomplete = () => { closeForm(); loadReports(); };
+        }
+
+        function handlePhoto(input) {
+            if(!input.files[0]) return;
             const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = (ev) => {
+            reader.onload = e => {
                 const img = new Image();
-                img.src = ev.target.result;
+                img.src = e.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 1200;
-                    let width = img.width;
-                    let height = img.height;
-                    if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
-                    canvas.width = width; canvas.height = height;
                     const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-                    res(canvas.toDataURL('image/jpeg', 0.7));
+                    const scale = Math.min(800/img.width, 800/img.height, 1);
+                    canvas.width = img.width * scale; canvas.height = img.height * scale;
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    tempPhotos.push(canvas.toDataURL('image/jpeg', 0.7));
+                    renderTempPhotos();
                 };
             };
-        });
-    }
+            reader.readAsDataURL(input.files[0]);
+        }
 
-    // ZAPIS (NOWY LUB EDYCJA)
-    async function saveReport() {
-        const editId = document.getElementById('editReportId').value;
-        const addr = document.getElementById('reportAddress').value;
-        const txt = document.getElementById('reportText').value;
-        const dateVal = document.getElementById('reportDate').value;
-        const files = document.getElementById('reportImages').files;
+        function renderTempPhotos() {
+            document.getElementById('temp-photos').innerHTML = tempPhotos.map((p, i) => 
+                `<img src="${p}" class="temp-thumb" onclick="tempPhotos.splice(${i},1); renderTempPhotos()">`
+            ).join('');
+        }
 
-        if (!txt && !addr) return;
-
-        const btn = document.getElementById('saveBtn');
-        btn.disabled = true; btn.innerText = "ZAPISYWANIE...";
-
-        // Formatowanie daty do wyświetlania
-        const formattedDate = new Date(dateVal).toLocaleString('pl-PL', {
-            day: '2-digit', month: '2-digit', year: 'numeric',
-            hour: '2-digit', minute: '2-digit'
-        });
-
-        const newImages = [];
-        for (let f of files) { newImages.push(await processImage(f)); }
-
-        const transaction = db.transaction(["raporty"], "readwrite");
-        const store = transaction.objectStore("raporty");
-
-        if (editId) {
-            // Logika edycji: zachowaj stare zdjęcia jeśli nie wybrano nowych
-            const req = store.get(Number(editId));
-            req.onsuccess = () => {
-                const oldData = req.result;
-                const updatedReport = {
-                    id: Number(editId),
-                    timestamp: formattedDate,
-                    address: addr,
-                    text: txt,
-                    images: newImages.length > 0 ? newImages : oldData.images
-                };
-                store.put(updatedReport);
+        function showPreview(id) {
+            currentReportId = id;
+            db.transaction("raporty").objectStore("raporty").get(id).onsuccess = e => {
+                const r = e.target.result;
+                let html = `<div style="padding-bottom:10px; border-bottom:1px solid #eee; margin-bottom:15px;"><h2 style="margin:0; color:var(--primary);">RAPORT INSTALACYJNY</h2></div>
+                            <p><b>Data:</b> ${new Date(r.date).toLocaleString()}</p>
+                            <p><b>Adres:</b> ${r.address}</p>
+                            <div style="white-space:pre-wrap; background:#f9f9f9; padding:15px; border-radius:8px; border:1px solid #eee; margin-top:10px;">${r.text}</div>`;
+                if(r.images && r.images.length > 0) {
+                    html += `<p style="margin-top:20px; font-weight:bold; color:var(--primary);">DOKUMENTACJA ZDJĘCIOWA:</p>`;
+                    r.images.forEach(img => html += `<img src="${img}" class="preview-photo">`);
+                }
+                document.getElementById('previewContent').innerHTML = html;
+                document.getElementById('previewModal').style.display = 'block';
             };
-        } else {
-            // Nowy raport
-            const report = {
-                id: Date.now(),
-                timestamp: formattedDate,
-                address: addr,
-                text: txt,
-                images: newImages
-            };
-            store.add(report);
         }
 
-        transaction.oncomplete = () => {
-            btn.disabled = false; btn.innerText = "ZAPISZ RAPORT";
-            closeForm();
-            loadReports();
-        };
-    }
-
-    function loadReports() {
-        const container = document.getElementById('reportsList');
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-        container.innerHTML = "";
-
-        const transaction = db.transaction(["raporty"], "readonly");
-        const store = transaction.objectStore("raporty");
-        const request = store.getAll();
-
-        request.onsuccess = () => {
-            let reports = request.result.reverse();
-            
-            if (searchTerm) {
-                reports = reports.filter(r => 
-                    (r.address && r.address.toLowerCase().includes(searchTerm)) || 
-                    (r.text && r.text.toLowerCase().includes(searchTerm))
-                );
-            }
-
-            if (reports.length === 0) {
-                container.innerHTML = '<div style="text-align:center; padding:50px; color:#aaa;">Brak wyników.</div>';
-                return;
-            }
-
-            reports.forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'report-card';
-                card.innerHTML = `
-                    <div class="report-info">
-                        <div>${item.address || 'Brak tytułu'}</div>
-                        <span>📅 ${item.timestamp}</span>
-                    </div>
-                    <div class="report-actions-row">
-                        <button class="btn-view" onclick="openPreview(${item.id})">PODGLĄD</button>
-                        <button class="btn-edit" onclick="editReport(${item.id})">EDYTUJ</button>
-                        <button class="btn-delete" onclick="removeReport(${item.id})">🗑️</button>
-                    </div>`;
-                container.appendChild(card);
-            });
-        };
-    }
-
-    function openPreview(id) {
-        const transaction = db.transaction(["raporty"], "readonly");
-        const req = transaction.objectStore("raporty").get(id);
-        req.onsuccess = () => {
-            const item = req.result;
-            let html = `<div style="border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 25px;">
-                <h1 style="margin:0; font-size: 24px;">PROTOKÓŁ INSTALACJI</h1><p style="margin:5px 0; color:#666;">Data: ${item.timestamp}</p></div>
-                <p style="font-size:11px; font-weight:bold; color:#888;">ADRES:</p><div style="font-size: 19px; margin-bottom: 20px;">${item.address || '-'}</div>
-                <p style="font-size:11px; font-weight:bold; color:#888;">OPIS PRAC:</p><div style="font-size: 16px; white-space: pre-wrap; line-height: 1.6;">${item.text}</div>`;
-            
-            if(item.images) {
-                item.images.forEach(img => { html += `<img src="${img}" class="preview-photo">`; });
-            }
-            
-            document.getElementById('previewContent').innerHTML = html;
-            document.getElementById('previewModal').style.display = 'block';
-        };
-    }
-
-    function closePreview() { document.getElementById('previewModal').style.display = 'none'; }
-
-    function removeReport(id) {
-        if (confirm("Usunąć ten raport?")) {
-            const transaction = db.transaction(["raporty"], "readwrite");
-            transaction.objectStore("raporty").delete(id);
-            transaction.oncomplete = () => loadReports();
+        function toggleScreenshotMode(on) {
+            document.body.classList.toggle('screenshot-mode', on);
+            window.scrollTo(0,0); // Przewiń na górę przy włączaniu
         }
-    }
 
-    function checkPendingData() {
-        const pendingText = localStorage.getItem('pending_report_text');
-        if (pendingText) {
-            openForm();
-            document.getElementById('reportText').value = pendingText;
-            localStorage.removeItem('pending_report_text');
-            setTimeout(() => { document.getElementById('reportAddress').focus(); }, 300);
+        function removeReport(id) {
+            if(confirm("Usunąć ten raport?")) {
+                db.transaction("raporty", "readwrite").objectStore("raporty").delete(id).onsuccess = () => { closePreview(); loadReports(); };
+            }
         }
-    }
-</script>
+
+        function checkPending() {
+            const t = localStorage.getItem('pending_report_text');
+            if(t) { openForm(); document.getElementById('reportText').value = t; localStorage.removeItem('pending_report_text'); }
+        }
+
+        function closeForm() { document.getElementById('formModal').style.display = 'none'; }
+        function closePreview() { document.getElementById('previewModal').style.display = 'none'; }
+    </script>
 </body>
 </html>
