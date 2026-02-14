@@ -291,7 +291,7 @@
                 }
 
                 const pdfBlob = doc.output('blob');
-                const fileName = `Raport_${(r.address || 'eksport').replace(/\s+/g, '_')}.pdf`;
+                const fileName = `RP_${(r.address + " " + (new Date(r.date).toLocaleDateString('pl-PL')) || 'eksport').replace(/\s+/g, '_')}.pdf`;
                 const file = new File([pdfBlob], fileName, { type: "application/pdf" });
 
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
