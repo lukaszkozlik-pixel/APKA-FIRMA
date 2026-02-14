@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Raporty Instalacyjne</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
             --primary: #1a73e8;
@@ -38,6 +37,7 @@
         .header-top h1 { margin: 0; font-size: 1.2rem; flex-grow: 1; text-align: center; margin-right: 40px; }
         .btn-back { background: none; border: none; color: white; font-size: 1.8rem; cursor: pointer; padding: 5px; }
 
+        /* WYSZUKIWARKA */
         .search-container { padding: 0 15px 10px 15px; }
         .search-bar {
             width: 100%;
@@ -51,6 +51,7 @@
 
         .container { padding: 15px; padding-bottom: 100px; }
 
+        /* --- LISTA --- */
         .report-card {
             background: white; border-radius: 12px; padding: 15px; margin-bottom: 15px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 5px solid var(--primary);
@@ -59,6 +60,7 @@
         .report-date { font-size: 0.85rem; color: #666; font-weight: 500; }
         .report-address { font-weight: bold; font-size: 1.1rem; margin-bottom: 5px; }
 
+        /* --- FAB --- */
         .fab {
             position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px;
             background-color: var(--primary); color: white; border-radius: 50%;
@@ -66,6 +68,7 @@
             font-size: 2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 90;
         }
 
+        /* --- MODALE --- */
         #previewModal, #formModal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.6); z-index: 1000; backdrop-filter: blur(3px);
@@ -87,7 +90,6 @@
         .btn-close { background: #f1f3f4; }
         .btn-delete { background: #fee2e2; color: var(--danger); }
         .btn-edit { background: #e8f0fe; color: var(--primary); }
-        .btn-pdf { background: #673ab7; color: white; grid-column: span 2; }
         .btn-print { background: var(--success); color: white; grid-column: span 2; }
 
         .form-group { margin-bottom: 15px; }
@@ -98,6 +100,7 @@
         .temp-thumb { width: 70px; height: 70px; object-fit: cover; border-radius: 8px; margin-right: 5px; }
         .preview-photo { width: 100%; border-radius: 8px; margin-top: 10px; display: block; }
 
+        /* --- TRYB SCREENSHOT --- */
         body.screenshot-mode { background: white !important; overflow: visible !important; height: auto !important; }
         body.screenshot-mode .app-interface, body.screenshot-mode .fab, body.screenshot-mode .modal-actions, body.screenshot-mode #formModal { display: none !important; }
         body.screenshot-mode #previewModal { position: static !important; display: block !important; height: auto !important; width: 100% !important; overflow: visible !important; }
@@ -140,7 +143,6 @@
         <div class="modal-content">
             <div id="previewContent" class="preview-body"></div>
             <div class="modal-actions">
-                <button class="btn btn-pdf" onclick="shareAsPDF()">📄 UDOSTĘPNIJ PDF</button>
                 <button class="btn btn-print" onclick="toggleScreenshotMode(true)">📷 PRZYGOTUJ DO SCREENA</button>
                 <button class="btn btn-edit" onclick="editCurrentReport()">EDYTUJ</button>
                 <button class="btn btn-delete" onclick="removeReport(currentReportId)">USUŃ</button>
@@ -178,7 +180,6 @@
         let currentReportId = null;
         let tempPhotos = [];
 
-        // Inicjalizacja IndexedDB
         const dbRequest = indexedDB.open("InstalatorDB", 1);
         dbRequest.onupgradeneeded = e => {
             let database = e.target.result;
@@ -196,16 +197,20 @@
             
             store.getAll().onsuccess = e => {
                 let reports = e.target.result;
+                
+                // Filtrowanie
                 if (searchTerm) {
                     reports = reports.filter(r => 
                         (r.address && r.address.toLowerCase().includes(searchTerm)) || 
                         (r.text && r.text.toLowerCase().includes(searchTerm))
                     );
                 }
+
                 reports.sort((a, b) => new Date(b.date) - new Date(a.date));
+                
                 const listContainer = document.getElementById('reportList');
                 if (reports.length === 0) {
-                    listContainer.innerHTML = `<p style="text-align:center; margin-top:50px; color:#888;">${searchTerm ? 'Nie znaleziono raportów.' : 'Brak zapisanych raportów.'}</p>`;
+                    listContainer.innerHTML = `<p style="text-align:center; margin-top:50px; color:#888;">${searchTerm ? 'Nie znaleziono pasujących raportów.' : 'Brak zapisanych raportów.'}</p>`;
                 } else {
                     listContainer.innerHTML = reports.map(r => `
                         <div class="report-card" onclick="showPreview(${r.id})">
@@ -241,67 +246,6 @@
             };
         }
 
-        // --- FUNKCJA PDF ---
-        async function shareAsPDF() {
-            if (!currentReportId) return;
-            const transaction = db.transaction(["raporty"], "readonly");
-            transaction.objectStore("raporty").get(currentReportId).onsuccess = async (e) => {
-                const r = e.target.result;
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
-                let y = 20;
-
-                doc.setFontSize(20);
-                doc.setTextColor(26, 115, 232);
-                doc.text("RAPORT INSTALACYJNY", 20, y);
-                doc.setDrawColor(26, 115, 232);
-                doc.line(20, y + 2, 190, y + 2);
-                
-                y += 15;
-                doc.setFontSize(12);
-                doc.setTextColor(0, 0, 0);
-                doc.setFont(undefined, 'bold');
-                doc.text("Data:", 20, y);
-                doc.setFont(undefined, 'normal');
-                doc.text(new Date(r.date).toLocaleString('pl-PL'), 50, y);
-                
-                y += 10;
-                doc.setFont(undefined, 'bold');
-                doc.text("Adres:", 20, y);
-                doc.setFont(undefined, 'normal');
-                doc.text(r.address || '-', 50, y);
-
-                y += 15;
-                doc.setFont(undefined, 'bold');
-                doc.text("Opis prac:", 20, y);
-                y += 7;
-                doc.setFont(undefined, 'normal');
-                const splitText = doc.splitTextToSize(r.text, 170);
-                doc.text(splitText, 20, y);
-                y += (splitText.length * 7) + 10;
-
-                if (r.images && r.images.length > 0) {
-                    for (const imgData of r.images) {
-                        if (y > 220) { doc.addPage(); y = 20; }
-                        try {
-                            doc.addImage(imgData, 'JPEG', 20, y, 100, 75);
-                            y += 85;
-                        } catch (err) { console.error(err); }
-                    }
-                }
-
-                const pdfBlob = doc.output('blob');
-                const fileName = `Raport_${(r.address || 'eksport').replace(/\s+/g, '_')}.pdf`;
-                const file = new File([pdfBlob], fileName, { type: "application/pdf" });
-
-                if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    await navigator.share({ files: [file], title: 'Raport' });
-                } else {
-                    doc.save(fileName);
-                }
-            };
-        }
-
         function saveReport() {
             const reportData = {
                 date: document.getElementById('reportDate').value,
@@ -320,6 +264,7 @@
             db.transaction(["raporty"]).objectStore("raporty").get(currentReportId).onsuccess = e => {
                 const r = e.target.result;
                 openForm(r.id);
+                document.getElementById('formTitle').innerText = "Edytuj Raport";
                 document.getElementById('reportDate').value = r.date;
                 document.getElementById('reportAddress').value = r.address;
                 document.getElementById('reportText').value = r.text;
