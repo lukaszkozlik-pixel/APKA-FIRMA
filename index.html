@@ -7,6 +7,23 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
     <script>
+        window.addEventListener('beforeinstallprompt', (e) => {
+        // Zapobiega domyślnemu zachowaniu Chrome (opcjonalne)
+        // e.preventDefault(); 
+        
+        // Możesz tutaj np. pokazać własny przycisk "ZAINSTALUJ APLIKACJĘ"
+        console.log('Strona jest gotowa do instalacji jako PWA');
+        });
+
+        // Sprawdzenie czy to iPhone i czy NIE jest w trybie standalone
+        const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+
+        if (isIos && !isStandalone) {
+        // Tutaj możesz wyświetlić np. showToast('Aby zainstalować: kliknij Udostępnij -> Do ekranu początkowego');
+        console.log('Sugestia instalacji dla iOS');
+        }
+
         // Rejestracja Service Workera
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
