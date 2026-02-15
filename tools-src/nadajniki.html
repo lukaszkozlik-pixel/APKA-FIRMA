@@ -63,7 +63,7 @@
 <body>
 
     <header>
-        <button class="btn-back" onclick="window.location.replace('../index.html')">&lt;</button>
+        <button class="btn-back" onclick="window.location.replace('../index.html')">◀</button>
         <h1>Kierunki DVB-T</h1>
     </header>
 
@@ -86,21 +86,13 @@ let map, userMarker, headingMarker;
         { name: "Rybnik / Chwałowice", lat: 50.0658, lon: 18.5539 }
     ];
 
-    // KLUCZOWE: Czekamy na sygnał od systemu APK, że wszystko jest gotowe
-    document.addEventListener("deviceready", onDeviceReady, false);
+    // Inicjalizacja: uruchamiamy na zdarzeniu load (aplikacja nie korzysta już z Cordovy)
+    window.addEventListener('load', onDeviceReady);
 
     function onDeviceReady() {
-        console.log("System APK gotowy. Uruchamiam GPS...");
+        console.log('Aplikacja gotowa. Uruchamiam GPS...');
         updateLocation();
     }
-
-    // Dodatkowe zabezpieczenie dla przeglądarki podczas testów na Chromebooku
-    window.onload = function() {
-        if (!window.cordova) {
-            console.log("Uruchomienie w przeglądarce - tryb testowy");
-            updateLocation();
-        }
-    };
 
         function initMap(lat, lon) {
             // 1. Inicjalizacja mapy bez dodawania domyślnej warstwy na start

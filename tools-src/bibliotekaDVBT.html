@@ -13,6 +13,7 @@
         
         .accordion { background: white; border-radius: 10px; margin-bottom: 10px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .acc-header { background: #1a73e8; color: white; padding: 15px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .acc-header span:last-child { font-size: 1.05rem; margin-left: 8px; opacity: 0.95; }
         
         /* Kluczowa zmiana: padding: 0, aby iframe wypełniał całą szerokość, oraz wysokość */
         .acc-content { 
@@ -35,30 +36,19 @@
 <body>
 
 <header>
-    <button class="btn-back" onclick="window.location.replace('../index.html')">&lt;</button>
+    <button class="btn-back" onclick="window.location.replace('../index.html')">◀</button>
     <h1 style="margin:0; font-size: 1.1rem;">Biblioteka DVB-T</h1>
 </header>
 
 <div class="container">
     
     <div class="accordion">
-    <div class="acc-header" onclick="toggleAcc(this)">PRZYDATNE STRONY <span>+</span></div>
-    <div class="acc-content" style="height: auto; padding: 15px;">
-        <div style="display: flex; flex-direction: column; gap: 15px;">
-            <a href="https://mapy.radiopolska.pl/" target="_blank" 
-               style="display: block; padding: 15px; background: #e8f0fe; color: #1a73e8; text-decoration: none; border-radius: 8px; font-weight: bold; text-align: center;">
-               📍 RadioPolska - Mapa Interaktywna
-            </a>
-            <a href="https://emi.emitel.pl/plan_www/" target="_blank" 
-               style="display: block; padding: 15px; background: #e8f0fe; color: #1a73e8; text-decoration: none; border-radius: 8px; font-weight: bold; text-align: center;">
-               📡 Emitel - Planowanie Emisji
-            </a>
-            <p style="font-size: 12px; color: #666; margin: 0; text-align: center;">
-                Kliknięcie otworzy mapę w nowym oknie przeglądarki.
-            </p>
-        </div>
+        <div class="acc-header" onclick="window.open('https://mapy.radiopolska.pl/','_blank')"><span>RadioPolska - Mapa Interaktywna</span><span>▶</span></div>
     </div>
-</div>
+
+    <div class="accordion">
+        <div class="acc-header" onclick="window.open('https://emi.emitel.pl/plan_www/','_blank')"><span>Emitel - Planowanie Emisji</span><span>▶</span></div>
+    </div>
 
     <div class="accordion">
         <div class="acc-header" onclick="toggleAcc(this)">CZĘSTOTLIWOŚCI (KANAŁY) <span>+</span></div>
@@ -79,6 +69,10 @@
         <div class="acc-content">
             <iframe src="docs/Parametry-DVB-t.html"></iframe>
         </div>
+    </div>
+
+    <div class="accordion">
+        <div class="acc-header" onclick="window.location.href='docs/KonstelacjaDVbt2.html'"><span>KONSTELACJA DVB-T</span><span>▶</span></div>
     </div>
 
 </div>

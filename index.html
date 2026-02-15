@@ -101,12 +101,36 @@
     <script>
         let backClickCounter = 0;
 
-        document.addEventListener("deviceready", onDeviceReady, false);
+        // Aplikacja nie korzysta z Cordovy — inicjalizujemy przy załadowaniu strony
+        window.addEventListener('load', onDeviceReady);
         
         function onDeviceReady() {
-            // 1. WERSJA RĘCZNA (Zmieniamy tylko tutaj przy aktualizacji)
-            const manualVersion = "1.1.0"; 
-            document.getElementById('app-version').innerText = manualVersion;
+            // 1. WERSJA - automatycznie pobierana z manifest.json lub ze zmiennej CACHE_NAME w sw.js
+            async function setAppVersion() {
+                const el = document.getElementById('app-version');
+                if (!el) return;
+                // 1) Spróbuj pobrać manifest.json i odczytać pole `version`
+                try {
+                    const r = await fetch('manifest.json', {cache: 'no-store'});
+                    if (r.ok) {
+                        const m = await r.json();
+                        if (m.version) { el.innerText = m.version; return; }
+                    }
+                } catch(e){}
+                // 2) Fallback: spróbuj odczytać sw.js i dopasować wersję z CACHE_NAME
+                try {
+                    const r2 = await fetch('sw.js', {cache: 'no-store'});
+                    if (r2.ok) {
+                        const txt = await r2.text();
+                        const re = /CACHE_NAME\s*=\s*['"]([a-zA-Z0-9\-_.]*v?(\d+(?:\.\d+)+))['"]/i;
+                        const m = txt.match(re);
+                        if (m && m[2]) { el.innerText = m[2]; return; }
+                    }
+                } catch(e){}
+                // 3) Ostateczny fallback
+                el.innerText = '1.0.0';
+            }
+            setAppVersion();
         
             const statusSpan = document.getElementById('app-status');
         
@@ -125,25 +149,66 @@
             document.addEventListener("offline", updateOnlineStatus, false);
             document.addEventListener("online", updateOnlineStatus, false);
         
-            // 3. OBSŁUGA PRZYCISKU WSTECZ (BEZ PLUGINU XTOAST)
-            document.addEventListener("backbutton", function (e) {
-                const path = window.location.pathname;
-                if (path.endsWith("index.html") || path === "/" || path.includes("android_asset/www/index.html")) {
-                    e.preventDefault();
+            // 3. TEST POŁĄCZENIA Z INTERNETEM (opcjonalnie, można zostawić tylko navigator.onLine)
+            function testInternetConnection() {
+                fetch('https://www.google.com/favicon.ico', { mode: 'no-cors' })
+                    .then(() => {
+                        statusSpan.innerText = "Tryb ONLINE gotowy";
+                        statusSpan.style.color = "#03dac6";
+                    })
+                    .catch(() => {
+                        statusSpan.innerText = "Tryb OFFLINE gotowy";
+                        statusSpan.style.color = "gray";
+                    });
+            }
+            testInternetConnection();
+
+            // 4. UKRYTY PRYCISK DO RESETU - licznik kliknięć w stopkę
+            const footer = document.querySelector('footer');
+            if (footer) {
+                footer.style.cursor = 'pointer';
+                footer.setAttribute('title', 'Kliknij kilka razy, aby zresetować aplikację');
+
+                footer.addEventListener('click', () => {
                     backClickCounter++;
-                    
-                    if (backClickCounter === 1) {
-                        // Używamy naszej własnej funkcji powiadomienia zamiast pluginu
-                        showToast('Kliknij jeszcze raz, aby wyjść');
-                        setTimeout(() => { backClickCounter = 0; }, 2000);
-                    } else {
-                        navigator.app.exitApp();
+                    // opcjonalnie pokazujemy krótkie powiadomienie
+                    showToast(`Kliknięcia: ${backClickCounter}/5`);
+                    if (backClickCounter >= 5) {
+                        // potwierdzenie użytkownika przed trwałym usunięciem
+                        if (confirm('Czy na pewno chcesz zresetować aplikację? To usunie wszystkie dane i cache.')) {
+                            // usuń cache'y service workera
+                            if ('caches' in window) {
+                                caches.keys().then(names => {
+                                    names.forEach(name => caches.delete(name));
+                                });
+                            }
+                            // wyrejestruj service workera (jeśli jest)
+                            if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
+                                navigator.serviceWorker.getRegistrations().then(regs => {
+                                    regs.forEach(r => r.unregister());
+                                }).catch(()=>{});
+                            }
+                            // wyczyść localStorage
+                            try { localStorage.clear(); } catch(e) {}
+                            // zresetuj licznik i przeładuj stronę
+                            backClickCounter = 0;
+                            location.reload();
+                        } else {
+                            backClickCounter = 0; // anulowano, resetujemy licznik
+                        }
                     }
-                } else {
-                    window.location.replace("index.html");
-                }
-            }, false);
+                });
+
+                // Zeruj licznik kiedy użytkownik opuszcza aplikację lub ukrywa kartę
+                window.addEventListener('pagehide', () => { backClickCounter = 0; });
+                window.addEventListener('beforeunload', () => { backClickCounter = 0; });
+                document.addEventListener('visibilitychange', () => {
+                    if (document.hidden) backClickCounter = 0;
+                });
+            }
         }
+
+
         
         // Nasza własna, darmowa funkcja powiadomienia na ekranie
         function showToast(message) {
@@ -164,5 +229,9 @@
                 setTimeout(() => statusDiv.remove(), 500);
             }, 2000);
         }
+
+        
+
+
     </script>
 </html>

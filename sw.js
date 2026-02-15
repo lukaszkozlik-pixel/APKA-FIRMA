@@ -1,4 +1,4 @@
-const CACHE_NAME = 'instalator-v1.5.7';
+const CACHE_NAME = 'instalator-v1.6.0';
 const ASSETS = [
   'index.html',
   'style.css',
@@ -14,6 +14,8 @@ const ASSETS = [
   'tools-src/satelity.html',
   'tools-src/docs/czestotliwosciDVBT.html',
   'tools-src/docs/kolorySat.html',
+  'tools-src/docs/KonstelacjaDVbt2.html',
+  'tools-src/docs/KonstelacjaSat.html',
   'tools-src/docs/muxy.html',
   'tools-src/docs/Parametry-DVB-t.html',
   'tools-src/docs/ParametrySAT.html',
