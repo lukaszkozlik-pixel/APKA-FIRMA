@@ -290,8 +290,10 @@
                     }
                 }
 
+                const opcje = { day: '2-digit', month: '2-digit', year: 'numeric' };
+
                 const pdfBlob = doc.output('blob');
-                const fileName = `RP_${(r.address + " " + (new Date(r.date).toLocaleDateString('pl-PL')) || 'eksport').replace(/\s+/g, '_')}.pdf`;
+                const fileName = `RP_${(r.address + " " + (new Date(r.date).toLocaleDateString('pl-PL', opcje)) || 'eksport').replace(/\s+/g, '_')}.pdf`;
                 const file = new File([pdfBlob], fileName, { type: "application/pdf" });
 
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
