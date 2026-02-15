@@ -12,12 +12,12 @@ const ASSETS = [
   'tools-src/notatki.html',
   'tools-src/raporty.html',
   'tools-src/satelity.html',
-  'tools-src/doc/czestotliwoscidvbt.html',
-  'tools-src/doc/kolorySAT.html',
-  'tools-src/doc/muxy.html',
-  'tools-src/doc/Parametry-DVB-t.html',
-  'tools-src/doc/ParametrySAT.html',
-  'tools-src/doc/UnicablePB.html'
+  'tools-src/docs/czestotliwoscidvbt.html',
+  'tools-src/docs/kolorySAT.html',
+  'tools-src/docs/muxy.html',
+  'tools-src/docs/Parametry-DVB-t.html',
+  'tools-src/docs/ParametrySAT.html',
+  'tools-src/docs/UnicablePB.html'
 ];
 
 // Instalacja i zapisywanie plików do pamięci cache
