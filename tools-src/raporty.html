@@ -114,6 +114,56 @@
             z-index: 9999; border: none; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
         body.screenshot-mode #exit-screenshot-btn { display: block; }
+
+        /* Styl Akordeonu */
+    .accordion-backup {
+        margin: 10px 15px 20px 15px;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        background: white;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .accordion-header {
+        padding: 12px 15px;
+        background: #fdfdfd;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #444;
+    }
+    .accordion-content {
+        display: none;
+        padding: 15px;
+        border-top: 1px solid #eee;
+        text-align: center;
+    }
+    .notification-dot {
+        display: none;
+        width: 8px;
+        height: 8px;
+        background-color: #ea4335;
+        border-radius: 50%;
+        margin-left: 8px;
+    }
+    .btn-backup-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+    .btn-export {
+        background: #34a853 !important;
+        color: white !important;
+        border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer;
+    }
+    .btn-import-label {
+        background: #fbbc05 !important;
+        color: #202124 !important;
+        padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; display: block;
+    }
+    .last-backup-text { font-size: 0.7rem; color: #888; margin-top: 8px; }
     </style>
 </head>
 <body>
@@ -130,10 +180,50 @@
                 <input type="text" id="searchInput" class="search-bar" placeholder="Szukaj adresu lub treści..." oninput="loadReports()">
             </div>
         </header>
+
+                        <!-- sekcja Backup-->
+
+                <div class="accordion-backup">
+            <div class="accordion-header" onclick="toggleBackup()">
+                <div style="display: flex; align-items: center;">
+                    <span style="margin-right: 8px;">⚙️</span> Zarządzanie bazą danych
+                    <div id="backup-dot" class="notification-dot"></div>
+                </div>
+                <span id="accordion-arrow">▼</span>
+            </div>
+            
+            <div id="backup-content" class="accordion-content">
+                <div id="backup-alert-text" style="display:none; background: #fee2e2; color: #ea4335; padding: 10px; border-radius: 8px; font-size: 0.8rem; margin-bottom: 15px; font-weight: bold;">
+                    ⚠️ Kopia nie była robiona od ponad 7 dni!
+                </div>
+
+                <div class="btn-backup-row">
+                    <button onclick="exportAndShare()" class="btn-export">📤 EKSPORT</button>
+                    
+                    <label class="btn-import-label">
+                        📥 IMPORT
+                        <input type="file" accept=".json" onchange="importDatabase(event)" style="display: none;">
+                    </label>
+                </div>
+                
+                <p id="last-backup-info" class="last-backup-text">Ostatni eksport: brak danych</p>
+                
+                <button onclick="clearAllDataSafe()" style="margin-top: 15px; background: none; border: none; color: #bbb; font-size: 0.7rem; text-decoration: underline; cursor: pointer;">
+                    wyczyść bazę raportów
+                </button>
+            </div>
+        </div>
+
+        <div class="container" id="reportList">
+            </div>
+        <!-- sekcja Backup-->
+
         <div class="container" id="reportList">
             <p style="text-align:center; color:#888;">Ładowanie raportów...</p>
         </div>
         <div class="fab" onclick="openForm()">+</div>
+
+
     </div>
 
     <div id="previewModal">
@@ -186,7 +276,7 @@
                 database.createObjectStore("raporty", { keyPath: "id", autoIncrement: true });
             }
         };
-        dbRequest.onsuccess = e => { db = e.target.result; loadReports(); checkPending(); };
+        dbRequest.onsuccess = e => { db = e.target.result; loadReports(); checkPending(); checkBackupStatus();};
 
         function loadReports() {
             if (!db) return;
@@ -392,6 +482,143 @@
 
         function closeForm() { document.getElementById('formModal').style.display = 'none'; }
         function closePreview() { document.getElementById('previewModal').style.display = 'none'; }
+
+
+        // --- EKSPORT I SYSTEMOWE UDOSTĘPNIANIE ---
+        async function exportAndShare() {
+            const transaction = db.transaction(["raporty"], "readonly");
+            const store = transaction.objectStore("raporty");
+            const getAllRequest = store.getAll();
+
+            getAllRequest.onsuccess = async function() {
+                const reports = getAllRequest.result;
+                const dataStr = JSON.stringify(reports, null, 2);
+                const dateTag = new Date().toISOString().slice(0, 10);
+                const fileName = `backup_raporty_${dateTag}.json`;
+
+                // Zapisujemy datę wykonania kopii
+                localStorage.setItem('last_backup_timestamp', Date.now());
+                checkBackupStatus();
+
+                // Tworzymy plik do udostępnienia
+                const file = new File([dataStr], fileName, { type: 'application/json' });
+
+                // Sprawdzamy czy przeglądarka obsługuje udostępnianie plików (Web Share API)
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    try {
+                        await navigator.share({
+                            files: [file],
+                            title: 'Kopia zapasowa raportów',
+                            text: `Moje raporty instalacyjne z dnia ${dateTag}`
+                        });
+                    } catch (err) {
+                        // Jeśli użytkownik anulował lub wystąpił błąd, spróbuj zwykłego pobierania
+                        if (err.name !== 'AbortError') fallbackDownload(dataStr, fileName);
+                    }
+                } else {
+                    // Fallback dla komputerów / starszych przeglądarek
+                    fallbackDownload(dataStr, fileName);
+                }
+            };
+        }
+
+        // Funkcja pobierania pliku (gdy share nie działa)
+        function fallbackDownload(content, name) {
+            const blob = new Blob([content], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = name;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // --- IMPORT Z PLIKU ---
+        function importDatabase(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (!Array.isArray(importedData)) throw new Error();
+
+                    if (confirm(`Zaimportować ${importedData.length} raportów? Istniejące dane o tych samych ID zostaną zaktualizowane.`)) {
+                        const tx = db.transaction(["raporty"], "readwrite");
+                        const store = tx.objectStore("raporty");
+                        importedData.forEach(item => store.put(item));
+                        tx.oncomplete = () => {
+                            alert("Import zakończony pomyślnie!");
+                            loadReports();
+                            checkBackupStatus();
+                        };
+                    }
+                } catch (err) {
+                    alert("Błąd: Nieprawidłowy plik kopii zapasowej.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function toggleBackup() {
+    const content = document.getElementById('backup-content');
+    const arrow = document.getElementById('accordion-arrow');
+    
+    if (content.style.display === 'block') {
+        content.style.display = 'none';
+        arrow.innerText = '▼';
+    } else {
+        content.style.display = 'block';
+        arrow.innerText = '▲';
+    }
+}
+
+    // Zaktualizowana funkcja sprawdzania statusu
+    function checkBackupStatus() {
+        const lastBackup = localStorage.getItem('last_backup_timestamp');
+        const dot = document.getElementById('backup-dot');
+        const alertText = document.getElementById('backup-alert-text');
+        const infoPara = document.getElementById('last-backup-info');
+
+        if (lastBackup) {
+            const diff = Date.now() - parseInt(lastBackup);
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            infoPara.innerText = `Ostatni eksport: ${new Date(parseInt(lastBackup)).toLocaleDateString()} (${days} dni temu)`;
+            
+            if (days >= 7) {
+                dot.style.display = 'inline-block';
+                alertText.style.display = 'block';
+            } else {
+                dot.style.display = 'none';
+                alertText.style.display = 'none';
+            }
+        } else {
+            // Nigdy nie robiono kopii
+            dot.style.display = 'inline-block';
+            alertText.style.display = 'block';
+            alertText.innerText = "⚠️ Nigdy nie wykonano kopii bazy!";
+        }
+    }
+
+    // Pamiętaj, aby wywołać checkBackupStatus() w dbRequest.onsuccess!
+
+        // --- CZYSZCZENIE BAZY ---
+        function clearAllDataSafe() {
+    const confirmation = prompt("UWAGA! Ta operacja usunie wszystkie raporty i zdjęcia. Jeśli chcesz kontynuować, wpisz słowo: USUŃ");
+    
+    if (confirmation === "USUŃ") {
+        const tx = db.transaction(["raporty"], "readwrite");
+        tx.objectStore("raporty").clear();
+        tx.oncomplete = () => {
+            alert("Baza została całkowicie wyczyszczona.");
+            loadReports();
+            toggleBackup(); // Zamknij akordeon po czyszczeniu
+        };
+    } else if (confirmation !== null) {
+        alert("Błędne hasło. Dane nie zostały usunięte.");
+    }
+}
     </script>
 </body>
 </html>
