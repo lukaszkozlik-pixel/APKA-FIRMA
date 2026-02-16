@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -75,23 +74,24 @@
     // Podmień istniejącą funkcję toggleAcc na tę poniżej:
 function toggleAcc(header) {
     const content = header.nextElementSibling;
+    // Zmieniamy tylko w sekcjach z rozwijanym kontentem
+    if (!content || !content.classList.contains('acc-content')) return;
     const span = header.querySelector('span');
-    
-    // Pobieramy wszystkie sekcje i znaki +/- w kontenerze
-    const allContents = document.querySelectorAll('.acc-content');
-    const allSpans = document.querySelectorAll('.acc-header span');
-
-    // Sprawdzamy, czy kliknięta sekcja jest już otwarta
+    // Zmieniamy tylko +/− w sekcjach z acc-content
+    const allHeaders = document.querySelectorAll('.acc-header');
+    allHeaders.forEach(h => {
+        const c = h.nextElementSibling;
+        const s = h.querySelector('span');
+        if (c && c.classList.contains('acc-content')) {
+            c.classList.remove('show');
+            if (s) s.innerText = '+';
+        }
+    });
+    // Otwieramy/zamykamy klikniętą sekcję
     const isOpening = !content.classList.contains('show');
-
-    // 1. Zamykamy wszystkie sekcje i resetujemy wszystkie znaki na "+"
-    allContents.forEach(c => c.classList.remove('show'));
-    allSpans.forEach(s => s.innerText = '+');
-
-    // 2. Jeśli kliknięta sekcja była zamknięta, otwieramy ją i zmieniamy znak na "−"
     if (isOpening) {
         content.classList.add('show');
-        span.innerText = '−';
+        if (span) span.innerText = '−';
     }
 }
 </script>

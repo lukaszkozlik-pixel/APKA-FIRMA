@@ -14,6 +14,7 @@
 
 body {
     background-color: var(--bg-color);
+    transition: background 0.3s, color 0.3s, box-shadow 0.3s;
 }
 
 #app {
@@ -53,6 +54,42 @@ header {
     border: 1px solid #e0e0e0;
     transition: transform 0.1s;
     cursor: pointer;
+    opacity: 0;
+    transform: translateY(30px) scale(0.98);
+    animation: tileFadeIn 0.5s cubic-bezier(.4,1.4,.6,1) forwards;
+}
+
+.tile:nth-child(1) { animation-delay: 0.05s; }
+.tile:nth-child(2) { animation-delay: 0.10s; }
+.tile:nth-child(3) { animation-delay: 0.15s; }
+.tile:nth-child(4) { animation-delay: 0.20s; }
+.tile:nth-child(5) { animation-delay: 0.25s; }
+.tile:nth-child(6) { animation-delay: 0.30s; }
+.tile:nth-child(7) { animation-delay: 0.35s; }
+.tile:nth-child(8) { animation-delay: 0.40s; }
+.tile:nth-child(9) { animation-delay: 0.45s; }
+.tile:nth-child(10) { animation-delay: 0.50s; }
+
+@keyframes tileFadeIn {
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Efekt hover na kafelkach */
+.tile:hover {
+    box-shadow: 0 8px 24px rgba(26,115,232,0.10), 0 1.5px 6px rgba(0,0,0,0.04);
+    transform: scale(1.03);
+    transition: box-shadow 0.2s, transform 0.2s;
+    z-index: 2;
+}
+
+/* Animacja kliknięcia przycisku */
+button:active {
+    transform: scale(0.96);
+    filter: brightness(0.95);
+    transition: transform 0.08s, filter 0.08s;
 }
 
 /* Efekt naciśnięcia palcem */

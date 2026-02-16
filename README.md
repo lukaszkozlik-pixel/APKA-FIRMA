@@ -49,6 +49,24 @@ Testy manualne rekomendowane
 - Otwórz aplikację lokalnie i: zarejestruj SW, przejdź do kilku narzędzi, kliknij stopkę 5× i potwierdź reset.
 - Sprawdź tryb offline (DevTools → Application → Offline) — zasoby z `sw.js` powinny być dostępne.
 
-Kontakt / dalsze kroki
-- Jeśli chcesz, mogę: usunąć nieużywane przyciski/UI, zautomatyzować bump wersji, przygotować changelog, lub dodać prosty CI.
+## Aktualizacja aplikacji (PWA)
+
+Od wersji 2.0.0 aktualizacja aplikacji jest uproszczona i w pełni automatyczna:
+
+- **Aby wymusić aktualizację u wszystkich użytkowników:**
+  1. Zmień pole `"version"` w pliku `manifest.json` na nowy numer wersji (np. `"2.0.1"`).
+  2. Wgraj nowe pliki na serwer (np. przez `git push` lub FTP).
+  3. Użytkownicy automatycznie otrzymają powiadomienie o nowej wersji (przycisk "ODŚWIEŻ" pojawi się na dole ekranu).
+  4. Po kliknięciu "ODŚWIEŻ" aplikacja przeładuje się z nowymi plikami.
+
+**Nie trzeba już ręcznie czyścić cache ani pamięci aplikacji na telefonie!**
+
+- Service Worker automatycznie wykrywa zmianę wersji w `manifest.json` i pobiera nowe pliki do cache.
+- Stare cache są usuwane automatycznie.
+- Wersja w stopce pobierana jest z `manifest.json`.
+
+**Podsumowanie:**
+- Zmieniasz tylko `manifest.json.version` → cała aplikacja aktualizuje się automatycznie u wszystkich użytkowników.
+
+---
 

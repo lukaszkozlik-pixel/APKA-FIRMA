@@ -47,7 +47,7 @@
     </div>
 
     <div class="accordion">
-        <div class="acc-header" onclick="window.open('https://emi.emitel.pl/plan_www/','_blank')"><span>Emitel - Planowanie Emisji</span><span>▶</span></div>
+        <div class="acc-header" onclick="window.open('https://emi.emitel.pl/plan_www/','_blank')"><span>Emitel - Planowane przerwy emisji</span><span>▶</span></div>
     </div>
 
     <div class="accordion">
@@ -79,24 +79,27 @@
 
 <script>
     function toggleAcc(header) {
-    const content = header.nextElementSibling;
-    const span = header.querySelector('span');
-    const allContents = document.querySelectorAll('.acc-content');
-    const allSpans = document.querySelectorAll('.acc-header span');
-
-    // 1. Sprawdzamy, czy kliknięty element już nie jest otwarty
-    const isOpening = !content.classList.contains('show');
-
-    // 2. Zamykamy wszystkie otwarte sekcje i resetujemy znaki "+"
-    allContents.forEach(c => c.classList.remove('show'));
-    allSpans.forEach(s => s.innerText = '+');
-
-    // 3. Jeśli kliknięty element był zamknięty, otwieramy go i zmieniamy znak na "-"
-    if (isOpening) {
-        content.classList.add('show');
-        span.innerText = '−';
+        const content = header.nextElementSibling;
+        // Zmieniamy tylko w sekcjach z rozwijanym kontentem
+        if (!content || !content.classList.contains('acc-content')) return;
+        const span = header.querySelector('span');
+        // Zmieniamy tylko +/− w sekcjach z acc-content
+        const allHeaders = document.querySelectorAll('.acc-header');
+        allHeaders.forEach(h => {
+            const c = h.nextElementSibling;
+            const s = h.querySelector('span');
+            if (c && c.classList.contains('acc-content')) {
+                c.classList.remove('show');
+                if (s) s.innerText = '+';
+            }
+        });
+        // Otwieramy/zamykamy klikniętą sekcję
+        const isOpening = !content.classList.contains('show');
+        if (isOpening) {
+            content.classList.add('show');
+            if (span) span.innerText = '−';
+        }
     }
-}
 </script>
 </body>
 </html>

@@ -27,26 +27,54 @@
         console.log('Strona jest gotowa do instalacji jako PWA');
         });
 
-        // Sprawdzenie czy to iPhone i czy NIE jest w trybie standalone
-        const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-
-        if (isIos && !isStandalone) {
-        // Tutaj możesz wyświetlić np. showToast('Aby zainstalować: kliknij Udostępnij -> Do ekranu początkowego');
-        console.log('Sugestia instalacji dla iOS');
-        }
-
+        // Service Worker - rejestracja i auto-update
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').then(reg => {
+                navigator.serviceWorker.register('./sw.js', { scope: './' }).then(reg => {
+                    console.log('Service Worker zarejestrowany pomyślnie');
+                    
+                    let lastKnownVersion = null;
+                    
+                    // Pobierz bieżącą wersję z manifest.json
+                    async function getCurrentVersion() {
+                        try {
+                            const response = await fetch('manifest.json', { cache: 'no-store' });
+                            const manifest = await response.json();
+                            return manifest.version || '1.0.0';
+                        } catch (err) {
+                            console.warn('Nie mogę pobrać wersji:', err);
+                            return null;
+                        }
+                    }
+                    
+                    // Pobierz wersję przy start
+                    getCurrentVersion().then(version => {
+                        lastKnownVersion = version;
+                        console.log(`Aktualna wersja aplikacji: ${version}`);
+                    });
+                    
+                    // Sprawdzanie wersji co 10 sekund
+                    setInterval(async () => {
+                        const newVersion = await getCurrentVersion();
+                        if (newVersion && lastKnownVersion && newVersion !== lastKnownVersion) {
+                            console.log(`Nowa wersja dostępna: ${newVersion}`);
+                            lastKnownVersion = newVersion;
+                            document.getElementById('update-toast').style.display = 'flex';
+                        }
+                    }, 10000);
+                    
+                    // Nasłuchiwanie na nową wersję (fallback)
                     reg.addEventListener('updatefound', () => {
                         const newWorker = reg.installing;
                         newWorker.addEventListener('statechange', () => {
                             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                console.log('Dostępna nowa wersja - Service Worker!');
                                 document.getElementById('update-toast').style.display = 'flex';
                             }
                         });
                     });
+                }).catch(err => {
+                    console.error('Błąd rejestracji Service Workera:', err);
                 });
             });
         }
@@ -64,6 +92,21 @@
         <button onclick="location.reload()">ODŚWIEŻ</button>
     </div>
 
+    <div id="offline-banner" style="display:none;position:fixed;top:0;left:0;width:100vw;background:#d93025;color:white;text-align:center;padding:12px 0;z-index:10001;font-weight:bold;box-shadow:0 2px 8px rgba(0,0,0,0.15);">
+        Brak połączenia z internetem – aplikacja działa w trybie offline.
+    </div>
+
+    <div id="ios-install-banner" style="display:none;position:fixed;bottom:0;left:0;width:100vw;background:#fffbe6;color:#202124;text-align:center;padding:14px 10px 14px 50px;z-index:10002;font-weight:500;box-shadow:0 -2px 8px rgba(0,0,0,0.10);border-top:2px solid #fbbc05;font-size:1rem;align-items:center;">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/3/3e/IOS_Share_icon.png" alt="Udostępnij" style="height:24px;vertical-align:middle;position:absolute;left:16px;top:14px;">
+        Aby zainstalować aplikację na iPhonie: kliknij <b>Udostępnij</b> <img src="https://upload.wikimedia.org/wikipedia/commons/3/3e/IOS_Share_icon.png" style="height:20px;vertical-align:middle;"> i wybierz <b>Do ekranu początkowego</b>.
+        <button onclick="this.parentElement.style.display='none'" style="margin-left:20px;background:#fbbc05;border:none;padding:4px 16px;border-radius:16px;font-weight:bold;cursor:pointer;">Zamknij</button>
+    </div>
+
+    <div id="error-banner" style="display:none;position:fixed;top:48px;left:50%;transform:translateX(-50%);background:#d93025;color:white;padding:12px 24px;border-radius:8px;z-index:10003;font-weight:bold;box-shadow:0 2px 8px rgba(0,0,0,0.15);max-width:90vw;">
+        <span id="error-message"></span>
+        <button onclick="this.parentElement.style.display='none'" style="margin-left:18px;background:#fff;color:#d93025;border:none;padding:2px 12px;border-radius:12px;font-weight:bold;cursor:pointer;">Zamknij</button>
+    </div>
+
     <div id="app">
         <header>
             <h1>Niezbędnik Instalatora</h1>
@@ -73,45 +116,45 @@
            
             <div class="tile" onclick="location.href='tools-src/nadajniki.html'">
                 <span class="icon">🗼</span>
-                <span class="label">Nadajniki DVB-T</span>
+                <span class="label">Kierunki do nadajników DVB-T</span>
             </div>
             <div class="tile" onclick="location.href='tools-src/bibliotekaDVBT.html'">
                 <span class="icon">📺</span>
-                <span class="label">Info DVB-T</span>
+                <span class="label">Baza wiedzy DVB-T</span>
             </div>
              <div class="tile" onclick="location.href='tools-src/satelity.html'">
                 <span class="icon">📡</span>
-                <span class="label">SAT Azymut / Elewacja</span>
+                <span class="label">Kalkulator azymutu SAT</span>
             </div>
             <div class="tile" onclick="location.href='tools-src/bibliotekaSAT.html'">
                 <span class="icon">🛰️</span>
-                <span class="label">Info SAT</span>
+                <span class="label">Baza wiedzy SAT</span>
             </div>
            
             
             <div class="tile" onclick="location.href='tools-src/instrukcje.html'">
                 <span class="icon">📖</span>
-                <span class="label">Instrukcje</span>
+                <span class="label">Instrukcje obsługi i dekoderów</span>
             </div>
             <div class="tile" onclick="location.href='tools-src/cennik.html'">
                 <span class="icon">💰</span>
-                <span class="label">Cennik</span>
+                <span class="label">Kalkulator usług i cennik</span>
             </div>
             <div class="tile" onclick="location.href='tools-src/Jednostki.html'">
                 <span class="icon">↔️</span>
-                <span class="label">Konwerter siły sygnału</span>
+                <span class="label">Przelicznik jednostek sygnału</span>
             </div>
             <div class="tile" onclick="location.href='tools-src/internet.html'">
                 <span class="icon">🌐</span>
-                <span class="label">INTERNET / LTE</span>
+                <span class="label">Internet, kable i LTE</span>
             </div>
             <div class="tile" onclick="location.href='tools-src/notatki.html'">
                 <span class="icon">📝</span>
-                <span class="label">Notatki</span>
+                <span class="label">Notatnik instalatora</span>
             </div>
             <div class="tile" onclick="location.href='tools-src/raporty.html'">
                 <span class="icon">📋</span>
-                <span class="label">Raporty</span>
+                <span class="label">Raporty z instalacji</span>
             </div>
         </main>
 
@@ -162,9 +205,11 @@
                 if (navigator.onLine) {
                     statusSpan.innerText = "Tryb ONLINE gotowy";
                     statusSpan.style.color = "#03dac6";
+                    document.getElementById('offline-banner').style.display = 'none';
                 } else {
                     statusSpan.innerText = "Tryb OFFLINE gotowy";
                     statusSpan.style.color = "gray";
+                    document.getElementById('offline-banner').style.display = 'block';
                 }
             }
             updateOnlineStatus();
@@ -253,8 +298,22 @@
             }, 2000);
         }
 
-        
+        function showOfflineBanner(show) {
+            const banner = document.getElementById('offline-banner');
+            if (show) {
+                banner.style.display = 'block';
+            } else {
+                banner.style.display = 'none';
+            }
+        }
 
-
+        function showIosInstallBanner() {
+            const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+            if (isIos && !isStandalone) {
+                document.getElementById('ios-install-banner').style.display = 'block';
+            }
+        }
+        window.addEventListener('load', showIosInstallBanner);
     </script>
 </html>
