@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
+<link rel="stylesheet" href="/style.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cennik Usług</title>
@@ -28,7 +29,7 @@
             font-size: 1.8rem;
             font-weight: 300;
             padding: 5px 15px 5px 0;
-            cursor: pointer;
+                body { font-family: sans-serif; margin: 0; background: var(--bg); color: var(--text); }
             line-height: 1;
             display: flex;
             align-items: center;
@@ -36,10 +37,11 @@
         }
         .item-list { padding: 15px; flex: 1; overflow-y: auto; padding-bottom: 100px; }
         .price-item {
-            background: white; margin-bottom: 10px; padding: 15px; border-radius: 10px;
+            background: var(--tile-bg); margin-bottom: 10px; padding: 15px; border-radius: 10px;
             display: flex; justify-content: space-between; align-items: center;
             border: 2px solid transparent; transition: 0.2s;
             user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+            color: var(--text);
         }
         .price-item.selected { border-color: #1a73e8; background: #e8f0fe; }
         .price-item:active { background-color: #fce8e6; transition: background-color 0.8s; }
@@ -49,7 +51,7 @@
 
         .summary-bar {
             position: fixed; bottom: 0; left: 0; width: 100%;
-            background: #202124; color: white; padding: 20px;
+            background: var(--tile-bg); color: var(--text); padding: 20px;
             border-radius: 20px 20px 0 0; display: flex; justify-content: space-between; align-items: center;
             z-index: 50;
         }
@@ -59,7 +61,7 @@
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.8); justify-content: center; align-items: center; padding: 20px; z-index: 100;
         }
-        .modal-content { background: white; padding: 20px; border-radius: 15px; width: 95%; max-width: 400px; }
+        .modal-content { background: var(--tile-bg); color: var(--text); padding: 20px; border-radius: 15px; width: 95%; max-width: 400px; }
         .modal-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
         .btn-modal { padding: 12px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
         
@@ -67,6 +69,17 @@
         .custom-form input { padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 1rem; }
     </style>
 </head>
+<script>
+// Motyw: kopiuj ustawienie z localStorage lub systemu
+function applyTheme() {
+    let theme = localStorage.getItem('theme');
+    if (!theme) {
+        theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    document.documentElement.setAttribute('data-theme', theme);
+}
+applyTheme();
+</script>
 <body>
     <div id="app">
         <header>

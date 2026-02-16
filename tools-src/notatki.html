@@ -1,16 +1,17 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
+<link rel="stylesheet" href="/style.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notatki Instalatora</title>
     <style>
         /* --- STYLIZACJA (JASNY MOTYW) --- */
         body {
-            background-color: #f4f4f4;
+            background: var(--bg);
             margin: 0;
             font-family: -apple-system, sans-serif;
-            color: #333;
+            color: var(--text);
             display: flex;
             flex-direction: column;
             height: 100vh;
@@ -52,8 +53,8 @@ h1 {
         /* Wyszukiwarka */
         .search-bar {
             padding: 10px 15px;
-            background: #fff;
-            border-bottom: 1px solid #ddd;
+            background: var(--tile-bg);
+            border-bottom: 1px solid var(--tile-border);
         }
 
         #searchNote {
@@ -74,12 +75,12 @@ h1 {
         }
 
         .note-card {
-            background: white;
+            background: var(--tile-bg);
             border-radius: 12px;
             padding: 15px;
             margin-bottom: 12px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-            border: 1px solid #e0e0e0;
+            box-shadow: var(--tile-shadow);
+            border: 1px solid var(--tile-border);
             position: relative;
         }
 
@@ -122,15 +123,15 @@ h1 {
 
         /* Sekcja wprowadzania */
         .add-note-area {
-            background: white;
+            background: var(--tile-bg);
             padding: 15px;
-            border-top: 1px solid #e0e0e0;
+            border-top: 1px solid var(--tile-border);
         }
 
         #noteInput {
             width: 100%;
             height: 60px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--tile-border);
             border-radius: 8px;
             padding: 10px;
             font-size: 1rem;
@@ -151,6 +152,17 @@ h1 {
         }
     </style>
 </head>
+<script>
+// Motyw: kopiuj ustawienie z localStorage lub systemu
+function applyTheme() {
+    let theme = localStorage.getItem('theme');
+    if (!theme) {
+        theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    document.documentElement.setAttribute('data-theme', theme);
+}
+applyTheme();
+</script>
 <body>
 
 <header>

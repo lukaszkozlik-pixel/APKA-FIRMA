@@ -6,24 +6,23 @@
     <style>
         * { box-sizing: border-box; }
 body {
-    background-color: #ffffff; /* Czyste białe tło */
-    color: #333333;
+    background: var(--bg);
+    color: var(--text);
     font-family: sans-serif;
     margin: 0;
     padding: 10px;
 }
 
-table {
     width: 100%;
     border-collapse: collapse;
-    background-color: #ffffff;
-    border: 1px solid #e0e0e0;
+    background: var(--tile-bg);
+    border: 1px solid var(--tile-border);
     border-radius: 8px;
 }
 
 thead th {
-    background-color: #f5f5f5; /* Delikatne szare tło nagłówka */
-    color: #1a73e8; /* Twój główny niebieski kolor z apki */
+    background: var(--tile-bg);
+    color: #1a73e8;
     text-align: left;
     padding: 12px;
     font-size: 0.85rem;
@@ -38,7 +37,7 @@ td {
 }
 
 tr:nth-child(even) {
-    background-color: #fafafa; /* Bardzo jasny pasek dla czytelności */
+    background: var(--bg);
 }
 
 /* Styl numeru kanału */

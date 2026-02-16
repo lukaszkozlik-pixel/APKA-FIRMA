@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
+<link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="/style.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Przelicznik dBµV / dBm</title>
     <style>
-        body { font-family: sans-serif; margin: 0; background: #f4f4f4; color: #333; }
+        body { font-family: sans-serif; margin: 0; background: var(--bg); color: var(--text); }
 header {
     background: #455a64;
     color: white;
@@ -39,24 +41,46 @@ h1 {
 }
         .container { padding: 20px; max-width: 400px; margin: auto; }
         
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
+        .card { background: var(--tile-bg); padding: 25px; border-radius: 12px; box-shadow: var(--tile-shadow); text-align: center; color: var(--text); }
         .input-group { margin-bottom: 25px; }
         label { display: block; margin-bottom: 10px; font-weight: bold; color: #555; }
         
         input { 
-            width: 100%; padding: 15px; border: 2px solid #ddd; border-radius: 8px; 
-            font-size: 1.5rem; text-align: center; box-sizing: border-box; transition: 0.3s;
+            width: 100%; padding: 15px; border: 2px solid var(--tile-border); border-radius: 8px;
+            font-size: 1.5rem; text-align: center; box-sizing: border-box; transition: 0.3s; background: var(--tile-bg); color: var(--text);
         }
         input:focus { border-color: #455a64; outline: none; background: #f0f4f5; }
 
         .arrow { font-size: 2rem; color: #bbb; margin: 10px 0; }
         
         .info-table { 
-            margin-top: 20px; width: 100%; border-collapse: collapse; font-size: 0.85rem; color: #666;
+            margin-top: 20px; width: 100%; border-collapse: collapse; font-size: 0.85rem; color: var(--text);
         }
         .info-table td { padding: 5px; border-bottom: 1px solid #eee; text-align: left; }
     </style>
 </head>
+<script>
+// Motyw: kopiuj ustawienie z localStorage lub systemu
+function applyTheme() {
+    let theme = localStorage.getItem('theme');
+    if (!theme) {
+        theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    document.documentElement.setAttribute('data-theme', theme);
+}
+applyTheme();
+</script>
+<script>
+// Motyw: kopiuj ustawienie z localStorage lub systemu
+function applyTheme() {
+    let theme = localStorage.getItem('theme');
+    if (!theme) {
+        theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    document.documentElement.setAttribute('data-theme', theme);
+}
+applyTheme();
+</script>
 <body>
 
 <header>

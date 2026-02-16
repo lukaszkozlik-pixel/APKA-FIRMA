@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
+<link rel="stylesheet" href="/style.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Satelita - Kierunki</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        body { margin: 0; font-family: sans-serif; background: #f4f4f4; display: flex; flex-direction: column; height: 100vh; }
+        body { margin: 0; font-family: sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; height: 100vh; }
         
         /* POPRAWIONY NAGŁÓWEK - TYTUŁ NA ŚRODKU */
         header { 
@@ -44,18 +45,19 @@
         .list-container { flex: 1; overflow-y: auto; padding: 10px; }
         
         .sat-card {
-            background: white;
+            background: var(--tile-bg);
             border-radius: 10px;
             padding: 15px;
             margin-bottom: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            border: 1px solid #ddd;
+            box-shadow: var(--tile-shadow);
+            border: 1px solid var(--tile-border);
+            color: var(--text);
         }
 
-        .sat-card.active { border: 3px solid #00c853; background: #f1f8e9; }
+        .sat-card.active { border: 3px solid #00c853; background: #f1f8e9; color: var(--text); }
         .sat-info { display: flex; flex-direction: column; }
         .sat-name { font-weight: bold; font-size: 1.1rem; color: #004ba0; }
         .sat-pos { font-size: 0.8rem; color: #666; }
@@ -85,6 +87,28 @@
 }
     </style>
 </head>
+<script>
+// Motyw: kopiuj ustawienie z localStorage lub systemu
+function applyTheme() {
+    let theme = localStorage.getItem('theme');
+    if (!theme) {
+        theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    document.documentElement.setAttribute('data-theme', theme);
+}
+applyTheme();
+</script>
+<script>
+// Motyw: kopiuj ustawienie z localStorage lub systemu
+function applyTheme() {
+    let theme = localStorage.getItem('theme');
+    if (!theme) {
+        theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    document.documentElement.setAttribute('data-theme', theme);
+}
+applyTheme();
+</script>
 <body onload="initMap()">
 
 <header>

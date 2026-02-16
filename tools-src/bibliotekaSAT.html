@@ -1,17 +1,18 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
+<link rel="stylesheet" href="/style.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Biblioteka SAT</title>
     <link rel="stylesheet" href="../style.css">
     <style>
-        body { font-family: sans-serif; margin: 0; background: #f4f4f4; }
+        body { font-family: sans-serif; margin: 0; background: var(--bg); color: var(--text); }
         header { background: #004ba0; color: white; padding: 15px; display: flex; align-items: center; }
         .btn-back { background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; margin-right: 15px; }
         .container { padding: 10px; }
         
-        .accordion { background: white; border-radius: 10px; margin-bottom: 10px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .accordion { background: var(--tile-bg); border-radius: 10px; margin-bottom: 10px; overflow: hidden; box-shadow: var(--tile-shadow); }
         .acc-header { background: #004ba0; color: white; padding: 15px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
         .acc-content { 
             display: none; 
@@ -33,6 +34,17 @@
        
     </style>
 </head>
+<script>
+// Motyw: kopiuj ustawienie z localStorage lub systemu
+function applyTheme() {
+    let theme = localStorage.getItem('theme');
+    if (!theme) {
+        theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    document.documentElement.setAttribute('data-theme', theme);
+}
+applyTheme();
+</script>
 <body>
 
 <header>

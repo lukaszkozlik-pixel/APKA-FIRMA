@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
+<link rel="stylesheet" href="/style.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Internet - Narzędzia</title>
     <link rel="stylesheet" href="../style.css">
     <style>
-        body { font-family: sans-serif; margin: 0; background: #f4f4f4; color: #333; }
+        body { font-family: sans-serif; margin: 0; background: var(--bg); color: var(--text); }
 header {
     background: #673ab7;
     color: white;
@@ -68,9 +69,20 @@ h1 {
         .ip-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; font-size: 0.9rem; }
         
         /* Styl dla schematów (zapowiedź) */
-        .diagram { background: #eee; height: 150px; display: flex; align-items: center; justify-content: center; border-radius: 8px; color: #666; font-style: italic; }
+        .diagram { background: var(--tile-bg); height: 150px; display: flex; align-items: center; justify-content: center; border-radius: 8px; color: #666; font-style: italic; }
     </style>
 </head>
+<script>
+// Motyw: kopiuj ustawienie z localStorage lub systemu
+function applyTheme() {
+    let theme = localStorage.getItem('theme');
+    if (!theme) {
+        theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    document.documentElement.setAttribute('data-theme', theme);
+}
+applyTheme();
+</script>
 <body>
 
 <header>

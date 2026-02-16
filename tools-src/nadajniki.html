@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
+<link rel="stylesheet" href="/style.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kierunki - Mapa</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        body { margin: 0; font-family: sans-serif; background: #f4f4f4; display: flex; flex-direction: column; height: 100vh; }
+        body { margin: 0; font-family: sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; height: 100vh; }
         header { background: #1a73e8; color: white; padding: 10px; display: flex; align-items: center; z-index: 1000; }
         .btn-back { background: none; border: none; color: white; font-size: 1.8rem; padding-right: 15px; cursor: pointer; }
         h1 { font-size: 1.2rem; margin: 0; flex-grow: 1; text-align: center; margin-right: 30px; }
@@ -16,7 +17,7 @@
 
         .btn-recenter {
             position: fixed; top: 38%; right: 10px;
-            background: white; border: 2px solid #1a73e8;
+            background: var(--tile-bg); border: 2px solid #1a73e8;
             border-radius: 50%; width: 50px; height: 50px;
             font-size: 1.5rem; color: #1a73e8; z-index: 1000;
             display: flex; align-items: center; justify-content: center;
@@ -24,11 +25,11 @@
         }
         .list-container { flex: 1; overflow-y: auto; padding: 10px; }
         .transmitter-card {
-            background: white; margin-bottom: 10px; padding: 12px;
+            background: var(--tile-bg); margin-bottom: 10px; padding: 12px;
             border-radius: 8px; display: flex; justify-content: space-between;
-            align-items: center; border-left: 5px solid #ccc; cursor: pointer; transition: 0.2s;
+            align-items: center; border-left: 5px solid #ccc; cursor: pointer; transition: 0.2s; color: var(--text);
         }
-        .transmitter-card.active { border-left-color: #d93025; background: #fff5f5; }
+        .transmitter-card.active { border-left-color: #d93025; background: #fff5f5; color: var(--text); }
         .azimuth-val { font-size: 1.3rem; font-weight: bold; color: #1a73e8; }
         .distance { font-size: 0.8rem; color: #666; }
 
@@ -60,6 +61,28 @@
         }
     </style>
 </head>
+<script>
+// Motyw: kopiuj ustawienie z localStorage lub systemu
+function applyTheme() {
+    let theme = localStorage.getItem('theme');
+    if (!theme) {
+        theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    document.documentElement.setAttribute('data-theme', theme);
+}
+applyTheme();
+</script>
+<script>
+// Motyw: kopiuj ustawienie z localStorage lub systemu
+function applyTheme() {
+    let theme = localStorage.getItem('theme');
+    if (!theme) {
+        theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    document.documentElement.setAttribute('data-theme', theme);
+}
+applyTheme();
+</script>
 <body>
 
     <header>

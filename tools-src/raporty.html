@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
+<link rel="stylesheet" href="/style.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Raporty Instalacyjne</title>
@@ -18,7 +19,7 @@
 
         body {
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg);
+            background: var(--bg);
             color: var(--text);
             margin: 0; padding: 0; line-height: 1.5;
         }
@@ -52,8 +53,8 @@
         .container { padding: 15px; padding-bottom: 100px; }
 
         .report-card {
-            background: white; border-radius: 12px; padding: 15px; margin-bottom: 15px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 5px solid var(--primary);
+            background: var(--tile-bg); border-radius: 12px; padding: 15px; margin-bottom: 15px;
+            box-shadow: var(--tile-shadow); border-left: 5px solid var(--primary);
         }
         .report-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
         .report-date { font-size: 0.85rem; color: #666; font-weight: 500; }
@@ -73,7 +74,7 @@
         #formModal { background: white; z-index: 2000; overflow-y: auto; padding: 20px; }
 
         .modal-content {
-            background: white; margin: 5% auto; width: 95%; height: 90%;
+            background: var(--tile-bg); color: var(--text); margin: 5% auto; width: 95%; height: 90%;
             border-radius: 12px; padding: 20px; overflow-y: auto;
             display: flex; flex-direction: column;
         }
@@ -120,8 +121,8 @@
         margin: 10px 15px 20px 15px;
         border: 1px solid #e0e0e0;
         border-radius: 12px;
-        background: white;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        background: var(--tile-bg);
+        box-shadow: var(--tile-shadow);
     }
     .accordion-header {
         padding: 12px 15px;
@@ -166,6 +167,28 @@
     .last-backup-text { font-size: 0.7rem; color: #888; margin-top: 8px; }
     </style>
 </head>
+<script>
+// Motyw: kopiuj ustawienie z localStorage lub systemu
+function applyTheme() {
+    let theme = localStorage.getItem('theme');
+    if (!theme) {
+        theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    document.documentElement.setAttribute('data-theme', theme);
+}
+applyTheme();
+</script>
+<script>
+// Motyw: kopiuj ustawienie z localStorage lub systemu
+function applyTheme() {
+    let theme = localStorage.getItem('theme');
+    if (!theme) {
+        theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    document.documentElement.setAttribute('data-theme', theme);
+}
+applyTheme();
+</script>
 <body>
 
     <button id="exit-screenshot-btn" onclick="toggleScreenshotMode(false)">❌ WYJDŹ Z PODGLĄDU</button>

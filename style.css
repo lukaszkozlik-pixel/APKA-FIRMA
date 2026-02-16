@@ -1,3 +1,33 @@
+/* --- MOTYW JASNY/CIEMNY --- */
+:root {
+    --bg: #f4f4f4;
+    --text: #202124;
+    --tile-bg: #fff;
+    --tile-border: #e0e0e0;
+    --tile-shadow: 0 2px 8px rgba(0,0,0,0.07);
+}
+
+[data-theme="dark"] {
+    --bg: #181a1b;
+    --text: #e8eaed;
+    --tile-bg: #23272a;
+    --tile-border: #333;
+    --tile-shadow: 0 2px 12px rgba(0,0,0,0.25);
+}
+
+body {
+    background: var(--bg) !important;
+    color: var(--text) !important;
+    transition: background 0.3s, color 0.3s;
+}
+
+.tile {
+    background: var(--tile-bg);
+    border: 1px solid var(--tile-border);
+    box-shadow: var(--tile-shadow);
+    color: var(--text);
+    transition: background 0.3s, color 0.3s, box-shadow 0.3s;
+}
 :root {
     --primary-color: #1a73e8;
     --bg-color: #f8f9fa;

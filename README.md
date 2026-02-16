@@ -1,8 +1,10 @@
 ## Instalator Pro — narzędzia dla instalatora
 
+
 Krótki opis
-- Statyczna aplikacja webowa (HTML/CSS/JS) z przydatnikami dla instalatorów DVB‑T / SAT.
+- Statyczna aplikacja webowa (HTML/CSS/JS) z narzędziami dla instalatorów DVB‑T / SAT.
 - PWA-friendly: manifest + service worker do cache'owania zasobów.
+- Motyw jasny/ciemny przełączany globalnie na wszystkich podstronach (CSS variables + localStorage/system theme).
 
 Struktura projektu (ważniejsze pliki)
 - `index.html` — strona główna aplikacji
@@ -11,6 +13,14 @@ Struktura projektu (ważniejsze pliki)
 - `manifest.json` — manifest PWA (pole `version` używane do wyświetlenia wersji)
 - `tools-src/` — narzędzia i dokumentacja (m.in. `bibliotekaSAT.html`, `bibliotekaDVBT.html`)
 - `tools-src/docs/` — podstrony/artykuły i interaktywne konstelacje
+
+## Motyw jasny/ciemny
+
+- Motyw aplikacji (jasny/ciemny) przełączany jest globalnie na wszystkich stronach i narzędziach.
+- Styl oparty o CSS custom properties (`--bg`, `--text`, `--tile-bg`, `--tile-border`, `--tile-shadow`).
+- Wybrany motyw zapisywany w `localStorage` lub automatycznie wykrywany z systemu.
+- Przełącznik motywu dostępny na stronie głównej (przycisk ☀️/🌙).
+- Każda podstrona ładuje `style.css` i skrypt motywu.
 
 Szybkie uruchomienie lokalne
 1. Otwórz katalog projektu w terminalu.
@@ -25,10 +35,24 @@ Uwagi dotyczące PWA / SW
 - `CACHE_NAME` w `sw.js` i pole `version` w `manifest.json` powinny być spójne z wersją wydania.
 - Aby przetestować aktualizacje SW: otwórz DevTools → Application → Service Workers.
 
+## Automatyczna aktualizacja (od 2.0.0)
+
+- Service Worker automatycznie wykrywa zmianę wersji w `manifest.json` i pobiera nowe pliki do cache.
+- Użytkownik otrzymuje powiadomienie o nowej wersji (przycisk "ODŚWIEŻ").
+- Po kliknięciu "ODŚWIEŻ" aplikacja przeładowuje się z nowymi plikami.
+- Nie trzeba ręcznie czyścić cache ani pamięci aplikacji.
+
 Funkcjonalności istotne dla dewelopera
 - Reset aplikacji: ukryty mechanizm — kliknij stopkę 5×, potwierdź, aby usunąć cache i `localStorage`.
 - Automatyczna wersja w stopce: `index.html` odczytuje `manifest.json.version` lub parsuje `sw.js`.
 - Konstelacje i instrukcje: narzędzia znajdują się w `tools-src/docs/` i są samodzielnymi stronami.
+
+---
+
+### Changelog 2.0.0
+- Globalny motyw jasny/ciemny na wszystkich stronach (CSS variables, skrypt motywu, import `style.css`)
+- Uproszczona automatyczna aktualizacja PWA (Service Worker + manifest)
+- Uporządkowanie stylów i kodu pod kątem spójności motywu
 
 Generowanie grafiki schematu (opcjonalne)
 - Skrypt używa Pillow (Python). Przykładowe komendy (z repo):
