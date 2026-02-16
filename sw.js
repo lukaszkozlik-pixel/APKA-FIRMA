@@ -23,19 +23,44 @@ const ASSETS = [
   
 ];
 
-// Instalacja i zapisywanie plików do pamięci cache
-self.addEventListener('install', event => {
+// 1. INSTALACJA - Pobieranie plików do cache
+self.addEventListener('install', (event) => {
+  // Wymuś na nowym Service Workerze, by stał się aktywny od razu (bez czekania na zamknięcie apki)
+  self.skipWaiting();
+  
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
+    caches.open(CACHE_NAME).then((cache) => {
+      console.log('SW: Buforowanie zasobów aplikacji');
       return cache.addAll(ASSETS);
     })
   );
 });
 
-// Obsługa zapytań - najpierw sprawdź cache, potem sieć
-self.addEventListener('fetch', event => {
+// 2. AKTYWACJA - Czyszczenie starych wersji plików
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          // Jeśli znaleziono stary cache (inna wersja niż CACHE_NAME), usuń go
+          if (cacheName !== CACHE_NAME) {
+            console.log('SW: Usuwanie starego cache:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    }).then(() => {
+      // Przejmij kontrolę nad wszystkimi otwartymi kartami aplikacji natychmiast
+      return self.clients.claim();
+    })
+  );
+});
+
+// 3. OBSŁUGA ŻĄDAŃ (Fetch)
+self.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request).then(response => {
+    caches.match(event.request).then((response) => {
+      // Zwróć plik z cache lub pobierz z sieci
       return response || fetch(event.request);
     })
   );

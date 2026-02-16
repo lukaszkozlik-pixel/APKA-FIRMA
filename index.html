@@ -5,7 +5,19 @@
     <meta name="theme-color" content="#1a73e8">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <style>
 
+        /* Toast aktualizacji */
+        #update-toast {
+            display: none; position: fixed; bottom: 80px; left: 50%;
+            transform: translateX(-50%); background: #323232; color: white;
+            padding: 12px 24px; border-radius: 50px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            z-index: 10000; align-items: center; gap: 15px; font-size: 0.9rem;
+            animation: slideInUp 0.4s ease-out;
+        }
+        @keyframes slideInUp { from { bottom: -50px; opacity: 0; } to { bottom: 80px; opacity: 1; } }
+        #update-toast button { background: #fbbc05; border: none; color: #202124; padding: 5px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; }
+    </style>
     <script>
         window.addEventListener('beforeinstallprompt', (e) => {
         // Zapobiega domyślnemu zachowaniu Chrome (opcjonalne)
@@ -24,12 +36,18 @@
         console.log('Sugestia instalacji dla iOS');
         }
 
-        // Rejestracja Service Workera
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js')
-                .then(reg => console.log('PWA Gotowe!', reg))
-                .catch(err => console.log('Błąd PWA', err));
+                navigator.serviceWorker.register('./sw.js').then(reg => {
+                    reg.addEventListener('updatefound', () => {
+                        const newWorker = reg.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                document.getElementById('update-toast').style.display = 'flex';
+                            }
+                        });
+                    });
+                });
             });
         }
     </script>
@@ -41,6 +59,11 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div id="update-toast">
+        <span>Nowa wersja jest dostępna!</span>
+        <button onclick="location.reload()">ODŚWIEŻ</button>
+    </div>
+
     <div id="app">
         <header>
             <h1>Niezbędnik Instalatora</h1>
