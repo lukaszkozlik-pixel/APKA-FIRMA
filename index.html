@@ -19,27 +19,16 @@
         #update-toast button { background: #fbbc05; border: none; color: #202124; padding: 5px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; }
     </style>
     <script>
-                // Ustaw zawsze motyw jasny
-                window.addEventListener('DOMContentLoaded', () => {
-                    document.documentElement.setAttribute('data-theme', 'light');
-                });
-        window.addEventListener('beforeinstallprompt', (e) => {
-        // Zapobiega domyślnemu zachowaniu Chrome (opcjonalne)
-        // e.preventDefault(); 
-        
-        // Możesz tutaj np. pokazać własny przycisk "ZAINSTALUJ APLIKACJĘ"
-        console.log('Strona jest gotowa do instalacji jako PWA');
+        // Ustaw zawsze motyw jasny
+        window.addEventListener('DOMContentLoaded', () => {
+            document.documentElement.setAttribute('data-theme', 'light');
         });
 
         // Service Worker - rejestracja i auto-update
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js', { scope: './' }).then(reg => {
-                    console.log('Service Worker zarejestrowany pomyślnie');
-                    
+            navigator.serviceWorker.register('./sw.js', { scope: './' }).then(reg => {
+                console.log('Service Worker zarejestrowany pomyślnie');
                     let lastKnownVersion = null;
-                    
-                    // Pobierz bieżącą wersję z manifest.json
                     async function getCurrentVersion() {
                         try {
                             const response = await fetch('manifest.json', { cache: 'no-store' });
@@ -50,13 +39,11 @@
                             return null;
                         }
                     }
-                    
                     // Pobierz wersję przy start
                     getCurrentVersion().then(version => {
                         lastKnownVersion = version;
                         console.log(`Aktualna wersja aplikacji: ${version}`);
                     });
-                    
                     // Sprawdzanie wersji co 10 sekund
                     setInterval(async () => {
                         const newVersion = await getCurrentVersion();
@@ -66,7 +53,6 @@
                             document.getElementById('update-toast').style.display = 'flex';
                         }
                     }, 10000);
-                    
                     // Nasłuchiwanie na nową wersję (fallback)
                     reg.addEventListener('updatefound', () => {
                         const newWorker = reg.installing;
@@ -80,8 +66,8 @@
                 }).catch(err => {
                     console.error('Błąd rejestracji Service Workera:', err);
                 });
-            });
-        }
+            };
+        
     </script>
 
 
