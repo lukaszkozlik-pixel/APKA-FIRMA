@@ -76,7 +76,9 @@ header {
     min-height: 60px;
     max-height: 90px;
     width: 100%;
-    padding: 10px 0;
+    padding: 6px 0 4px 0;
+    overflow: hidden;
+    position: relative;
     box-shadow: 0 4px 6px rgba(0,0,0,0.05);
     border: 1px solid #e0e0e0;
     transition: transform 0.1s;
@@ -126,13 +128,23 @@ button:active {
 }
 
 .icon {
-    font-size: 3rem;
-    margin-bottom: 10px;
+    font-size: 2.1rem;
+    margin-bottom: 4px;
+    line-height: 1;
+    max-width: 90%;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .label {
     font-weight: 500;
     color: var(--text-color);
+    font-size: 0.92rem;
+    max-width: 92%;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 footer {

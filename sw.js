@@ -100,9 +100,9 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(event.request).then(response => {
         if (response.ok) {
-          // Buforuj nową wersję w tle
-          const cache_promise = caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, response.clone());
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, responseClone);
           });
           return response;
         }
@@ -117,13 +117,15 @@ self.addEventListener('fetch', (event) => {
   // CSS, JS, obrazy - Cache first, fallback do sieci
   event.respondWith(
     caches.match(event.request).then((response) => {
-      return response || fetch(event.request).then(response => {
-        if (response.ok) {
-          const cache_promise = caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, response.clone());
+      if (response) return response;
+      return fetch(event.request).then(networkResponse => {
+        if (networkResponse.ok) {
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, responseClone);
           });
         }
-        return response;
+        return networkResponse;
       }).catch(() => {
         return new Response('Offline - zasób niedostępny', { status: 404 });
       });
