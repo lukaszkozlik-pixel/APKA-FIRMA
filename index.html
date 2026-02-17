@@ -86,7 +86,15 @@
 
 
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, orientation=portrait">
+        <script>
+        // Blokada zmiany orientacji ekranu na portrait
+        if (screen.orientation && screen.orientation.lock) {
+            screen.orientation.lock('portrait').catch(()=>{});
+        } else if (window.screen.lockOrientation) {
+            window.screen.lockOrientation('portrait');
+        }
+        </script>
     <title>Instalator Pro</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -310,14 +318,37 @@
         function showOfflineBanner(show) {
             const banner = document.getElementById('offline-banner');
             const header = document.querySelector('header');
+            // Ustaw margin-top headera zawsze na wysokość ramki, jeśli ramka jest widoczna
             if (show) {
                 banner.style.display = 'block';
-                if(header) header.style.marginTop = banner.offsetHeight + 'px';
+                setTimeout(() => {
+                    if(header) header.style.marginTop = banner.offsetHeight + 'px';
+                }, 10); // opóźnienie na render
             } else {
                 banner.style.display = 'none';
                 if(header) header.style.marginTop = '';
             }
+
+            // Dodatkowo, na zmianę orientacji i resize — popraw margin-top headera
+            window.addEventListener('resize', () => {
+                if (banner.style.display === 'block' && header) {
+                    header.style.marginTop = banner.offsetHeight + 'px';
+                }
+            });
         }
+
+        // Dla pewności: po powrocie na stronę/wybudzeniu — odśwież status i układ
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                if (typeof updateOnlineStatus === 'function') updateOnlineStatus();
+                if (typeof showOfflineBanner === 'function') showOfflineBanner(!navigator.onLine ? true : false);
+            }
+        });
+        window.addEventListener('pageshow', () => {
+            if (typeof updateOnlineStatus === 'function') updateOnlineStatus();
+            if (typeof showOfflineBanner === 'function') showOfflineBanner(!navigator.onLine ? true : false);
+        });
+        
 
         function showIosInstallBanner() {
             const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;

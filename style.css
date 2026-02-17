@@ -58,9 +58,9 @@ header {
 /* Magia siatki 2x2 */
 .grid-container {
     display: grid;
-    grid-template-columns: repeat(2, 1fr); /* Dwie równe kolumny */
-    gap: 15px;
-    padding: 15px;
+    grid-template-columns: 1fr 1fr; /* Dwie równe kolumny */
+    gap: 12px;
+    padding: 12px;
     flex: 1;
     align-content: start; /* Kafelki zaczną się od góry */
 }
@@ -75,7 +75,8 @@ header {
     aspect-ratio: 2 / 1; /* Prostokąt poziomy, niższy kafelek */
     min-height: 60px;
     max-height: 90px;
-    padding: 10px 6px;
+    width: 100%;
+    padding: 10px 0;
     box-shadow: 0 4px 6px rgba(0,0,0,0.05);
     border: 1px solid #e0e0e0;
     transition: transform 0.1s;
