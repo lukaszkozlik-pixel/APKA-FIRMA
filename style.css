@@ -67,12 +67,15 @@ header {
 
 .tile {
     background: var(--tile-color);
-    border-radius: 15px;
+    border-radius: 10px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    aspect-ratio: 1 / 1; /* Idealny kwadrat */
+    aspect-ratio: 2 / 1; /* Prostokąt poziomy, niższy kafelek */
+    min-height: 60px;
+    max-height: 90px;
+    padding: 10px 6px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.05);
     border: 1px solid #e0e0e0;
     transition: transform 0.1s;

@@ -206,6 +206,7 @@
         
             // 2. STATUS SIECI
             function updateOnlineStatus() {
+
                 if (navigator.onLine) {
                     statusSpan.innerText = "Tryb ONLINE gotowy";
                     statusSpan.style.color = "#03dac6";
@@ -217,20 +218,24 @@
                 }
             }
             updateOnlineStatus();
-        
+
             document.addEventListener("offline", updateOnlineStatus, false);
             document.addEventListener("online", updateOnlineStatus, false);
-        
+
             // 3. TEST POŁĄCZENIA Z INTERNETEM (opcjonalnie, można zostawić tylko navigator.onLine)
             function testInternetConnection() {
                 fetch('https://www.google.com/favicon.ico', { mode: 'no-cors' })
                     .then(() => {
+                        if (!navigator.onLine) return; // jeśli systemowy offline, nie nadpisuj
                         statusSpan.innerText = "Tryb ONLINE gotowy";
                         statusSpan.style.color = "#03dac6";
                     })
                     .catch(() => {
                         statusSpan.innerText = "Tryb OFFLINE gotowy";
                         statusSpan.style.color = "gray";
+                    })
+                    .finally(() => {
+                        updateOnlineStatus(); // zawsze synchronizuj po teście
                     });
             }
             testInternetConnection();
@@ -304,10 +309,13 @@
 
         function showOfflineBanner(show) {
             const banner = document.getElementById('offline-banner');
+            const header = document.querySelector('header');
             if (show) {
                 banner.style.display = 'block';
+                if(header) header.style.marginTop = banner.offsetHeight + 'px';
             } else {
                 banner.style.display = 'none';
+                if(header) header.style.marginTop = '';
             }
         }
 
