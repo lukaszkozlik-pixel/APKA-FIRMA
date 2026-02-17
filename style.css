@@ -1,18 +1,11 @@
-/* --- MOTYW JASNY/CIEMNY --- */
+
+/* --- MOTYW JASNY --- */
 :root {
     --bg: #f4f4f4;
     --text: #202124;
     --tile-bg: #fff;
     --tile-border: #e0e0e0;
     --tile-shadow: 0 2px 8px rgba(0,0,0,0.07);
-}
-
-[data-theme="dark"] {
-    --bg: #181a1b;
-    --text: #e8eaed;
-    --tile-bg: #23272a;
-    --tile-border: #333;
-    --tile-shadow: 0 2px 12px rgba(0,0,0,0.25);
 }
 
 body {

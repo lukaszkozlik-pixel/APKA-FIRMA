@@ -14,13 +14,11 @@ Struktura projektu (ważniejsze pliki)
 - `tools-src/` — narzędzia i dokumentacja (m.in. `bibliotekaSAT.html`, `bibliotekaDVBT.html`)
 - `tools-src/docs/` — podstrony/artykuły i interaktywne konstelacje
 
-## Motyw jasny/ciemny
+## Motyw jasny
 
-- Motyw aplikacji (jasny/ciemny) przełączany jest globalnie na wszystkich stronach i narzędziach.
+- Motyw aplikacji jest zawsze jasny na wszystkich stronach i narzędziach.
 - Styl oparty o CSS custom properties (`--bg`, `--text`, `--tile-bg`, `--tile-border`, `--tile-shadow`).
-- Wybrany motyw zapisywany w `localStorage` lub automatycznie wykrywany z systemu.
-- Przełącznik motywu dostępny na stronie głównej (przycisk ☀️/🌙).
-- Każda podstrona ładuje `style.css` i skrypt motywu.
+- Każda podstrona ładuje `style.css`.
 
 Szybkie uruchomienie lokalne
 1. Otwórz katalog projektu w terminalu.
@@ -49,10 +47,9 @@ Funkcjonalności istotne dla dewelopera
 
 ---
 
-### Changelog 2.0.0
-- Globalny motyw jasny/ciemny na wszystkich stronach (CSS variables, skrypt motywu, import `style.css`)
+- Globalny motyw jasny na wszystkich stronach (CSS variables, import `style.css`)
 - Uproszczona automatyczna aktualizacja PWA (Service Worker + manifest)
-- Uporządkowanie stylów i kodu pod kątem spójności motywu
+- Uporządkowanie stylów i kodu pod kątem spójności motywu jasnego
 
 Generowanie grafiki schematu (opcjonalne)
 - Skrypt używa Pillow (Python). Przykładowe komendy (z repo):

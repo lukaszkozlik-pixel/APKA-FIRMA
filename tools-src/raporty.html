@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Raporty Instalacyjne</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+        <!-- Dodajemy font z polskimi znakami (DejaVuSans) -->
+        <script src="https://unpkg.com/jspdf@2.5.1/dist/fonts/DejaVuSans-normal.js"></script>
     <style>
         :root {
             --primary: #1a73e8;
@@ -70,6 +72,14 @@
         #previewModal, #formModal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.6); z-index: 1000; backdrop-filter: blur(3px);
+        }
+        #previewModal {
+            background: rgba(0,0,0,0.6);
+        }
+        #previewModal .modal-content {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.10);
         }
         #formModal { background: white; z-index: 2000; overflow-y: auto; padding: 20px; }
 
@@ -362,6 +372,10 @@ applyTheme();
                 const r = e.target.result;
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
+                // Ustawiamy font z polskimi znakami
+                doc.addFileToVFS("DejaVuSans.ttf", window.DejaVuSansNormal);
+                doc.addFont("DejaVuSans.ttf", "DejaVuSans", "normal");
+                doc.setFont("DejaVuSans");
                 let y = 20;
 
                 doc.setFontSize(20);
@@ -369,7 +383,7 @@ applyTheme();
                 doc.text("RAPORT INSTALACYJNY", 20, y);
                 doc.setDrawColor(26, 115, 232);
                 doc.line(20, y + 2, 190, y + 2);
-                
+
                 y += 15;
                 doc.setFontSize(12);
                 doc.setTextColor(0, 0, 0);
@@ -377,7 +391,7 @@ applyTheme();
                 doc.text("Data:", 20, y);
                 doc.setFont(undefined, 'normal');
                 doc.text(new Date(r.date).toLocaleString('pl-PL'), 50, y);
-                
+
                 y += 10;
                 doc.setFont(undefined, 'bold');
                 doc.text("Adres:", 20, y);
@@ -404,9 +418,11 @@ applyTheme();
                 }
 
                 const opcje = { day: '2-digit', month: '2-digit', year: 'numeric' };
-
+                // Poprawiona, czytelna nazwa pliku
+                let cleanAddress = (r.address || 'Raport').replace(/[^a-zA-Z0-9ąćęłńóśźżĄĆĘŁŃÓŚŹŻ _-]/g, '').replace(/\s+/g, '_');
+                let cleanDate = (new Date(r.date).toLocaleDateString('pl-PL', opcje)).replace(/\//g, '-');
+                const fileName = `Raport_${cleanAddress}_${cleanDate}.pdf`;
                 const pdfBlob = doc.output('blob');
-                const fileName = `RP_${(r.address + " " + (new Date(r.date).toLocaleDateString('pl-PL', opcje)) || 'eksport').replace(/\s+/g, '_')}.pdf`;
                 const file = new File([pdfBlob], fileName, { type: "application/pdf" });
 
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
