@@ -24,21 +24,26 @@
             document.documentElement.setAttribute('data-theme', 'light');
         });
 
-        // Service Worker - rejestracja i auto-update
+        // Deklarujemy zmienną globalnie, aby updateApp() miała do niej dostęp
+        let swRegistration = null;
+
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                // Dodanie timestampu wymusza na przeglądarce sprawdzenie nowej wersji sw.js
-                navigator.serviceWorker.register('./sw.js?t=' + Date.now()).then(reg => {
+                // Dodajemy timestamp, aby zawsze sprawdzać sw.js na serwerze
+                navigator.serviceWorker.register('./sw.js?v=' + Date.now()).then(reg => {
+                    swRegistration = reg; // Przypisujemy rejestrację do zmiennej globalnej
                     console.log('SW zarejestrowany');
 
-                    // Sprawdzaj aktualizację przy każdym wejściu
+                    // Sprawdzaj aktualizację przy starcie
                     reg.update();
 
+                    // Słuchamy na pojawienie się nowego Service Workera
                     reg.addEventListener('updatefound', () => {
-                        const newWorker = reg.installing;
-                        newWorker.addEventListener('statechange', () => {
-                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                // Pojawia się Twój toast z przyciskiem ODŚWIEŻ
+                        const installingWorker = reg.installing;
+                        installingWorker.addEventListener('statechange', () => {
+                            // Jeśli nowa wersja zainstalowała się i czeka (installed)
+                            if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                console.log('Nowy SW czeka na aktywację');
                                 document.getElementById('update-toast').style.display = 'flex';
                             }
                         });
@@ -47,16 +52,30 @@
             });
         }
 
-        // Funkcja wywoływana przez przycisk ODŚWIEŻ
+        // Główna funkcja aktualizacji
         function updateApp() {
-            if (newWorker) {
-                // Wysyłamy sygnał do nowego SW, aby natychmiast przejął kontrolę
-                newWorker.postMessage({ type: 'SKIP_WAITING' });
-            }
-            // Po krótkiej chwili odświeżamy stronę
-            setTimeout(() => {
+            // Sprawdzamy, czy mamy zarejestrowanego Service Workera, który czeka (waiting)
+            const workerToActivate = swRegistration ? swRegistration.waiting : null;
+
+            if (workerToActivate) {
+                // Wysyłamy sygnał SKIP_WAITING do czekającego workera
+                workerToActivate.postMessage({ type: 'SKIP_WAITING' });
+                console.log('Wysłano SKIP_WAITING');
+            } else {
+                // Jeśli z jakiegoś powodu nie znaleźliśmy workera w stanie waiting, 
+                // po prostu odświeżamy (prawdopodobnie już jest aktywny)
                 window.location.reload();
-            }, 300);
+                return;
+            }
+
+            // Czekamy na aktywację nowego workera i przeładowujemy stronę
+            // Zdarzenie 'controllerchange' odpali się, gdy nowy SW przejmie stery
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                window.location.reload();
+            });
+            
+            // Fallback: jeśli zdarzenie nie odpali, odśwież po 500ms
+            setTimeout(() => window.location.reload(), 500);
         }
     </script>
 
