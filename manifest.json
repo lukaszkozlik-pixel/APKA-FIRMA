@@ -1,7 +1,7 @@
 {
   "name": "Instalator Pro",
   "short_name": "Instalator",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "description": "Narzędzia i raporty dla instalatora - z automatyczną aktualizacją",
   "start_url": "index.html",
   "display": "standalone",
