@@ -7,7 +7,7 @@
     <title>Raporty Instalacyjne</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
         <!-- Dodajemy font z polskimi znakami (DejaVuSans) -->
-        <script src="https://unpkg.com/jspdf@2.5.1/dist/fonts/DejaVuSans-normal.js"></script>
+    <script src="https://unpkg.com/jspdf@2.5.1/dist/fonts/DejaVuSans-normal.js"></script>
     <style>
         :root {
             --primary: #1a73e8;
@@ -365,118 +365,112 @@ applyTheme();
         }
 
         // --- FUNKCJA PDF ---
+
         async function shareAsPDF() {
-            if (!currentReportId) return;
-            const transaction = db.transaction(["raporty"], "readonly");
-            transaction.objectStore("raporty").get(currentReportId).onsuccess = async (e) => {
-                const r = e.target.result;
-                const { jsPDF } = window.jspdf;
-                
-                // Zwiększamy marginesy i ustawiamy format A4
-                const doc = new jsPDF({
-                    orientation: "p",
-                    unit: "mm",
-                    format: "a4"
-                });
+    if (!currentReportId) return;
+    
+    try {
+        const transaction = db.transaction(["raporty"], "readonly");
+        const store = transaction.objectStore("raporty");
+        
+        store.get(currentReportId).onsuccess = async (e) => {
+            const r = e.target.result;
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ unit: "mm", format: "a4" });
 
-                // Ładowanie fontu z polskimi znakami
-                doc.addFileToVFS("DejaVuSans.ttf", window.DejaVuSansNormal);
-                doc.addFont("DejaVuSans.ttf", "DejaVuSans", "normal");
-                doc.setFont("DejaVuSans");
+            // --- KONFIGURACJA CZCIONKI ---
+            let usePolish = false;
+            if (window.DejaVuSansNormal) {
+                try {
+                    doc.addFileToVFS("DejaVuSans.ttf", window.DejaVuSansNormal);
+                    doc.addFont("DejaVuSans.ttf", "DejaVuSans", "normal");
+                    doc.setFont("DejaVuSans");
+                    usePolish = true;
+                } catch (err) {
+                    console.warn("Błąd ładowania czcionki PL, przełączam na standardową");
+                }
+            }
 
-                let y = 20; // Aktualna pozycja pionowa (mm)
-                const margin = 20;
-                const pageWidth = doc.internal.pageSize.getWidth();
-                const contentWidth = pageWidth - (2 * margin);
+            const cleanText = usePolish ? r.text : r.text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ł/g, "l").replace(/Ł/g, "L");
+            const cleanAddress = usePolish ? (r.address || '-') : (r.address || '-').normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ł/g, "l").replace(/Ł/g, "L");
 
-                // --- NAGŁÓWEK ---
-                doc.setFontSize(18);
-                doc.setTextColor(26, 115, 232); // Niebieski firmowy
-                doc.text("RAPORT INSTALACYJNY", margin, y);
-                
-                y += 2;
-                doc.setDrawColor(26, 115, 232);
-                doc.line(margin, y, pageWidth - margin, y);
+            let y = 20;
+            const margin = 20;
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const contentWidth = pageWidth - (2 * margin);
 
-                // --- DANE PODSTAWOWE ---
-                y += 15;
-                doc.setFontSize(11);
-                doc.setTextColor(0, 0, 0);
-                
-                doc.setFont("DejaVuSans", "bold");
-                doc.text("Data:", margin, y);
-                doc.setFont("DejaVuSans", "normal");
-                doc.text(new Date(r.date).toLocaleString('pl-PL'), margin + 20, y);
+            // --- RYSOWANIE TREŚCI ---
+            doc.setFontSize(18);
+            doc.setTextColor(26, 115, 232);
+            doc.text("RAPORT INSTALACYJNY", margin, y);
+            
+            y += 2;
+            doc.setDrawColor(26, 115, 232);
+            doc.line(margin, y, pageWidth - margin, y);
 
-                y += 8;
-                doc.setFont("DejaVuSans", "bold");
-                doc.text("Adres:", margin, y);
-                doc.setFont("DejaVuSans", "normal");
-                // Zawijanie adresu, jeśli jest bardzo długi
-                const wrappedAddress = doc.splitTextToSize(r.address || '-', contentWidth - 20);
-                doc.text(wrappedAddress, margin + 20, y);
-                y += (wrappedAddress.length * 5);
+            y += 15;
+            doc.setFontSize(11);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Data: ${new Date(r.date).toLocaleString('pl-PL')}`, margin, y);
+            
+            y += 8;
+            const wrappedAddress = doc.splitTextToSize(`Adres: ${cleanAddress}`, contentWidth);
+            doc.text(wrappedAddress, margin, y);
+            y += (wrappedAddress.length * 6) + 5;
 
-                // --- OPIS PRAC (KLUCZOWA POPRAWKA ZAWIJANIA) ---
-                y += 10;
-                doc.setFont("DejaVuSans", "bold");
-                doc.text("Opis prac i materiały:", margin, y);
-                
-                y += 7;
-                doc.setFont("DejaVuSans", "normal");
-                
-                // Automatyczne dzielenie tekstu na linie pasujące do szerokości kartki
-                const splitText = doc.splitTextToSize(r.text, contentWidth);
-                
-                // Pętla sprawdzająca, czy tekst mieści się na stronie
-                splitText.forEach(line => {
-                    if (y > 270) { // Jeśli blisko dołu kartki
-                        doc.addPage();
-                        y = 20;
+            // Opis prac z automatycznym zawijaniem i dzieleniem stron
+            doc.setFontSize(10);
+            const splitText = doc.splitTextToSize(cleanText, contentWidth);
+            
+            splitText.forEach(line => {
+                if (y > 280) {
+                    doc.addPage();
+                    y = 20;
+                }
+                doc.text(line, margin, y);
+                y += 6;
+            });
+
+            // --- ZDJĘCIA ---
+            if (r.images && r.images.length > 0) {
+                for (const imgData of r.images) {
+                    if (y > 210) { 
+                        doc.addPage(); 
+                        y = 20; 
                     }
-                    doc.text(line, margin, y);
-                    y += 6; // Odstęp między liniami
-                });
-
-                // --- ZDJĘCIA ---
-                if (r.images && r.images.length > 0) {
                     y += 10;
-                    for (const imgData of r.images) {
-                        // Sprawdzenie miejsca na zdjęcie (wymaga ok. 80mm wysokości)
-                        if (y > 200) { 
-                            doc.addPage(); 
-                            y = 20; 
-                        }
-                        
-                        try {
-                            doc.setFont("DejaVuSans", "bold");
-                            doc.text("Zdjęcie dokumentacyjne:", margin, y);
-                            y += 5;
-                            // Skalowanie zdjęcia, aby zachować proporcje i szerokość
-                            doc.addImage(imgData, 'JPEG', margin, y, contentWidth, 70); 
-                            y += 80;
-                        } catch (err) { 
-                            console.error("Błąd dodawania zdjęcia do PDF:", err); 
-                        }
+                    try {
+                        // Skalowanie zdjęcia do szerokości strony (proporcja 4:3)
+                        const imgHeight = (contentWidth * 0.75);
+                        doc.addImage(imgData, 'JPEG', margin, y, contentWidth, imgHeight);
+                        y += imgHeight + 5;
+                    } catch (err) {
+                        console.error("Błąd zdjęcia w PDF", err);
                     }
                 }
+            }
 
-                // --- GENEROWANIE NAZWY PLIKU ---
-                let cleanAddress = (r.address || 'Raport').replace(/[^a-zA-Z0-9ąćęłńóśźżĄĆĘŁŃÓŚŹŻ _-]/g, '').substring(0, 30);
-                const fileName = `Raport_${cleanAddress}.pdf`;
-                
-                const pdfBlob = doc.output('blob');
-                const file = new File([pdfBlob], fileName, { type: "application/pdf" });
+            // --- FINALIZACJA ---
+            const fileBaseName = (r.address || 'Raport').replace(/[^a-zA-Z0-9]/g, '_').substring(0, 20);
+            const cleanDate = new Date(r.date).toISOString().split('T')[0];
+            const fileName = `Raport_${fileBaseName}_${cleanDate}.pdf`;
+            const pdfBlob = doc.output('blob');
+            const file = new File([pdfBlob], fileName, { type: "application/pdf" });
 
-                // Udostępnianie lub Pobieranie
-                if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    await navigator.share({ files: [file], title: 'Raport Instalacyjny' });
-                } else {
-                    doc.save(fileName);
-                }
-            };
-        }
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share({ files: [file], title: 'Raport' });
+            } else {
+                doc.save(fileName);
+            }
+        };
+    } catch (globalErr) {
+        console.error("Krytyczny błąd generowania PDF:", globalErr);
+        alert("Błąd generowania PDF. Spróbuj ponownie lub użyj opcji 'PRZYGOTUJ DO SCREENA'.");
+    }
+}
 
+
+       
         function saveReport() {
             const reportData = {
                 date: document.getElementById('reportDate').value,
