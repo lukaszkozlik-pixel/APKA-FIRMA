@@ -371,62 +371,106 @@ applyTheme();
             transaction.objectStore("raporty").get(currentReportId).onsuccess = async (e) => {
                 const r = e.target.result;
                 const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
-                // Ustawiamy font z polskimi znakami
+                
+                // Zwiększamy marginesy i ustawiamy format A4
+                const doc = new jsPDF({
+                    orientation: "p",
+                    unit: "mm",
+                    format: "a4"
+                });
+
+                // Ładowanie fontu z polskimi znakami
                 doc.addFileToVFS("DejaVuSans.ttf", window.DejaVuSansNormal);
                 doc.addFont("DejaVuSans.ttf", "DejaVuSans", "normal");
                 doc.setFont("DejaVuSans");
-                let y = 20;
 
-                doc.setFontSize(20);
-                doc.setTextColor(26, 115, 232);
-                doc.text("RAPORT INSTALACYJNY", 20, y);
+                let y = 20; // Aktualna pozycja pionowa (mm)
+                const margin = 20;
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const contentWidth = pageWidth - (2 * margin);
+
+                // --- NAGŁÓWEK ---
+                doc.setFontSize(18);
+                doc.setTextColor(26, 115, 232); // Niebieski firmowy
+                doc.text("RAPORT INSTALACYJNY", margin, y);
+                
+                y += 2;
                 doc.setDrawColor(26, 115, 232);
-                doc.line(20, y + 2, 190, y + 2);
+                doc.line(margin, y, pageWidth - margin, y);
 
+                // --- DANE PODSTAWOWE ---
                 y += 15;
-                doc.setFontSize(12);
+                doc.setFontSize(11);
                 doc.setTextColor(0, 0, 0);
-                doc.setFont(undefined, 'bold');
-                doc.text("Data:", 20, y);
-                doc.setFont(undefined, 'normal');
-                doc.text(new Date(r.date).toLocaleString('pl-PL'), 50, y);
+                
+                doc.setFont("DejaVuSans", "bold");
+                doc.text("Data:", margin, y);
+                doc.setFont("DejaVuSans", "normal");
+                doc.text(new Date(r.date).toLocaleString('pl-PL'), margin + 20, y);
 
+                y += 8;
+                doc.setFont("DejaVuSans", "bold");
+                doc.text("Adres:", margin, y);
+                doc.setFont("DejaVuSans", "normal");
+                // Zawijanie adresu, jeśli jest bardzo długi
+                const wrappedAddress = doc.splitTextToSize(r.address || '-', contentWidth - 20);
+                doc.text(wrappedAddress, margin + 20, y);
+                y += (wrappedAddress.length * 5);
+
+                // --- OPIS PRAC (KLUCZOWA POPRAWKA ZAWIJANIA) ---
                 y += 10;
-                doc.setFont(undefined, 'bold');
-                doc.text("Adres:", 20, y);
-                doc.setFont(undefined, 'normal');
-                doc.text(r.address || '-', 50, y);
-
-                y += 15;
-                doc.setFont(undefined, 'bold');
-                doc.text("Opis prac:", 20, y);
+                doc.setFont("DejaVuSans", "bold");
+                doc.text("Opis prac i materiały:", margin, y);
+                
                 y += 7;
-                doc.setFont(undefined, 'normal');
-                const splitText = doc.splitTextToSize(r.text, 170);
-                doc.text(splitText, 20, y);
-                y += (splitText.length * 7) + 10;
+                doc.setFont("DejaVuSans", "normal");
+                
+                // Automatyczne dzielenie tekstu na linie pasujące do szerokości kartki
+                const splitText = doc.splitTextToSize(r.text, contentWidth);
+                
+                // Pętla sprawdzająca, czy tekst mieści się na stronie
+                splitText.forEach(line => {
+                    if (y > 270) { // Jeśli blisko dołu kartki
+                        doc.addPage();
+                        y = 20;
+                    }
+                    doc.text(line, margin, y);
+                    y += 6; // Odstęp między liniami
+                });
 
+                // --- ZDJĘCIA ---
                 if (r.images && r.images.length > 0) {
+                    y += 10;
                     for (const imgData of r.images) {
-                        if (y > 220) { doc.addPage(); y = 20; }
+                        // Sprawdzenie miejsca na zdjęcie (wymaga ok. 80mm wysokości)
+                        if (y > 200) { 
+                            doc.addPage(); 
+                            y = 20; 
+                        }
+                        
                         try {
-                            doc.addImage(imgData, 'JPEG', 20, y, 100, 75);
-                            y += 85;
-                        } catch (err) { console.error(err); }
+                            doc.setFont("DejaVuSans", "bold");
+                            doc.text("Zdjęcie dokumentacyjne:", margin, y);
+                            y += 5;
+                            // Skalowanie zdjęcia, aby zachować proporcje i szerokość
+                            doc.addImage(imgData, 'JPEG', margin, y, contentWidth, 70); 
+                            y += 80;
+                        } catch (err) { 
+                            console.error("Błąd dodawania zdjęcia do PDF:", err); 
+                        }
                     }
                 }
 
-                const opcje = { day: '2-digit', month: '2-digit', year: 'numeric' };
-                // Poprawiona, czytelna nazwa pliku
-                let cleanAddress = (r.address || 'Raport').replace(/[^a-zA-Z0-9ąćęłńóśźżĄĆĘŁŃÓŚŹŻ _-]/g, '').replace(/\s+/g, '_');
-                let cleanDate = (new Date(r.date).toLocaleDateString('pl-PL', opcje)).replace(/\//g, '-');
-                const fileName = `Raport_${cleanAddress}_${cleanDate}.pdf`;
+                // --- GENEROWANIE NAZWY PLIKU ---
+                let cleanAddress = (r.address || 'Raport').replace(/[^a-zA-Z0-9ąćęłńóśźżĄĆĘŁŃÓŚŹŻ _-]/g, '').substring(0, 30);
+                const fileName = `Raport_${cleanAddress}.pdf`;
+                
                 const pdfBlob = doc.output('blob');
                 const file = new File([pdfBlob], fileName, { type: "application/pdf" });
 
+                // Udostępnianie lub Pobieranie
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    await navigator.share({ files: [file], title: 'Raport' });
+                    await navigator.share({ files: [file], title: 'Raport Instalacyjny' });
                 } else {
                     doc.save(fileName);
                 }
