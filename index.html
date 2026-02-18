@@ -46,6 +46,18 @@
                 });
             });
         }
+
+        // Funkcja wywoływana przez przycisk ODŚWIEŻ
+        function updateApp() {
+            if (newWorker) {
+                // Wysyłamy sygnał do nowego SW, aby natychmiast przejął kontrolę
+                newWorker.postMessage({ type: 'SKIP_WAITING' });
+            }
+            // Po krótkiej chwili odświeżamy stronę
+            setTimeout(() => {
+                window.location.reload();
+            }, 300);
+        }
     </script>
 
 
@@ -65,7 +77,7 @@
 <body>
     <div id="update-toast">
         <span>Nowa wersja jest dostępna!</span>
-        <button onclick="location.reload()">ODŚWIEŻ</button>
+        <button onclick="updateApp()">ODŚWIEŻ</button>
     </div>
 
     <div id="offline-banner" style="display:none;position:fixed;top:0;left:0;width:100vw;background:#d93025;color:white;text-align:center;padding:12px 0;z-index:10001;font-weight:bold;box-shadow:0 2px 8px rgba(0,0,0,0.15);">
