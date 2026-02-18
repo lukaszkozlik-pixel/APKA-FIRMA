@@ -24,120 +24,50 @@ const ASSETS = [
   'tools-src/docs/UnicablePB.html'
 ];
 
-// Pobieranie wersji z manifest.json
-async function getVersionFromManifest() {
-  try {
-    const response = await fetch('manifest.json', { cache: 'no-store' });
-    const manifest = await response.json();
-    return manifest.version || '1.0.0';
-  } catch (err) {
-    console.warn('SW: Nie mogę pobrać wersji z manifest.json:', err);
-    return '1.0.0';
-  }
-}
-
-function getCacheName(version) {
-  return `instalator-v${version}`;
-}
-
-
-
-// 1. INSTALACJA - Pobieranie plików do cache
+// Instalacja - po prostu zapełniamy cache na start
 self.addEventListener('install', (event) => {
-  self.skipWaiting(); // Wymuś natychmiastową instalację
+  self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS);
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
 });
 
+// Aktywacja - czyszczenie starych wersji
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          // Usuwa wszystkie stare cache zaczynające się od 'instalator-'
-          if (cacheName !== CACHE_NAME && cacheName.startsWith('instalator-')) {
+          if (cacheName !== CACHE_NAME) {
             return caches.delete(cacheName);
           }
         })
       );
-    }).then(() => self.clients.claim()) // Natychmiastowe przejęcie kontroli
+    }).then(() => self.clients.claim())
   );
 });
 
-
-
-// 3. OBSŁUGA ŻĄDAŃ - Network first dla HTML, Cache first dla statycznych zasobów
+// KLUCZ: Strategia Network-First
 self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url);
-  
-  // Ignoruj zewnętrzne żądania (Google, itp.)
-  if (!url.origin.includes(self.location.origin)) {
-    return;
-  }
+  if (event.request.method !== 'GET') return;
 
-  // HTML - zawsze staramy się pobrać z sieci, fallback do cache'u
-  if (event.request.headers.get('accept')?.includes('text/html')) {
-    event.respondWith(
-      fetch(event.request).then(response => {
-        if (response.ok) {
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, responseClone);
-          });
-          return response;
-        }
-        return caches.match(event.request) || response;
-      }).catch(() => {
-        return caches.match(event.request) || new Response('Offline - plik nie znaleziony', { status: 404 });
-      })
-    );
-    return;
-  }
-
-  // CSS, JS, obrazy - Cache first, fallback do sieci
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      if (response) return response;
-      return fetch(event.request).then(networkResponse => {
-        if (networkResponse.ok) {
+    fetch(event.request)
+      .then((networkResponse) => {
+        // Mamy internet! Pobieramy nową wersję i aktualizujemy cache "w locie"
+        if (networkResponse && networkResponse.status === 200) {
           const responseClone = networkResponse.clone();
-          caches.open(CACHE_NAME).then(cache => {
+          caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, responseClone);
           });
         }
         return networkResponse;
-      }).catch(() => {
-        return new Response('Offline - zasób niedostępny', { status: 404 });
-      });
-    })
-  );
-});
-
-// 4. KOMUNIKACJA Z KLIENTAMI - Powiadomienie o dostępności aktualizacji
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'CHECK_UPDATE') {
-    // Sprawdzenie czy dostępna jest nowa wersja
-    const newCacheName = generateCacheName();
-    if (newCacheName !== CACHE_NAME) {
-      console.log('SW: Dostępna nowa wersja, informowanie klientów');
-      self.clients.matchAll().then(clients => {
-        clients.forEach(client => {
-          client.postMessage({
-            type: 'UPDATE_AVAILABLE',
-            newCacheName: newCacheName
-          });
+      })
+      .catch(() => {
+        // Brak internetu - ratujemy się tym, co mamy w pamięci
+        return caches.match(event.request).then((cachedResponse) => {
+          return cachedResponse || new Response("Brak sieci i brak danych w pamięci", { status: 503 });
         });
-      });
-    }
-  }
-});
-
-// Nasłuchiwanie na sygnał wymuszenia aktualizacji
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
+      })
+  );
 });

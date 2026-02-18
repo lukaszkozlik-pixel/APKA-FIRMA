@@ -5,19 +5,6 @@
     <meta name="theme-color" content="#1a73e8">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <style>
-
-        /* Toast aktualizacji */
-        #update-toast {
-            display: none; position: fixed; bottom: 80px; left: 50%;
-            transform: translateX(-50%); background: #323232; color: white;
-            padding: 12px 24px; border-radius: 50px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-            z-index: 10000; align-items: center; gap: 15px; font-size: 0.9rem;
-            animation: slideInUp 0.4s ease-out;
-        }
-        @keyframes slideInUp { from { bottom: -50px; opacity: 0; } to { bottom: 80px; opacity: 1; } }
-        #update-toast button { background: #fbbc05; border: none; color: #202124; padding: 5px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; }
-    </style>
     <script>
         // Ustaw zawsze motyw jasny
         window.addEventListener('DOMContentLoaded', () => {
@@ -25,58 +12,27 @@
         });
 
         // Deklarujemy zmienną globalnie, aby updateApp() miała do niej dostęp
-        let swRegistration = null;
-
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                // Dodajemy timestamp, aby zawsze sprawdzać sw.js na serwerze
-                navigator.serviceWorker.register('./sw.js?v=' + Date.now()).then(reg => {
-                    swRegistration = reg; // Przypisujemy rejestrację do zmiennej globalnej
-                    console.log('SW zarejestrowany');
-
-                    // Sprawdzaj aktualizację przy starcie
-                    reg.update();
-
-                    // Słuchamy na pojawienie się nowego Service Workera
-                    reg.addEventListener('updatefound', () => {
-                        const installingWorker = reg.installing;
-                        installingWorker.addEventListener('statechange', () => {
-                            // Jeśli nowa wersja zainstalowała się i czeka (installed)
-                            if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                console.log('Nowy SW czeka na aktywację');
-                                document.getElementById('update-toast').style.display = 'flex';
-                            }
-                        });
-                    });
+                navigator.serviceWorker.register('./sw.js').then(reg => {
+                    console.log('SW działa w trybie: Najpierw Sieć');
                 });
             });
         }
 
-        // Główna funkcja aktualizacji
-        function updateApp() {
-            // Sprawdzamy, czy mamy zarejestrowanego Service Workera, który czeka (waiting)
-            const workerToActivate = swRegistration ? swRegistration.waiting : null;
-
-            if (workerToActivate) {
-                // Wysyłamy sygnał SKIP_WAITING do czekającego workera
-                workerToActivate.postMessage({ type: 'SKIP_WAITING' });
-                console.log('Wysłano SKIP_WAITING');
-            } else {
-                // Jeśli z jakiegoś powodu nie znaleźliśmy workera w stanie waiting, 
-                // po prostu odświeżamy (prawdopodobnie już jest aktywny)
-                window.location.reload();
-                return;
-            }
-
-            // Czekamy na aktywację nowego workera i przeładowujemy stronę
-            // Zdarzenie 'controllerchange' odpali się, gdy nowy SW przejmie stery
-            navigator.serviceWorker.addEventListener('controllerchange', () => {
-                window.location.reload();
-            });
-            
-            // Fallback: jeśli zdarzenie nie odpali, odśwież po 500ms
-            setTimeout(() => window.location.reload(), 500);
+        // Funkcja stopki (zostaje, by pokazywać wersję z manifestu)
+        async function setAppVersion() {
+            const el = document.getElementById('app-version');
+            if (!el) return;
+            try {
+                const r = await fetch('manifest.json', { cache: 'no-store' });
+                const m = await r.json();
+                el.innerText = m.version || '---';
+            } catch(e) { el.innerText = 'v2.x'; }
         }
+        window.addEventListener('load', setAppVersion);
+
+       
     </script>
 
 
@@ -94,10 +50,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="update-toast">
-        <span>Nowa wersja jest dostępna!</span>
-        <button onclick="updateApp()">ODŚWIEŻ</button>
-    </div>
+   
 
     <div id="offline-banner" style="display:none;position:fixed;top:0;left:0;width:100vw;background:#d93025;color:white;text-align:center;padding:12px 0;z-index:10001;font-weight:bold;box-shadow:0 2px 8px rgba(0,0,0,0.15);">
         Brak połączenia z internetem – aplikacja działa w trybie offline.
