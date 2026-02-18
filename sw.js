@@ -1,3 +1,5 @@
+const CACHE_NAME = 'instalator-v2.0.4';
+
 const ASSETS = [
   'index.html',
   'style.css',
@@ -38,53 +40,34 @@ function getCacheName(version) {
   return `instalator-v${version}`;
 }
 
-let CACHE_NAME = 'instalator-unknown';
+
 
 // 1. INSTALACJA - Pobieranie plików do cache
 self.addEventListener('install', (event) => {
-  self.skipWaiting();
-  
+  self.skipWaiting(); // Wymuś natychmiastową instalację
   event.waitUntil(
-    getVersionFromManifest().then(version => {
-      CACHE_NAME = getCacheName(version);
-      console.log(`SW: Instalacja - używam cache ${CACHE_NAME}`);
-      
-      return caches.open(CACHE_NAME).then((cache) => {
-        return cache.addAll(ASSETS).catch(err => {
-          console.warn('SW: Nie wszystkie pliki się zabuforowały (może być OK):', err);
-          return Promise.all(
-            ASSETS.map(url => 
-              cache.add(url).catch(e => console.warn(`SW: Nie mogę bufować ${url}`, e))
-            )
-          );
-        });
-      });
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(ASSETS);
     })
   );
 });
 
-// 2. AKTYWACJA - Czyszczenie starych wersji cache'u
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    getVersionFromManifest().then(version => {
-      CACHE_NAME = getCacheName(version);
-      
-      return caches.keys().then((cacheNames) => {
-        return Promise.all(
-          cacheNames.map((cacheName) => {
-            if (cacheName !== CACHE_NAME && cacheName.startsWith('instalator-v')) {
-              console.log('SW: Usuwanie starego cache:', cacheName);
-              return caches.delete(cacheName);
-            }
-          })
-        );
-      }).then(() => {
-        console.log(`SW: Aktywacja - cache ${CACHE_NAME} jest aktualny`);
-        return self.clients.claim();
-      });
-    })
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          // Usuwa wszystkie stare cache zaczynające się od 'instalator-'
+          if (cacheName !== CACHE_NAME && cacheName.startsWith('instalator-')) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    }).then(() => self.clients.claim()) // Natychmiastowe przejęcie kontroli
   );
 });
+
+
 
 // 3. OBSŁUGA ŻĄDAŃ - Network first dla HTML, Cache first dla statycznych zasobów
 self.addEventListener('fetch', (event) => {

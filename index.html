@@ -26,48 +26,26 @@
 
         // Service Worker - rejestracja i auto-update
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js', { scope: './' }).then(reg => {
-                console.log('Service Worker zarejestrowany pomyślnie');
-                    let lastKnownVersion = null;
-                    async function getCurrentVersion() {
-                        try {
-                            const response = await fetch('manifest.json', { cache: 'no-store' });
-                            const manifest = await response.json();
-                            return manifest.version || '1.0.0';
-                        } catch (err) {
-                            console.warn('Nie mogę pobrać wersji:', err);
-                            return null;
-                        }
-                    }
-                    // Pobierz wersję przy start
-                    getCurrentVersion().then(version => {
-                        lastKnownVersion = version;
-                        console.log(`Aktualna wersja aplikacji: ${version}`);
-                    });
-                    // Sprawdzanie wersji co 10 sekund
-                    setInterval(async () => {
-                        const newVersion = await getCurrentVersion();
-                        if (newVersion && lastKnownVersion && newVersion !== lastKnownVersion) {
-                            console.log(`Nowa wersja dostępna: ${newVersion}`);
-                            lastKnownVersion = newVersion;
-                            document.getElementById('update-toast').style.display = 'flex';
-                        }
-                    }, 10000);
-                    // Nasłuchiwanie na nową wersję (fallback)
+            window.addEventListener('load', () => {
+                // Dodanie timestampu wymusza na przeglądarce sprawdzenie nowej wersji sw.js
+                navigator.serviceWorker.register('./sw.js?t=' + Date.now()).then(reg => {
+                    console.log('SW zarejestrowany');
+
+                    // Sprawdzaj aktualizację przy każdym wejściu
+                    reg.update();
+
                     reg.addEventListener('updatefound', () => {
                         const newWorker = reg.installing;
                         newWorker.addEventListener('statechange', () => {
                             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                console.log('Dostępna nowa wersja - Service Worker!');
+                                // Pojawia się Twój toast z przyciskiem ODŚWIEŻ
                                 document.getElementById('update-toast').style.display = 'flex';
                             }
                         });
                     });
-                }).catch(err => {
-                    console.error('Błąd rejestracji Service Workera:', err);
                 });
-            };
-        
+            });
+        }
     </script>
 
 
