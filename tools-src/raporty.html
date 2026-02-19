@@ -153,6 +153,7 @@
             <div id="previewContent" class="preview-body"></div>
             <div class="modal-actions">
                 <button class="btn btn-pdf" onclick="shareAsPDF()">📄 UDOSTĘPNIJ PDF</button>
+                <button class="btn" style="background:#4285f4; color:white;" onclick="toggleScreenshotMode(true)">📷 PRZYGOTUJ DO SCREENA</button>
                 <button class="btn btn-edit" onclick="editCurrentReport()">EDYTUJ</button>
                 <button class="btn btn-delete" onclick="removeReport(currentReportId)">USUŃ</button>
                 <button class="btn btn-close" style="grid-column: span 2;" onclick="closePreview()">ZAMKNIJ</button>
@@ -241,6 +242,33 @@
                 document.getElementById('previewContent').innerHTML = html;
                 document.getElementById('previewModal').style.display = 'block';
             };
+        }
+
+        function toggleScreenshotMode(enable) {
+            const modal = document.querySelector('#previewModal .modal-content');
+            const actions = document.querySelector('.modal-actions');
+            const header = document.querySelector('header');
+            
+            if (enable) {
+                actions.style.display = 'none'; // Chowamy przyciski
+                modal.style.margin = '0';
+                modal.style.width = '100%';
+                modal.style.height = 'auto';
+                // Dodajemy przycisk "wyjścia" z trybu screena, który nie będzie widoczny na screenie, jeśli zrobisz go wyżej
+                const exitBtn = document.createElement('button');
+                exitBtn.id = "exit-screen-mode";
+                exitBtn.innerText = "X - POWRÓT";
+                exitBtn.style = "position:fixed; top:10px; right:10px; z-index:9999; padding:10px; background:red; color:white; border:none; border-radius:5px;";
+                exitBtn.onclick = () => toggleScreenshotMode(false);
+                document.body.appendChild(exitBtn);
+            } else {
+                actions.style.display = 'grid';
+                modal.style.margin = '5% auto';
+                modal.style.width = '95%';
+                modal.style.height = '90%';
+                const btn = document.getElementById('exit-screen-mode');
+                if (btn) btn.remove();
+            }
         }
 
         async function shareAsPDF() {
