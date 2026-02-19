@@ -356,27 +356,54 @@
 
                     // Finalizacja i status
                     const pdfBlob = doc.output('blob');
-                    const fileName = `Raport_${r.id}.pdf`;
-                    const file = new File([pdfBlob], fileName, { type: "application/pdf" });
+
+                    const dynamicFileName = formatFileName(r.address, r.date);   
+                    const file = new File([pdfBlob], dynamicFileName, { type: "application/pdf" });
+
 
                     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                        await navigator.share({ files: [file], title: 'Raport Instalacyjny' });
-                        
-                        // Oznacz jako wygenerowany
-                        r.isPdfGenerated = true;
-                        const updateTx = db.transaction(["raporty"], "readwrite");
-                        updateTx.objectStore("raporty").put(r);
-                        updateTx.oncomplete = () => {
-                            loadReports();
-                            closePreview();
-                        };
-                    } else {
-                        doc.save(fileName);
-                    }
-                };
-            } catch (err) {
-                alert("Błąd PDF: " + err.message);
+                        try {
+                            await navigator.share({ 
+                                files: [file], 
+                                title: 'Raport Instalacyjny: ' + (r.address || ''),
+                                text: 'Przesyłam raport instalacyjny z dnia ' + new Date(r.date).toLocaleDateString()
+                            });
+                            
+                            // Oznacz jako wygenerowany tylko jeśli share się powiódł
+                            r.isPdfGenerated = true;
+                            const updateTx = db.transaction(["raporty"], "readwrite");
+                            updateTx.objectStore("raporty").put(r);
+                            updateTx.oncomplete = () => {
+                                loadReports();
+                                closePreview();
+                            };
+                        } catch (err) {
+                            console.log("Udostępnianie przerwane lub błąd:", err);
+                        }
+                        } else {
+                            doc.save(dynamicFileName);
+                        }
+                    };
+                } catch (err) {
+                    alert("Błąd PDF: " + err.message);
+                }
             }
+
+        function formatFileName(address, date) {
+            const clean = (text) => {
+                if (!text) return 'brak';
+                return text.toLowerCase()
+                    .replace(/ą/g, 'a').replace(/ć/g, 'c').replace(/ę/g, 'e')
+                    .replace(/ł/g, 'l').replace(/ń/g, 'n').replace(/ó/g, 'o')
+                    .replace(/ś/g, 's').replace(/ź/g, 'z').replace(/ż/g, 'z')
+                    .replace(/[^a-z0-9]/g, '_') // zamień wszystko inne na podkreślnik
+                    .replace(/_+/g, '_'); // usuń podwójne podkreślniki
+            };
+            
+            const d = new Date(date);
+            const dateStr = d.getFullYear() + "-" + (d.getMonth()+1).toString().padStart(2, '0') + "-" + d.getDate().toString().padStart(2, '0');
+            
+            return `RP_${clean(address)}_${dateStr}.pdf`;
         }
 
         function saveReport() {
