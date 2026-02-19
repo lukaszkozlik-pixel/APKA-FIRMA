@@ -198,7 +198,18 @@
         let tempPhotos = [];
 
         const dbRequest = indexedDB.open("InstalatorDB", 1);
-        dbRequest.onsuccess = e => { db = e.target.result; loadReports(); };
+        dbRequest.onupgradeneeded = e => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains("raporty")) {
+                db.createObjectStore("raporty", { keyPath: "id", autoIncrement: true });
+            }
+        };  
+        dbRequest.onsuccess = e => { 
+            db = e.target.result; 
+            loadReports(); 
+            checkPending(); // Sprawdzamy, czy są dane do zaimportowania z cennika
+        };
+        
 
         function loadReports() {
             if (!db) return;
@@ -471,6 +482,29 @@
 
         function closeForm() { document.getElementById('formModal').style.display = 'none'; }
         function closePreview() { document.getElementById('previewModal').style.display = 'none'; }
+    
+        function checkPending() {
+            // Sprawdzamy klucz, którego używa Twój cennik
+            const t = localStorage.getItem('pending_report_text');
+            
+            if (t) {
+                // 1. Otwieramy formularz (tryb nowego raportu)
+                openForm(); 
+                
+                // 2. Wklejamy wygenerowany tekst do pola opisu
+                const textArea = document.getElementById('reportText');
+                if (textArea) {
+                    textArea.value = t;
+                }
+
+                // 3. WAŻNE: Czyścimy localStorage, żeby formularz nie wyskakiwał 
+                // przy każdym odświeżeniu strony
+                localStorage.removeItem('pending_report_text');
+                
+                console.log("Automatycznie zaimportowano dane z cennika.");
+            }
+        }
+    
     </script>
 </body>
 </html>
