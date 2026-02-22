@@ -1,7 +1,7 @@
 const APP_CONFIG = {
     DB_NAME: "InstalatorDB",
     DB_VERSION: 6, // Zwiększaj przy każdej zmianie struktury bazy
-    APP_VERSION: "2.3.0",
+    APP_VERSION: "2.3.2",
 };
 
 // Eksportujemy do użycia w modułach

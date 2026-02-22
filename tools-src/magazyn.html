@@ -125,12 +125,12 @@
             return;
         }
 
-        let content = "STAN MAGAZYNU - INSTALATOR PRO\n";
+        let content = "STAN MAGAZYNU - wykorzystane\n";
         content += "Data: " + new Date().toLocaleString() + "\n";
         content += "---------------------------\n";
 
         data.forEach(item => {
-            content += `• ${item.name}: ${item.stock || 0}\n`;
+            content += `• ${item.name}: ${item.quantity || 0}\n`;
         });
 
         content += "---------------------------";
