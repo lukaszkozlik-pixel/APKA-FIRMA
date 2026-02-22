@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-        <script src="../security.js"></script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DVB-T2 Pro Diagnostic Tool</title>
@@ -103,7 +103,6 @@
             canvas.width = Math.floor(displaySize * dpr);
             canvas.height = Math.floor(displaySize * dpr);
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-            resetCycle();
         }
 
         window.addEventListener('resize', resizeCanvas);
