@@ -332,19 +332,10 @@
         // Inicjalizacja zabezpieczeń (PIN/biometria) przy starcie aplikacji    
  
         async function initSecurity() {
-            // Sprawdzenie sesji - jeśli zalogowany w tej karcie i nie wygasła, pokazujemy apkę
-            const auth = sessionStorage.getItem('app_authenticated');
-            const lastAuth = sessionStorage.getItem('app_last_auth');
-            const now = Date.now();
-            const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minut
-            if (auth === 'true' && lastAuth && (now - parseInt(lastAuth, 10) < SESSION_TIMEOUT)) {
+            // Sprawdzenie sesji - jeśli zalogowany w tej karcie, kończymy funkcję i pokazujemy apkę
+            if (sessionStorage.getItem('app_authenticated') === 'true') {
                 document.getElementById('app-lock-overlay').style.display = 'none';
-                // Odśwież czas ostatniej aktywności
-                sessionStorage.setItem('app_last_auth', now.toString());
                 return Promise.resolve();
-            } else {
-                sessionStorage.removeItem('app_authenticated');
-                sessionStorage.removeItem('app_last_auth');
             }
 
             const db = await openDB();
@@ -382,7 +373,6 @@
             // Logowanie poprawne (PIN lub Kod Ratunkowy z bazy)
             if (input === settings.pin || (settings.recoveryKey && input === settings.recoveryKey)) {
                 sessionStorage.setItem('app_authenticated', 'true'); // USTAWIENIE SESJI
-                sessionStorage.setItem('app_last_auth', Date.now().toString()); // Zapisz czas logowania
                 document.getElementById('app-lock-overlay').style.display = 'none';
                 
                 if (input === settings.recoveryKey) {
@@ -475,7 +465,6 @@
                 if (assertion) {
                     // Sukces! Biometria potwierdzona sprzętowo
                     sessionStorage.setItem('app_authenticated', 'true');
-                    sessionStorage.setItem('app_last_auth', Date.now().toString());
                     document.getElementById('app-lock-overlay').style.display = 'none';
                     if (window.resolveLogin) window.resolveLogin();
                 }
@@ -526,27 +515,6 @@
             onDeviceReady();
             setAppVersion();
             showIosInstallBanner();
-            // Monitoruj minimalizowanie/ukrywanie aplikacji
-            document.addEventListener('visibilitychange', () => {
-                if (document.hidden) {
-                    // Przy ukryciu aplikacji, wyloguj użytkownika
-                    sessionStorage.removeItem('app_authenticated');
-                    sessionStorage.removeItem('app_last_auth');
-                }
-            });
-            window.addEventListener('beforeunload', () => {
-                sessionStorage.removeItem('app_authenticated');
-                sessionStorage.removeItem('app_last_auth');
-            });
-            // Opcjonalnie: przy powrocie sprawdź czy sesja nie wygasła
-            document.addEventListener('visibilitychange', async () => {
-                if (!document.hidden) {
-                    await initSecurity();
-                }
-            });
-            window.addEventListener('pageshow', async () => {
-                await initSecurity();
-            });
         }); 
 
         

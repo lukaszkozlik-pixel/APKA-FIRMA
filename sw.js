@@ -1,9 +1,10 @@
-const CACHE_NAME = 'instalator-v2.3.6'; // Zmieniaj przy każdej aktualizacji, np. 'instalator-v2.3.5'
+const CACHE_NAME = 'instalator-v2.3.1'; // Zmieniaj przy każdej aktualizacji, np. 'instalator-v2.3.5'
 
 const ASSETS = [
   'index.html',
   'style.css',
   'manifest.json',
+  'config.js',
   'tools-src/bibliotekaDVBT.html',
   'tools-src/bibliotekaSAT.html',
   'tools-src/cennik.html',
@@ -14,6 +15,8 @@ const ASSETS = [
   'tools-src/notatki.html',
   'tools-src/raporty.html',
   'tools-src/satelity.html',
+  'tools-src/magazyn.html',
+  'tools-src/settings.html',
   'tools-src/docs/czestotliwosciDVBT.html',
   'tools-src/docs/kolorySat.html',
   'tools-src/docs/KonstelacjaDVbt2.html',
