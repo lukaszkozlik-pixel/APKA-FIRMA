@@ -79,10 +79,20 @@
             </div>
         </div>
 
+        <div class="card" style="border-top: 4px solid #ea4335;">
+            <h3>⚠️ Uwaga</h3>
+            <p class="info">Zalecamy regularne tworzenie kopii zapasowych danych. Możesz to zrobić poprzez eksport raportów i magazynu do plików CSV.</p>
+            <h3>💾 Zarządzanie danymi</h3>
+            <p class="info">UWAGA: Poniższa opcja nieodwracalnie usuwa wszystkie raporty, stany magazynowe oraz ustawienia PIN/Biometrii.</p>
+            <button class="btn btn-danger" onclick="hardReset()">TWARDY RESET APLIKACJI</button>
+        </div>
+        <div class="card" style="border-top: 4px solid #ea4335;">   
+            
         <div style="text-align: center; opacity: 0.6; font-size: 0.8rem;">
             <p id="app-version-info">Instalator Pro v--</p>
             <p>Silnik bazy: IndexedDB v<span id="db-version-info">-</span></p>
         </div>
+        </div>  
     </div>
 
     <script>
@@ -90,7 +100,7 @@
 
         // Inicjalizacja przy starcie
         window.addEventListener('load', () => {
-            document.getElementById('app-version-info').innerText = `Instalator Pro v${APP_CONFIG.VERSION}`;
+            document.getElementById('app-version-info').innerText = `Instalator Pro v${APP_CONFIG.APP_VERSION}`;
             document.getElementById('db-version-info').innerText = APP_CONFIG.DB_VERSION;
 
             const request = indexedDB.open(APP_CONFIG.DB_NAME, APP_CONFIG.DB_VERSION);
@@ -200,6 +210,34 @@
                     sessionStorage.removeItem('app_authenticated');
                     alert("Ochrona została wyłączona.");
                     location.reload();
+                };
+            }
+        }
+
+        function hardReset() {
+            const confirmation = confirm("CZY NA PEWNO? Wszystkie dane zostaną bezpowrotnie usunięte. Aplikacja powróci do stanu fabrycznego.");
+            
+            if (confirmation) {
+                // 1. Usuwamy bazę IndexedDB
+                const req = indexedDB.deleteDatabase(APP_CONFIG.DB_NAME);
+                
+                req.onsuccess = function () {
+                    console.log("Baza danych usunięta pomyślnie");
+                    // 2. Czyścimy sesję
+                    sessionStorage.clear();
+                    // 3. Czyścimy localStorage (jeśli coś tam trzymasz)
+                    localStorage.clear();
+                    
+                    alert("Aplikacja została zresetowana. Nastąpi przeładowanie.");
+                    window.location.href = "../index.html";
+                };
+
+                req.onerror = function () {
+                    alert("Błąd podczas usuwania bazy danych.");
+                };
+
+                req.onblocked = function () {
+                    alert("Usuwanie zablokowane. Zamknij inne karty z tą aplikacją i spróbuj ponownie.");
                 };
             }
         }

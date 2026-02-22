@@ -194,23 +194,32 @@
     </div>
 
     <script>
-        let db;
+
         let currentReportId = null;
         let tempPhotos = [];
+        let db;
+        // Korzystamy z APP_CONFIG z Twojego config.js
+        const request = indexedDB.open(APP_CONFIG.DB_NAME, APP_CONFIG.DB_VERSION);
 
-        const dbRequest = indexedDB.open(APP_CONFIG.DB_NAME, APP_CONFIG.DB_VERSION);
-        dbRequest.onupgradeneeded = e => {
-            const db = e.target.result;
-            if (!db.objectStoreNames.contains("raporty")) {
-                db.createObjectStore("raporty", { keyPath: "id", autoIncrement: true });
+        request.onupgradeneeded = (e) => {
+            const database = e.target.result;
+            // Kompletny zestaw tabel
+            if (!database.objectStoreNames.contains("raporty")) {
+                database.createObjectStore("raporty", { keyPath: "id", autoIncrement: true });
             }
-        };  
-        dbRequest.onsuccess = e => { 
-            db = e.target.result; 
-            loadReports(); 
-            checkPending(); // Sprawdzamy, czy są dane do zaimportowania z cennika
+            if (!database.objectStoreNames.contains("magazyn")) {
+                database.createObjectStore("magazyn", { keyPath: "name" });
+            }
+            if (!database.objectStoreNames.contains("settings")) {
+                database.createObjectStore("settings", { keyPath: "key" });
+            }
         };
-        
+
+        request.onsuccess = (e) => {
+            db = e.target.result;
+            loadReports();
+            checkPending(); // Twoja funkcja sprawdzająca dane z cennika
+        };
 
         function loadReports() {
             if (!db) return;

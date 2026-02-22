@@ -1,93 +1,56 @@
 ## Instalator Pro — narzędzia dla instalatora
 
-
 Krótki opis
 - Statyczna aplikacja webowa (HTML/CSS/JS) z narzędziami dla instalatorów DVB‑T / SAT.
 - PWA-friendly: manifest + service worker do cache'owania zasobów.
-- Motyw jasny/ciemny przełączany globalnie na wszystkich podstronach (CSS variables + localStorage/system theme).
+- Motyw jasny: spójny wygląd na wszystkich podstronach.
+- **Bezpieczeństwo (od v2.1.5):** Wbudowany system blokady dostępu (PIN + Biometria) chroniący dane użytkownika.
 
 Struktura projektu (ważniejsze pliki)
-- `index.html` — strona główna aplikacji
+- `index.html` — strona główna aplikacji z ekranem blokady
 - `style.css` — główny styl
-- `sw.js` — Service Worker (lista `ASSETS`, `CACHE_NAME`)
-- `manifest.json` — manifest PWA (pole `version` używane do wyświetlenia wersji)
-- `tools-src/` — narzędzia i dokumentacja (m.in. `bibliotekaSAT.html`, `bibliotekaDVBT.html`)
-- `tools-src/docs/` — podstrony/artykuły i interaktywne konstelacje
+- `js/config.js` — **CENTRALNA KONFIGURACJA** (wersja bazy IndexedDB, wersja aplikacji)
+- `sw.js` — Service Worker
+- `manifest.json` — manifest PWA (wersja źródłowa aplikacji)
+- `tools-src/` — narzędzia (m.in. `magazyn.html`, `raporty.html`, `settings.html`)
 
-## Motyw jasny
+## Nowości w wersji 2.1.5
 
-- Motyw aplikacji jest zawsze jasny na wszystkich stronach i narzędziach.
-- Styl oparty o CSS custom properties (`--bg`, `--text`, `--tile-bg`, `--tile-border`, `--tile-shadow`).
-- Każda podstrona ładuje `style.css`.
+### 1. Centralna Konfiguracja (`js/config.js`)
+- Cała aplikacja korzysta z jednego pliku konfiguracyjnego `APP_CONFIG`.
+- Automatyczna synchronizacja wersji bazy danych `IndexedDB` we wszystkich modułach (Raporty, Magazyn, Ustawienia).
+- Wersja wyświetlana w stopce i ustawieniach jest pobierana dynamicznie.
 
-Szybkie uruchomienie lokalne
-1. Otwórz katalog projektu w terminalu.
-2. Uruchom prosty serwer (w środowisku, gdzie dostępny jest `python3`):
-```bash
-python3 -m http.server 8000
-```
-3. Otwórz w przeglądarce: `http://localhost:8000`
+### 2. Bezpieczeństwo i Sesja
+- **Blokada PIN:** Możliwość ustawienia 4-cyfrowego kodu dostępu.
+- **Biometria (WebAuthn):** Prawdziwe wsparcie dla odcisku palca i rozpoznawania twarzy (wymaga HTTPS).
+- **Kod Ratunkowy:** Unikalny klucz generowany przy pierwszej konfiguracji, pozwalający na odzyskanie dostępu.
+- **Zarządzanie Sesją:** Dzięki `sessionStorage` użytkownik loguje się raz przy otwarciu aplikacji. Przechodzenie między narzędziami (np. powrót z Cennika do Menu) nie wymaga ponownego wpisywania PIN-u.
 
-Uwagi dotyczące PWA / SW
-- `sw.js` zawiera listę plików do cache; upewnij się, że wszystkie wymienione pliki istnieją w repo.
-- `CACHE_NAME` w `sw.js` i pole `version` w `manifest.json` powinny być spójne z wersją wydania.
-- Aby przetestować aktualizacje SW: otwórz DevTools → Application → Service Workers.
+### 3. Magazyn Zużycia (Pasywny)
+- Uproszczona wersja magazynu, która działa jako licznik zużytego materiału.
+- Integracja z Cennikiem: Każdy wygenerowany raport automatycznie dopisuje towary do listy zużycia w danym miesiącu.
+- Funkcja "Zamknij miesiąc" pozwala wyczyścić statystyki przed nowym okresem.
 
-## Automatyczna aktualizacja (od 2.0.0)
+## Automatyczna aktualizacja bazy (IndexedDB)
 
-- Service Worker automatycznie wykrywa zmianę wersji w `manifest.json` i pobiera nowe pliki do cache.
-- Użytkownik otrzymuje powiadomienie o nowej wersji (przycisk "ODŚWIEŻ").
-- Po kliknięciu "ODŚWIEŻ" aplikacja przeładowuje się z nowymi plikami.
-- Nie trzeba ręcznie czyścić cache ani pamięci aplikacji.
+Aplikacja automatycznie zarządza strukturą bazy danych:
+- **Wersja 1:** Raporty.
+- **Wersja 2:** Magazyn (licznik zużycia).
+- **Wersja 3:** Ustawienia bezpieczeństwa (PIN/Biometria).
+- Zmiana `DB_VERSION` w `js/config.js` automatycznie uruchamia migrację u wszystkich użytkowników bez utraty starych raportów.
 
-Funkcjonalności istotne dla dewelopera
-- Reset aplikacji: ukryty mechanizm — kliknij stopkę 5×, potwierdź, aby usunąć cache i `localStorage`.
-- Automatyczna wersja w stopce: `index.html` odczytuje `manifest.json.version` lub parsuje `sw.js`.
-- Konstelacje i instrukcje: narzędzia znajdują się w `tools-src/docs/` i są samodzielnymi stronami.
+## Ustawienia i Reset
 
----
-
-- Globalny motyw jasny na wszystkich stronach (CSS variables, import `style.css`)
-- Uproszczona automatyczna aktualizacja PWA (Service Worker + manifest)
-- Uporządkowanie stylów i kodu pod kątem spójności motywu jasnego
-
-Generowanie grafiki schematu (opcjonalne)
-- Skrypt używa Pillow (Python). Przykładowe komendy (z repo):
-```bash
-# (opcjonalnie) utwórz virtualenv i zainstaluj Pillow
-python3 -m venv .venv
-. .venv/bin/activate
-pip install Pillow
-python tools-src/scripts/generate_schemat_png.py
-```
-- Wygenerowany plik zapisywany jest w `tools-src/assets/` (jeśli użyty).
-
-Przepływ pracy i commitowanie
-- Zmiany: `git add -A && git commit -m "..." && git push`.
-- Przy wydaniu: zaktualizuj `manifest.json.version` oraz (opcjonalnie) `CACHE_NAME` w `sw.js`.
-
-Testy manualne rekomendowane
-- Otwórz aplikację lokalnie i: zarejestruj SW, przejdź do kilku narzędzi, kliknij stopkę 5× i potwierdź reset.
-- Sprawdź tryb offline (DevTools → Application → Offline) — zasoby z `sw.js` powinny być dostępne.
-
-## Aktualizacja aplikacji (PWA)
-
-Od wersji 2.0.0 aktualizacja aplikacji jest uproszczona i w pełni automatyczna:
-
-- **Aby wymusić aktualizację u wszystkich użytkowników:**
-  1. Zmień pole `"version"` w pliku `manifest.json` na nowy numer wersji (np. `"2.0.1"`).
-  2. Wgraj nowe pliki na serwer (np. przez `git push` lub FTP).
-  3. Użytkownicy automatycznie otrzymają powiadomienie o nowej wersji (przycisk "ODŚWIEŻ" pojawi się na dole ekranu).
-  4. Po kliknięciu "ODŚWIEŻ" aplikacja przeładuje się z nowymi plikami.
-
-**Nie trzeba już ręcznie czyścić cache ani pamięci aplikacji na telefonie!**
-
-- Service Worker automatycznie wykrywa zmianę wersji w `manifest.json` i pobiera nowe pliki do cache.
-- Stare cache są usuwane automatycznie.
-- Wersja w stopce pobierana jest z `manifest.json`.
-
-**Podsumowanie:**
-- Zmieniasz tylko `manifest.json.version` → cała aplikacja aktualizuje się automatycznie u wszystkich użytkowników.
+- **Moduł Ustawień:** Pozwala na włączenie/wyłączenie blokady, konfigurację biometrii oraz podgląd kodu ratunkowego.
+- **Twardy Reset:** Opcja w Ustawieniach pozwalająca na całkowite usunięcie bazy danych IndexedDB i przywrócenie aplikacji do stanu fabrycznego.
+- **Reset deweloperski:** 5-krotne kliknięcie stopki (nadal dostępne jako szybki skrót serwisowy).
 
 ---
 
+### Przepływ pracy dla dewelopera
+1. **Aktualizacja wersji:** zmień `DB_VERSION` (jeśli dodajesz nowe tabele) w `js/config.js`.
+2. **Synchronizacja PWA:** Zaktualizuj pole `"version"` w `manifest.json`.
+
+
+**Uwaga dot. Biometrii:** Aby przetestować biometrię (WebAuthn) lokalnie, używaj adresu `http://localhost:8000`. Na serwerze produkcyjnym aplikacja **musi** posiadać certyfikat SSL (HTTPS).

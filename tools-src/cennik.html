@@ -149,33 +149,49 @@ applyTheme();
         let pressTimer;
         let isLongPress = false;
         
-        // --- FUNKCJA DODAJĄCA TOWARY DO ZUŻYCIA MIESIĘCZNEGO W MAGAZYNIE ---
-        async function addToUsage(items) {
-            return new Promise((resolve) => {
-                const req = indexedDB.open(APP_CONFIG.DB_NAME, APP_CONFIG.DB_VERSION);
-                req.onsuccess = e => {
-                    const db = e.target.result;
-                    const tx = db.transaction("magazyn", "readwrite");
-                    const store = tx.objectStore("magazyn");
+      
 
-                    items.forEach(cartItem => {
-                        const getReq = store.get(cartItem.name);
-                        getReq.onsuccess = () => {
-                            const existing = getReq.result;
-                            if (existing) {
-                                // Jeśli towar już jest na liście zużycia - dodaj ilość
-                                existing.stock += cartItem.qty;
-                                store.put(existing);
-                            } else {
-                                // Jeśli to pierwszy raz w tym miesiącu - stwórz wpis
-                                store.put({ name: cartItem.name, stock: cartItem.qty, min: 0 });
-                            }
-                        };
-                    });
-                    tx.oncomplete = () => resolve();
+       const request = indexedDB.open(APP_CONFIG.DB_NAME, APP_CONFIG.DB_VERSION);
+
+        request.onupgradeneeded = (e) => {
+            const database = e.target.result;
+            // Tworzymy wszystkie szuflady, aby baza była kompletna niezależnie od tego, który plik ją inicjuje
+            if (!database.objectStoreNames.contains("raporty")) {
+                database.createObjectStore("raporty", { keyPath: "id", autoIncrement: true });
+            }
+            if (!database.objectStoreNames.contains("magazyn")) {
+                database.createObjectStore("magazyn", { keyPath: "name" });
+            }
+            if (!database.objectStoreNames.contains("settings")) {
+                database.createObjectStore("settings", { keyPath: "key" });
+            }
+        };
+
+        request.onsuccess = (e) => {
+            db = e.target.result;
+        };
+
+        // Poprawiona funkcja addToUsage (od linii ok. 154)
+        async function addToUsage(items) {
+            if (!db) return;
+            // Zabezpieczenie przed błędem, jeśli tabela jakimś cudem nie powstała
+            if (!db.objectStoreNames.contains("magazyn")) return console.error("Brak tabeli magazyn!");
+
+            const tx = db.transaction("magazyn", "readwrite");
+            const store = tx.objectStore("magazyn");
+
+            for (const item of items) {
+                if (item.qty <= 0) continue;
+                const req = store.get(item.name);
+                req.onsuccess = (e) => {
+                    const data = e.target.result || { name: item.name, quantity: 0 };
+                    data.quantity += item.qty;
+                    store.put(data);
                 };
-            });
+            }
         }
+
+
 
         // --- FUNKCJA WSPOMAGAJĄCA KLAWIATURĘ NUMERYCZNĄ ZAMIAST PROMPT ---
         function openInputPrompt(title, defaultValue, callback) {
