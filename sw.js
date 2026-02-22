@@ -1,4 +1,4 @@
-const CACHE_NAME = 'instalator-v2.3.4';
+const CACHE_NAME = 'instalator-v2.3.5'; // Zmieniaj przy każdej aktualizacji, np. 'instalator-v2.3.5'
 
 const ASSETS = [
   'index.html',
