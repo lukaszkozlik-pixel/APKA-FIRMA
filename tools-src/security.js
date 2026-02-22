@@ -41,6 +41,9 @@ function setupSessionListeners() {
         if (document.hidden) {
             sessionStorage.removeItem('app_authenticated');
             sessionStorage.removeItem('app_last_auth');
+        } else {
+            // Po powrocie sprawdź sesję i pokaż blokadę jeśli wygasła
+            checkSession();
         }
     });
     window.addEventListener('beforeunload', () => {
