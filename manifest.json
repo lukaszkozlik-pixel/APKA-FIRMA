@@ -1,8 +1,8 @@
 {
   "name": "Instalator Pro",
   "short_name": "Instalator",
-  "version": "2.3.2",
-  "description": "Narzędzia i raporty dla instalatora - z automatyczną aktualizacją",
+  "version": "2.3.3",
+  "description": "Narzędzia i raporty dla instalatora",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#1a73e8",
