@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Raporty Instalacyjne</title>
+    <script src="../config.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
@@ -197,7 +198,7 @@
         let currentReportId = null;
         let tempPhotos = [];
 
-        const dbRequest = indexedDB.open("InstalatorDB", 1);
+        const dbRequest = indexedDB.open(APP_CONFIG.DB_NAME, APP_CONFIG.DB_VERSION);
         dbRequest.onupgradeneeded = e => {
             const db = e.target.result;
             if (!db.objectStoreNames.contains("raporty")) {
@@ -243,6 +244,19 @@
                         <div class="report-address">${r.address || 'Brak adresu'}</div>
                     </div>
                 `).join('');
+            };
+        }
+
+        function editCurrentReport() {
+            db.transaction(["raporty"]).objectStore("raporty").get(currentReportId).onsuccess = e => {
+                const r = e.target.result;
+                openForm(r.id);
+                document.getElementById('reportDate').value = r.date;
+                document.getElementById('reportAddress').value = r.address;
+                document.getElementById('reportText').value = r.text;
+                tempPhotos = r.images || [];
+                renderTempPhotos();
+                closePreview();
             };
         }
 

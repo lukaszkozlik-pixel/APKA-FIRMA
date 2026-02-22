@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <link rel="stylesheet" href="../style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zużycie Miesięczne</title>
+    <style>
+        .usage-card {
+            background: var(--tile-bg);
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--tile-shadow);
+        }
+        .qty-badge {
+            background: #1a73e8;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        .btn-reset {
+            background: var(--danger, #ea4335);
+            color: white;
+            border: none;
+            padding: 10px;
+            width: 100%;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <header style="background: #fbbc04; color: #202124; padding: 15px; display: flex; align-items: center;">
+        <button onclick="window.location.href='../index.html'" style="background:none; border:none; font-size:1.5rem;">◀</button>
+        <h1 style="flex-grow:1; text-align:center; font-size:1.2rem; margin:0;">Zużycie w tym miesiącu</h1>
+    </header>
+
+    <div style="padding: 15px;">
+        <div id="usageList"></div>
+        <button class="btn-reset" onclick="resetMonth()">ZAMKNIJ MIESIĄC / WYCZYŚĆ</button>
+    </div>
+
+    <script>
+        let db;
+        const request = indexedDB.open("InstalatorDB", 3);
+
+        request.onsuccess = e => {
+            db = e.target.result;
+            loadUsage();
+        };
+
+        function loadUsage() {
+            const list = document.getElementById('usageList');
+            const tx = db.transaction("magazyn", "readonly");
+            const store = tx.objectStore("magazyn");
+            
+            store.getAll().onsuccess = e => {
+                const items = e.target.result;
+                if(items.length === 0) {
+                    list.innerHTML = "<p style='text-align:center; color:#999;'>Nie sprzedano jeszcze żadnych towarów w tym miesiącu.</p>";
+                    return;
+                }
+                list.innerHTML = items.map(item => `
+                    <div class="usage-card">
+                        <div style="font-weight:bold">${item.name}</div>
+                        <div class="qty-badge">${item.stock}</div>
+                    </div>
+                `).join('');
+            };
+        }
+
+        function resetMonth() {
+            if(confirm("Czy na pewno chcesz wyczyścić statystyki zużycia na nowy miesiąc?")) {
+                const tx = db.transaction("magazyn", "readwrite");
+                tx.objectStore("magazyn").clear();
+                tx.oncomplete = () => loadUsage();
+            }
+        }
+    </script>
+</body>
+</html>

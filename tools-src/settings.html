@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Ustawienia - Instalator Pro</title>
+    <link rel="stylesheet" href="../style.css">
+    <script src="../config.js"></script>
+    <style>
+        .settings-container { padding: 15px; max-width: 500px; margin: auto; }
+        .card { 
+            background: var(--tile-bg, white); 
+            padding: 20px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+            margin-bottom: 20px;
+        }
+        h3 { margin-top: 0; color: #1a73e8; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .info { font-size: 0.85rem; color: #666; margin-bottom: 15px; }
+        .status-badge { 
+            display: inline-block; padding: 4px 12px; border-radius: 12px; 
+            font-size: 0.8rem; font-weight: bold; margin-bottom: 10px;
+        }
+        .status-on { background: #e6f4ea; color: #1e8e3e; }
+        .status-off { background: #fce8e6; color: #d93025; }
+        
+        input[type="password"] { 
+            width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; 
+            font-size: 1.2rem; text-align: center; margin-bottom: 15px; box-sizing: border-box;
+        }
+        .btn { 
+            width: 100%; padding: 14px; border: none; border-radius: 8px; 
+            font-weight: bold; cursor: pointer; margin-bottom: 10px;
+        }
+        .btn-primary { background: #1a73e8; color: white; }
+        .btn-outline { background: white; border: 2px solid #1a73e8; color: #1a73e8; }
+        .btn-danger { background: #ea4335; color: white; }
+        
+        .recovery-box { 
+            background: #f8f9fa; border: 2px dashed #ccc; padding: 15px; 
+            text-align: center; font-family: monospace; font-size: 1.2rem; 
+            letter-spacing: 2px; margin: 10px 0; border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <header style="background: #5f6368; color: white; padding: 15px; display: flex; align-items: center;">
+        <button onclick="window.location.href='../index.html'" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">◀</button>
+        <h1 style="flex-grow:1; text-align:center; font-size:1.2rem; margin:0;">Ustawienia Systemu</h1>
+    </header>
+
+    <div class="settings-container">
+        <div class="card">
+            <h3>🔐 Bezpieczeństwo danych</h3>
+            <div id="status-area">
+                <span id="lock-status" class="status-badge status-off">Blokada wyłączona</span>
+            </div>
+
+            <div id="setup-view">
+                <p class="info">Ustaw 4-cyfrowy PIN, aby chronić raporty i magazyn.</p>
+                <input type="password" id="new-pin" placeholder="Nowy PIN" maxlength="4" inputmode="numeric">
+                <button class="btn btn-primary" onclick="enableProtection()">WŁĄCZ BLOKADĘ</button>
+            </div>
+
+            <div id="active-view" style="display:none;">
+                <p class="info">Blokada PIN jest aktywna. Możesz dodać odcisk palca dla szybszego dostępu.</p>
+                <div id="bio-setup-area">
+                    <button id="btn-reg-bio" class="btn btn-outline" onclick="registerBiometry()">POŁĄCZ Z BIOMETRIĄ ☝️</button>
+                </div>
+                <div id="bio-active-msg" style="display:none; color: #1e8e3e; font-weight: bold; margin-bottom: 15px; text-align: center;">
+                    Biometria aktywna ✅
+                </div>
+                
+                <div style="border-top: 1px solid #eee; padding-top: 15px; margin-top: 15px;">
+                    <p class="info">Twój kod ratunkowy (zapisz go!):</p>
+                    <div id="recovery-display" class="recovery-box">----</div>
+                    <button class="btn btn-danger" onclick="disableProtection()">WYŁĄCZ CAŁKOWICIE BLOKADĘ</button>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; opacity: 0.6; font-size: 0.8rem;">
+            <p id="app-version-info">Instalator Pro v--</p>
+            <p>Silnik bazy: IndexedDB v<span id="db-version-info">-</span></p>
+        </div>
+    </div>
+
+    <script>
+        let db;
+
+        // Inicjalizacja przy starcie
+        window.addEventListener('load', () => {
+            document.getElementById('app-version-info').innerText = `Instalator Pro v${APP_CONFIG.VERSION}`;
+            document.getElementById('db-version-info').innerText = APP_CONFIG.DB_VERSION;
+
+            const request = indexedDB.open(APP_CONFIG.DB_NAME, APP_CONFIG.DB_VERSION);
+            request.onsuccess = e => {
+                db = e.target.result;
+                checkCurrentSecurity();
+            };
+        });
+
+        // Sprawdzanie czy ochrona jest włączona
+        function checkCurrentSecurity() {
+            const tx = db.transaction("settings", "readonly");
+            tx.objectStore("settings").get("user_security").onsuccess = e => {
+                const data = e.target.result;
+                const statusEl = document.getElementById('lock-status');
+                
+                if (data) {
+                    statusEl.innerText = "Ochrona aktywna ✅";
+                    statusEl.className = "status-badge status-on";
+                    document.getElementById('setup-view').style.display = 'none';
+                    document.getElementById('active-view').style.display = 'block';
+                    document.getElementById('recovery-display').innerText = data.recoveryKey || 'BRAK';
+                    
+                    if (data.biometryEnabled) {
+                        document.getElementById('bio-setup-area').style.display = 'none';
+                        document.getElementById('bio-active-msg').style.display = 'block';
+                    }
+
+                    // Ukryj przycisk biometrii, jeśli przeglądarka jej nie wspiera
+                    if (!window.PublicKeyCredential) {
+                        document.getElementById('bio-setup-area').innerHTML = "<p class='info'>Biometria nieobsługiwana przez tę przeglądarkę.</p>";
+                    }
+                }
+            };
+        }
+
+        // Włączanie blokady (PIN + Generowanie kodu ratunkowego)
+        function enableProtection() {
+            const pin = document.getElementById('new-pin').value;
+            if (pin.length !== 4) return alert("PIN musi mieć 4 cyfry!");
+
+            const recovery = Math.random().toString(36).substring(2, 10).toUpperCase();
+            
+            const tx = db.transaction("settings", "readwrite");
+            tx.objectStore("settings").put({
+                key: "user_security",
+                pin: pin,
+                recoveryKey: recovery,
+                biometryEnabled: false
+            });
+
+            tx.oncomplete = () => {
+                alert("Ochrona włączona! Twój kod ratunkowy to: " + recovery);
+                location.reload();
+            };
+        }
+
+        // PRAWDZIWA REJESTRACJA BIOMETRII (WebAuthn)
+        async function registerBiometry() {
+            try {
+                const challenge = new Uint8Array(32);
+                window.crypto.getRandomValues(challenge);
+
+                const createOptions = {
+                    publicKey: {
+                        challenge: challenge,
+                        rp: { name: "Instalator Pro", id: window.location.hostname || "localhost" },
+                        user: {
+                            id: Uint8Array.from("USER1", c => c.charCodeAt(0)),
+                            name: "user@instalator",
+                            displayName: "Instalator"
+                        },
+                        pubKeyCredParams: [{ alg: -7, type: "public-key" }],
+                        authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" },
+                        timeout: 60000
+                    }
+                };
+
+                const credential = await navigator.credentials.create(createOptions);
+                
+                if (credential) {
+                    const tx = db.transaction("settings", "readwrite");
+                    const store = tx.objectStore("settings");
+                    
+                    store.get("user_security").onsuccess = ev => {
+                        const data = ev.target.result;
+                        data.biometryEnabled = true;
+                        // Zapisujemy ID klucza do bazy
+                        data.credentialId = btoa(String.fromCharCode(...new Uint8Array(credential.rawId)));
+                        store.put(data);
+                        alert("Biometria powiązana pomyślnie!");
+                        location.reload();
+                    };
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Błąd konfiguracji biometrii. Upewnij się, że masz ustawioną blokadę ekranu w telefonie.");
+            }
+        }
+
+        // Wyłączanie ochrony
+        function disableProtection() {
+            if (confirm("Czy na pewno chcesz usunąć wszystkie zabezpieczenia?")) {
+                const tx = db.transaction("settings", "readwrite");
+                tx.objectStore("settings").delete("user_security");
+                tx.oncomplete = () => {
+                    sessionStorage.removeItem('app_authenticated');
+                    alert("Ochrona została wyłączona.");
+                    location.reload();
+                };
+            }
+        }
+    </script>
+</body>
+</html>

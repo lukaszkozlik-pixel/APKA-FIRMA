@@ -5,6 +5,7 @@
     <meta name="theme-color" content="#1a73e8">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <script src="config.js"></script> </head>
     <script>
         // Ustaw zawsze motyw jasny
         window.addEventListener('DOMContentLoaded', () => {
@@ -20,19 +21,6 @@
             });
         }
 
-        // Funkcja stopki (zostaje, by pokazywać wersję z manifestu)
-        async function setAppVersion() {
-            const el = document.getElementById('app-version');
-            if (!el) return;
-            try {
-                const r = await fetch('manifest.json', { cache: 'no-store' });
-                const m = await r.json();
-                el.innerText = m.version || '---';
-            } catch(e) { el.innerText = 'v2.x'; }
-        }
-        window.addEventListener('load', setAppVersion);
-
-       
     </script>
 
 
@@ -50,15 +38,32 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-   
+
+    <!--skrypt pierwszego LOGOWWNIA-->
+    <div id="app-lock-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:9999; flex-direction:column; align-items:center; justify-content:center; padding:20px; text-align:center;">
+    <div id="lock-icon" style="font-size: 4rem; margin-bottom: 20px;">🔒</div>
+    <h2 id="lock-title">Zabezpiecz dostęp</h2>
+    <p id="lock-msg">Wybierz metodę ochrony swoich danych.</p>
+    
+    <div id="setup-section" style="display:none; width:100%; max-width:300px;">
+        <input type="password" id="setup-pin" pattern="[0-9]*" inputmode="numeric" placeholder="Ustaw 4-cyfrowy PIN" maxlength="4" style="width:100%; padding:15px; font-size:1.2rem; border-radius:10px; border:1px solid #ccc; margin-bottom:10px; text-align:center;">
+        <button onclick="saveInitialPin()" style="width:100%; padding:15px; background:#1a73e8; color:white; border:none; border-radius:10px; font-weight:bold;">ZAPISZ PIN</button>
+    </div>
+
+    <div id="login-section" style="display:none; width:100%; max-width:300px;">
+        <input type="password" id="login-pin" pattern="[0-9]*" inputmode="numeric" placeholder="Wpisz PIN" maxlength="4" style="width:100%; padding:15px; font-size:1.5rem; border-radius:10px; border:1px solid #ccc; margin-bottom:15px; text-align:center;">
+        <button onclick="checkPin()" style="width:100%; padding:15px; background:#34a853; color:white; border:none; border-radius:10px; font-weight:bold; margin-bottom:10px;">ODBLOKUJ PINEM</button>
+        <button id="btn-biometric" onclick="tryBiometry()" style="display:none; width:100%; padding:15px; background:none; border:2px solid #1a73e8; color:#1a73e8; border-radius:10px; font-weight:bold;">UŻYJ BIOMETRII ☝️</button>
+    </div>
+    </div>
+   <!--skrypt LOGOWWNIA-->
 
     <div id="offline-banner" style="display:none;position:fixed;top:0;left:0;width:100vw;background:#d93025;color:white;text-align:center;padding:12px 0;z-index:10001;font-weight:bold;box-shadow:0 2px 8px rgba(0,0,0,0.15);">
         Brak połączenia z internetem – aplikacja działa w trybie offline.
     </div>
 
     <div id="ios-install-banner" style="display:none;position:fixed;bottom:0;left:0;width:100vw;background:#fffbe6;color:#202124;text-align:center;padding:14px 10px 14px 50px;z-index:10002;font-weight:500;box-shadow:0 -2px 8px rgba(0,0,0,0.10);border-top:2px solid #fbbc05;font-size:1rem;align-items:center;">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/3/3e/IOS_Share_icon.png" alt="Udostępnij" style="height:24px;vertical-align:middle;position:absolute;left:16px;top:14px;">
-        Aby zainstalować aplikację na iPhonie: kliknij <b>Udostępnij</b> <img src="https://upload.wikimedia.org/wikipedia/commons/3/3e/IOS_Share_icon.png" style="height:20px;vertical-align:middle;"> i wybierz <b>Do ekranu początkowego</b>.
+        Aby zainstalować aplikację na iPhonie: kliknij <b>Udostępnij</b>  i wybierz <b>Do ekranu początkowego</b>.
         <button onclick="this.parentElement.style.display='none'" style="margin-left:20px;background:#fbbc05;border:none;padding:4px 16px;border-radius:16px;font-weight:bold;cursor:pointer;">Zamknij</button>
     </div>
 
@@ -90,8 +95,6 @@
                 <span class="icon">🛰️</span>
                 <span class="label">Baza wiedzy SAT</span>
             </div>
-           
-            
             <div class="tile" onclick="location.href='tools-src/instrukcje.html'">
                 <span class="icon">📖</span>
                 <span class="label">Instrukcje obsługi i dekoderów</span>
@@ -116,6 +119,14 @@
                 <span class="icon">📋</span>
                 <span class="label">Raporty z instalacji</span>
             </div>
+            <div class="tile" onclick="location.href='tools-src/magazyn.html'">
+                <span class="icon">📦</span>
+                <span class="label">Magazyn</span>
+            </div>
+             <div class="tile" onclick="location.href='tools-src/settings.html'">
+                <span class="icon">⚙️</span>
+                <span class="label">Ustawienia</span>
+            </div>
         </main>
 
         <footer style="text-align: center; color: gray; font-size: 10px; padding: 10px;">
@@ -127,8 +138,8 @@
     <script>
         let backClickCounter = 0;
 
-        // Aplikacja nie korzysta z Cordovy — inicjalizujemy przy załadowaniu strony
-        window.addEventListener('load', onDeviceReady);
+    
+       
         
         function onDeviceReady() {
             // 1. WERSJA - automatycznie pobierana z manifest.json lub ze zmiennej CACHE_NAME w sw.js
@@ -305,6 +316,193 @@
                 document.getElementById('ios-install-banner').style.display = 'block';
             }
         }
-        window.addEventListener('load', showIosInstallBanner);
+      
+        
+
+        // Magazyn i inne narzędzia korzystają z IndexedDB — upewniamy się, że baza danych jest gotowa do użycia
+        const request = indexedDB.open("InstalatorDB", 3); // Wersja 3 dla ustawień
+
+            request.onupgradeneeded = (e) => {
+                const db = e.target.result;
+                // ... poprzednie szuflady (raporty, magazyn) ...
+                if (!db.objectStoreNames.contains("settings")) {
+                    db.createObjectStore("settings", { keyPath: "key" });
+                }
+            };
+
+        // Inicjalizacja zabezpieczeń (PIN/biometria) przy starcie aplikacji    
+ 
+        async function initSecurity() {
+            // Sprawdzenie sesji - jeśli zalogowany w tej karcie, kończymy funkcję i pokazujemy apkę
+            if (sessionStorage.getItem('app_authenticated') === 'true') {
+                document.getElementById('app-lock-overlay').style.display = 'none';
+                return Promise.resolve();
+            }
+
+            const db = await openDB();
+            const settings = await getSetting(db, 'user_security');
+            const overlay = document.getElementById('app-lock-overlay');
+
+            if (!settings) {
+                // Jeśli brak skonfigurowanego PINu, apka jest otwarta
+                overlay.style.display = 'none';
+                return Promise.resolve();
+            } else {
+                // Blokujemy ekran i czekamy na PIN/Biometrię
+                overlay.style.display = 'flex';
+                document.getElementById('login-section').style.display = 'block';
+                document.getElementById('lock-title').innerText = "Zablokowano";
+                
+                if (settings.biometryEnabled) {
+                    document.getElementById('btn-biometric').style.display = 'block';
+                    tryBiometry(); 
+                }
+                
+                // Zwracamy Promise, który "wisi", dopóki użytkownik się nie zaloguje
+                return new Promise((resolve) => {
+                    window.resolveLogin = resolve; // Wywołamy to po poprawnym checkPin()
+                });
+            }
+        }
+
+        // Funkcja weryfikacji PINu z obsługą sesji i kodu ratunkowego
+        async function checkPin() {
+            const input = document.getElementById('login-pin').value.toUpperCase();
+            const db = await openDB();
+            const settings = await getSetting(db, 'user_security');
+
+            // Logowanie poprawne (PIN lub Kod Ratunkowy z bazy)
+            if (input === settings.pin || (settings.recoveryKey && input === settings.recoveryKey)) {
+                sessionStorage.setItem('app_authenticated', 'true'); // USTAWIENIE SESJI
+                document.getElementById('app-lock-overlay').style.display = 'none';
+                
+                if (input === settings.recoveryKey) {
+                    alert("Użyto kodu ratunkowego. Zmień swój PIN w ustawieniach.");
+                }
+            } else {
+                alert("Błędny PIN!");
+                document.getElementById('login-pin').value = '';
+            }
+        }
+
+        // Funkcja zapisu PINu (wywoływana tylko przy pierwszej konfiguracji)
+        async function saveInitialPin() {
+            const pin = document.getElementById('setup-pin').value;
+            if (pin.length < 4) return alert("PIN musi mieć 4 cyfry");
+
+            // Generujemy unikalny Kod Ratunkowy (bezpieczniejszy niż stały Master PIN)
+            const recoveryKey = Math.random().toString(36).substring(2, 10).toUpperCase();
+
+            let bioEnabled = false;
+            if (window.PublicKeyCredential) {
+                bioEnabled = confirm("Czy chcesz używać biometrii (odcisk palca)?");
+            }
+
+            const db = await openDB();
+            const tx = db.transaction("settings", "readwrite");
+            tx.objectStore("settings").put({ 
+                key: 'user_security', 
+                pin: pin, 
+                biometryEnabled: bioEnabled,
+                recoveryKey: recoveryKey 
+            });
+            
+            tx.oncomplete = () => {
+                sessionStorage.setItem('app_authenticated', 'true');
+                alert("Zabezpieczenia skonfigurowane!\n\nKOD RATUNKOWY: " + recoveryKey + "\nZapisz go w bezpiecznym miejscu!");
+                location.reload();
+            };
+        }
+
+        async function checkPin() {
+            const input = document.getElementById('login-pin').value.toUpperCase();
+            const db = await openDB();
+            const settings = await getSetting(db, 'user_security');
+
+            if (input === settings.pin || (settings.recoveryKey && input === settings.recoveryKey)) {
+                sessionStorage.setItem('app_authenticated', 'true');
+                document.getElementById('app-lock-overlay').style.display = 'none';
+                
+                // POWIADOMIENIE RESZTY KODU, ŻE MOŻNA STARTOWAĆ
+                if (window.resolveLogin) window.resolveLogin(); 
+                
+                if (input === settings.recoveryKey) {
+                    alert("Użyto kodu ratunkowego! Zmień PIN w ustawieniach.");
+                }
+            } else {
+                alert("Błędny PIN!");
+                document.getElementById('login-pin').value = '';
+            }
+        }
+
+        // Funkcja do obsługi logowania biometrycznego
+        async function tryBiometry() {
+            const db = await openDB();
+            const settings = await getSetting(db, 'user_security');
+            
+            if (!settings || !settings.credentialId) return;
+
+            const challenge = new Uint8Array(32);
+            window.crypto.getRandomValues(challenge);
+
+            // Przekształcamy zapisany ID z powrotem na format binarny
+            const credentialId = Uint8Array.from(atob(settings.credentialId), c => c.charCodeAt(0));
+
+            const getCredentialOptions = {
+                publicKey: {
+                    challenge: challenge,
+                    allowCredentials: [{
+                        id: credentialId,
+                        type: 'public-key',
+                        transports: ['internal'],
+                    }],
+                    userVerification: "required",
+                    timeout: 60000,
+                }
+            };
+
+            try {
+                const assertion = await navigator.credentials.get(getCredentialOptions);
+                if (assertion) {
+                    // Sukces! Biometria potwierdzona sprzętowo
+                    sessionStorage.setItem('app_authenticated', 'true');
+                    document.getElementById('app-lock-overlay').style.display = 'none';
+                    if (window.resolveLogin) window.resolveLogin();
+                }
+            } catch (err) {
+                console.log("Logowanie biometryczne przerwane lub błąd:", err);
+            }
+        }
+
+        // Pomocnicze funkcje IndexedDB
+        function openDB() {
+            return new Promise(res => {
+                const req = indexedDB.open(APP_CONFIG.DB_NAME, APP_CONFIG.DB_VERSION);
+                req.onsuccess = () => res(req.result);
+            });
+        }
+        // Funkcja do pobierania ustawień z IndexedDB
+        function getSetting(db, key) {
+            return new Promise(res => {
+                db.transaction("settings").objectStore("settings").get(key).onsuccess = e => res(e.target.result);
+            });
+        }
+
+
+        // Funkcja stopki (zostaje, by pokazywać wersję z manifestu)
+        async function setAppVersion() {
+            const el = document.getElementById('app-version');
+            if (el) el.innerText = APP_CONFIG.VERSION;
+        }
+
+        //Po załadaniu strony, inicjalizujemy zabezpieczenia, ustawiamy status sieci i wersję aplikacji
+        window.addEventListener('load',async () => {
+            await initSecurity();
+            onDeviceReady();
+            setAppVersion();
+            showIosInstallBanner();
+        }); 
+
+        
     </script>
 </html>

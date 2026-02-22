@@ -98,6 +98,8 @@ header {
 .tile:nth-child(8) { animation-delay: 0.40s; }
 .tile:nth-child(9) { animation-delay: 0.45s; }
 .tile:nth-child(10) { animation-delay: 0.50s; }
+.tile:nth-child(11) { animation-delay: 0.55s; }
+.tile:nth-child(12) { animation-delay: 0.60s; }
 
 @keyframes tileFadeIn {
     to {

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cennik Usług</title>
+    <script src="../config.js"></script>
     <link rel="stylesheet" href="../style.css">
     <style>
         header {
@@ -87,7 +88,7 @@ applyTheme();
         </header>
 
         <div class="item-list" id="menu">
-            <div class="price-item" onclick="addMountingPrice()" onmousedown="startPress(this)" onmouseup="endPress()" ontouchstart="startPress(this)" ontouchend="endPress()" oncontextmenu="return false;" data-name="Montaż (indywidualny)">
+            <div class="price-item" onclick="addMountingPrice()" onmousedown="startPress(this)" onmouseup="endPress()" ontouchstart="startPress(this)" ontouchend="endPress()" oncontextmenu="return false;" data-name="Montaż">
                 <div><span class="qty"></span><span>Montaż (podaj cenę)</span></div>
                 <span class="price-value" id="mount-val">--- zł</span>
             </div>
@@ -147,6 +148,34 @@ applyTheme();
         let selectedItems = [];
         let pressTimer;
         let isLongPress = false;
+        
+        // --- FUNKCJA DODAJĄCA TOWARY DO ZUŻYCIA MIESIĘCZNEGO W MAGAZYNIE ---
+        async function addToUsage(items) {
+            return new Promise((resolve) => {
+                const req = indexedDB.open(APP_CONFIG.DB_NAME, APP_CONFIG.DB_VERSION);
+                req.onsuccess = e => {
+                    const db = e.target.result;
+                    const tx = db.transaction("magazyn", "readwrite");
+                    const store = tx.objectStore("magazyn");
+
+                    items.forEach(cartItem => {
+                        const getReq = store.get(cartItem.name);
+                        getReq.onsuccess = () => {
+                            const existing = getReq.result;
+                            if (existing) {
+                                // Jeśli towar już jest na liście zużycia - dodaj ilość
+                                existing.stock += cartItem.qty;
+                                store.put(existing);
+                            } else {
+                                // Jeśli to pierwszy raz w tym miesiącu - stwórz wpis
+                                store.put({ name: cartItem.name, stock: cartItem.qty, min: 0 });
+                            }
+                        };
+                    });
+                    tx.oncomplete = () => resolve();
+                };
+            });
+        }
 
         // --- FUNKCJA WSPOMAGAJĄCA KLAWIATURĘ NUMERYCZNĄ ZAMIAST PROMPT ---
         function openInputPrompt(title, defaultValue, callback) {
@@ -180,11 +209,11 @@ applyTheme();
                     div.classList.add('selected');
                     let unit = name.includes("Kabel") ? "m x " : "x ";
                     qtySpan.innerText = item.qty + unit;
-                    if(name === "Montaż (indywidualny)") valSpan.innerText = item.price + " zł";
+                    if(name === "Montaż") valSpan.innerText = item.price + " zł";
                 } else {
                     div.classList.remove('selected');
                     qtySpan.innerText = "";
-                    if(name === "Montaż (indywidualny)") valSpan.innerText = "--- zł";
+                    if(name === "Montaż") valSpan.innerText = "--- zł";
                 }
             });
             const btn = document.getElementById('btn-submit');
@@ -259,7 +288,7 @@ applyTheme();
             if (isLongPress) return;
             openInputPrompt("Podaj cenę montażu:", "", function(price) {
                 if (price > 0) {
-                    const name = "Montaż (indywidualny)";
+                    const name = "Montaż";
                     let item = selectedItems.find(i => i.name === name);
                     if (item) { item.qty++; total += price; } 
                     else { selectedItems.push({ name, price, qty: 1 }); total += price; }
@@ -332,7 +361,8 @@ applyTheme();
             return text;
         }
 
-        function sendToReports() {
+        async function sendToReports() {
+            await addToUsage(selectedItems); // Rejestrujemy zużycie
             localStorage.setItem('pending_report_text', generateSummaryText());
             window.location.replace("raporty.html");
         }
