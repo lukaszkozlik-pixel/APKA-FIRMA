@@ -26,14 +26,39 @@
         async function initApp() {
             const pin = sessionStorage.getItem('user_pin');
             const modal = document.getElementById('loginModal');
+            const modalTitle = document.querySelector('#loginModal h2');
+            const inputField = document.getElementById('pinInput');
 
             if (!pin) {
-                // Jeśli nie ma PINu w tej sesji, pokazujemy modal logowania
                 modal.style.display = 'flex';
+
+                try {
+                    // Sprawdzamy stan Sejfu przy starcie
+                    const SECURE_DB_NAME = "InstalatorSecureDB";
+                    const dbSecure = await openDB(SECURE_DB_NAME, 1);
+
+                    const encReports = await getAllFromStore(dbSecure, "raporty");
+                    const encMagazyn = await getAllFromStore(dbSecure, "magazyn");
+
+                    // Jeśli sejf jest pusty -> tryb tworzenia
+                    if (encReports.length === 0 && encMagazyn.length === 0) {
+                        if (modalTitle) {
+                            modalTitle.innerText = "TWORZENIE NOWEGO PINU";
+                            modalTitle.style.color = "#1a73e8";
+                        }
+                        if (inputField) {
+                            inputField.placeholder = "Ustal min. 4 znaki";
+                        }
+                    } else {
+                        // Sejf ma dane -> zwykłe logowanie
+                        if (modalTitle) modalTitle.innerText = "Podaj PIN";
+                        if (inputField) inputField.placeholder = "Wpisz swój PIN";
+                    }
+                } catch (err) {
+                    console.error("Błąd sprawdzania bazy:", err);
+                }
             } else {
-                // Jeśli jest PIN, ukrywamy modal
                 modal.style.display = 'none';
-                console.log("Sesja aktywna, baza powinna być gotowa.");
             }
         }
 
@@ -45,83 +70,94 @@
     <script src="crypto.js"></script>
     <script>
         // index.html - Nowa wersja logiki
-    async function unlockApp() {
-    const inputPin = document.getElementById('pinInput').value;
-    if (!inputPin || inputPin.length < 4) {
-        alert("Podaj poprawny PIN (min. 4 znaki).");
-        return;
-    }
+        async function unlockApp() {
+            const inputField = document.getElementById('pinInput');
+            const inputPin = inputField.value;
+            const modalTitle = document.querySelector('#loginModal h2');
 
-    try {
-        console.time("Proces_Logowania");
-        const SECURE_DB_NAME = "InstalatorSecureDB";
-        const TEMP_DB_NAME = "InstalatorDB";
+            if (!inputPin || inputPin.length < 4) {
+                alert("PIN musi mieć co najmniej 4 znaki.");
+                return;
+            }
 
-        // 1. Otwórz Sejf
-        const dbSecure = await openDB(SECURE_DB_NAME, 1);
-        
-        // 2. Pobierz zaszyfrowane dane (sprawdzamy czy sejf nie jest pusty)
-        const encReports = await getAllFromStore(dbSecure, "raporty");
-        const encMagazyn = await getAllFromStore(dbSecure, "magazyn");
+            try {
+                const SECURE_DB_NAME = "InstalatorSecureDB";
+                const TEMP_DB_NAME = "InstalatorDB";
+                const dbSecure = await openDB(SECURE_DB_NAME, 1);
 
-        // 3. Generowanie klucza z wpisanego PIN-u
-        const cryptoKey = await EncryptionTool.getDerivedKey(inputPin);
+                const encReports = await getAllFromStore(dbSecure, "raporty");
+                const encMagazyn = await getAllFromStore(dbSecure, "magazyn");
 
-        // --- SCENARIUSZ A: Pierwsze logowanie (brak danych w sejfie) ---
-        if (encReports.length === 0 && encMagazyn.length === 0) {
-            sessionStorage.setItem('user_pin', inputPin);
-            alert("Ustalono nowy PIN. Zostanie on użyty do zaszyfrowania danych przy wylogowaniu.");
-            document.getElementById('loginModal').style.display = 'none';
-            return;
+                // --- SCENARIUSZ: TWORZENIE NOWEGO PINU ---
+                if (encReports.length === 0 && encMagazyn.length === 0) {
+                    if (!window.tempFirstPin) {
+                        window.tempFirstPin = inputPin;
+                        inputField.value = "";
+                        if (modalTitle) {
+                            modalTitle.innerText = "POTWIERDŹ NOWY PIN";
+                            modalTitle.style.color = "#34a853";
+                        }
+                        inputField.placeholder = "Wpisz go jeszcze raz";
+                        return;
+                    }
+
+                    if (window.tempFirstPin !== inputPin) {
+                        alert("PIN-y nie są identyczne! Spróbuj ponownie.");
+                        window.tempFirstPin = null;
+                        if (modalTitle) modalTitle.innerText = "TWORZENIE NOWEGO PINU";
+                        inputField.value = "";
+                        return;
+                    }
+
+                    sessionStorage.setItem('user_pin', inputPin);
+                    alert("PIN utworzony pomyślnie.");
+                    document.getElementById('loginModal').style.display = 'none';
+                    return;
+                }
+
+                // --- SCENARIUSZ: LOGOWANIE ---
+                const cryptoKey = await EncryptionTool.getDerivedKey(inputPin);
+                let testRecord = encReports.length > 0 ? encReports[0] : encMagazyn[0];
+                const decryptedData = await EncryptionTool.decrypt(testRecord.payload, cryptoKey);
+
+                if (decryptedData === null) {
+                    alert("Błędny PIN!");
+                    inputField.value = "";
+                    return;
+                }
+
+                const reports = [];
+                for (const item of encReports) {
+                    const dec = await EncryptionTool.decrypt(item.payload, cryptoKey);
+                    if (dec) { dec.id = item.id; reports.push(dec); }
+                }
+
+                const magazyn = [];
+                for (const item of encMagazyn) {
+                    const dec = await EncryptionTool.decrypt(item.payload, cryptoKey);
+                    if (dec) { dec.id = item.id; magazyn.push(dec); }
+                }
+
+                await new Promise(res => {
+                    const req = indexedDB.deleteDatabase(TEMP_DB_NAME);
+                    req.onsuccess = res; req.onerror = res;
+                });
+
+                const dbTemp = await openDB(TEMP_DB_NAME, 1);
+                const tx = dbTemp.transaction(["raporty", "magazyn"], "readwrite");
+                reports.forEach(r => tx.objectStore("raporty").put(r));
+                magazyn.forEach(m => tx.objectStore("magazyn").put(m));
+
+                tx.oncomplete = () => {
+                    sessionStorage.setItem('user_pin', inputPin);
+                    document.getElementById('loginModal').style.display = 'none';
+                };
+
+            } catch (err) {
+                console.error(err);
+                alert("Błąd autoryzacji.");
+            }
         }
-
-        // --- SCENARIUSZ B: Weryfikacja PIN-u (próba deszyfrowania) ---
-        // Próbujemy odszyfrować pierwszy element z brzegu (np. z raportów)
-        let testData = encReports.length > 0 ? encReports[0] : encMagazyn[0];
-        const isVerified = await EncryptionTool.decrypt(testData.payload, cryptoKey);
-
-        if (isVerified === null) {
-            alert("Błędny PIN! Nie można odblokować bazy.");
-            console.timeEnd("Proces_Logowania");
-            return;
-        }
-
-        // 4. Jeśli weryfikacja przeszła - deszyfrujemy wszystko
-        const reports = [];
-        for (const item of encReports) {
-            const dec = await EncryptionTool.decrypt(item.payload, cryptoKey);
-            if (dec) { dec.id = item.id; reports.push(dec); }
-        }
-
-        const magazyn = [];
-        for (const item of encMagazyn) {
-            const dec = await EncryptionTool.decrypt(item.payload, cryptoKey);
-            if (dec) { dec.id = item.id; magazyn.push(dec); }
-        }
-
-        // 5. Przeniesienie do bazy roboczej
-        await new Promise(res => {
-            const req = indexedDB.deleteDatabase(TEMP_DB_NAME);
-            req.onsuccess = res; req.onerror = res;
-        });
-
-        const dbTemp = await openDB(TEMP_DB_NAME, 6);
-        const tx = dbTemp.transaction(["raporty", "magazyn"], "readwrite");
-        reports.forEach(r => tx.objectStore("raporty").put(r));
-        magazyn.forEach(m => tx.objectStore("magazyn").put(m));
-
-        tx.oncomplete = () => {
-            sessionStorage.setItem('user_pin', inputPin);
-            document.getElementById('loginModal').style.display = 'none';
-            console.timeEnd("Proces_Logowania");
-            alert("Zalogowano pomyślnie.");
-        };
-
-    } catch (err) {
-        console.error("Błąd logowania:", err);
-        alert("Wystąpił błąd podczas odblokowywania bazy.");
-    }
-}
 
         async function lockAndExit() {
             const pin = sessionStorage.getItem('user_pin');
@@ -456,6 +492,18 @@
         onDeviceReady();
         setAppVersion();
         showIosInstallBanner();
+    });
+
+    // Ostrzeżenie przed zamknięciem karty, jeśli użytkownik jest zalogowany
+    window.addEventListener('beforeunload', (event) => {
+        const pin = sessionStorage.getItem('user_pin');
+        // Jeśli PIN jest w sesji, oznacza to, że baza robocza jest "odkryta"
+        if (pin) {
+            event.preventDefault();
+            // Większość nowoczesnych przeglądarek wyświetli własny tekst, 
+            // ale ustawienie returnValue jest wymagane do aktywacji okna.
+            event.returnValue = 'Uwaga! Masz aktywne dane. Użyj przycisku WYLOGUJ, aby je bezpiecznie zaszyfrować.';
+        }
     });
 
 
