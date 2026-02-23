@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pl">
+
 <head>
     <link rel="stylesheet" href="../style.css">
     <script src="../config.js"></script>
@@ -17,6 +18,7 @@
             align-items: center;
             box-shadow: var(--tile-shadow);
         }
+
         .qty-badge {
             background: #1a73e8;
             color: white;
@@ -25,6 +27,7 @@
             font-weight: bold;
             font-size: 1.1rem;
         }
+
         .btn-reset {
             background: var(--danger, #ea4335);
             color: white;
@@ -37,37 +40,40 @@
         }
     </style>
 </head>
+
 <body>
     <header style="background: #fbbc04; color: #202124; padding: 15px; display: flex; align-items: center;">
-        <button onclick="window.location.href='../index.html'" style="background:none; border:none; font-size:1.5rem;">◀</button>
+        <button onclick="window.location.replace('../index.html')"
+            style="background:none; border:none; font-size:1.5rem;">◀</button>
         <h1 style="flex-grow:1; text-align:center; font-size:1.2rem; margin:0;">Użyte w tym miesiącu</h1>
-    
     </header>
-   
-
 
     <div style="padding: 15px;">
-        <button class="btn-reset" style="background-color: rgb(30, 121, 240);" onclick="copyMagazynToClipboard()">KOPIUJ MAGAZYN DO SCHOWKA 📋</button>
+        <button class="btn-reset" style="background-color: rgb(30, 121, 240);" onclick="copyMagazynToClipboard()">KOPIUJ
+            MAGAZYN DO SCHOWKA 📋</button>
         <button class="btn-reset" style="margin-bottom: 24px;" onclick="resetMonth()">ZAMKNIJ MIESIĄC / WYCZYŚĆ</button>
         <div id="usageList"></div>
     </div>
 
     <script>
+        // Sprawdzenie sesji (zabezpieczenie)
+        if (!sessionStorage.getItem('user_pin')) {
+            window.location.replace('../index.html');
+        }
+
         let db;
-        // Używamy wersji i nazwy z config.js
-        const request = indexedDB.open(APP_CONFIG.DB_NAME, APP_CONFIG.DB_VERSION);
+
+        // Otwieramy bazę roboczą (wersja 6 tak jak w index.html)
+        const request = indexedDB.open("InstalatorDB", 6);
 
         request.onupgradeneeded = (e) => {
             const database = e.target.result;
-            // MUSIMY zadeklarować wszystko, co może istnieć w aplikacji
+            // Spójna struktura z resztą aplikacji
             if (!database.objectStoreNames.contains("raporty")) {
                 database.createObjectStore("raporty", { keyPath: "id", autoIncrement: true });
             }
             if (!database.objectStoreNames.contains("magazyn")) {
-                database.createObjectStore("magazyn", { keyPath: "name" });
-            }
-            if (!database.objectStoreNames.contains("settings")) {
-                database.createObjectStore("settings", { keyPath: "key" });
+                database.createObjectStore("magazyn", { keyPath: "id", autoIncrement: true });
             }
         };
 
@@ -80,10 +86,10 @@
             const list = document.getElementById('usageList');
             const tx = db.transaction("magazyn", "readonly");
             const store = tx.objectStore("magazyn");
-            
+
             store.getAll().onsuccess = e => {
                 const items = e.target.result;
-                if(items.length === 0) {
+                if (items.length === 0) {
                     list.innerHTML = "<p style='text-align:center; color:#999;'>Nie sprzedano jeszcze żadnych towarów w tym miesiącu.</p>";
                     return;
                 }
@@ -96,73 +102,39 @@
             };
         }
 
-    function resetMonth() {
-        if (!confirm("Czy na pewno wyczyścić całe zużycie z tego miesiąca?")) return;
-        
-        const tx = db.transaction("magazyn", "readwrite");
-        const store = tx.objectStore("magazyn");
-        const req = store.clear();
-        
-        req.onsuccess = () => {
-            if (typeof showToast === 'function') showToast("Magazyn wyczyszczony");
-            loadUsage();
-        };
-    }
+        function resetMonth() {
+            if (!confirm("Czy na pewno wyczyścić całe zużycie z tego miesiąca?")) return;
+            const tx = db.transaction("magazyn", "readwrite");
+            const store = tx.objectStore("magazyn");
+            store.clear().onsuccess = () => loadUsage();
+        }
 
-        async function copyMagazynToClipboard() {
+        function copyMagazynToClipboard() {
             const tx = db.transaction("magazyn", "readonly");
             const store = tx.objectStore("magazyn");
-            const allItems = [];
             store.getAll().onsuccess = (e) => {
-                const items = e.target.result;
-                formatAndCopy(items);
+                formatAndCopy(e.target.result);
             };
-}
-
-    function formatAndCopy(data) {
-        if (data.length === 0) {
-            alert("Magazyn jest pusty - nie ma czego kopiować.");
-            return;
         }
 
-        let content = "STAN MAGAZYNU - wykorzystane\n";
-        content += "Data: " + new Date().toLocaleString() + "\n";
-        content += "---------------------------\n";
-
-        data.forEach(item => {
-            content += `• ${item.name}: ${item.quantity || 0}\n`;
-        });
-
-        content += "---------------------------";
-
-        // Próba skopiowania do schowka
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(content).then(() => {
-                // Wykorzystujemy Twoją funkcję showToast z index.html, jeśli jest dostępna
-                if (typeof showToast === 'function') {
-                    showToast("Skopiowano do schowka! 📋");
-                } else {
-                    alert("Skopiowano do schowka!");
-                }
-            }).catch(err => {
-                console.error("Błąd kopiowania:", err);
-                alert("Nie udało się skopiować do schowka.");
-            });
-        } else {
-            // Fallback dla starszych przeglądarek
-            const textArea = document.createElement("textarea");
-            textArea.value = content;
-            document.body.appendChild(textArea);
-            textArea.select();
-            try {
-                document.execCommand('copy');
-                alert("Skopiowano do schowka (metoda alternatywna)!");
-            } catch (err) {
-                alert("Twoja przeglądarka nie wspiera kopiowania.");
+        function formatAndCopy(data) {
+            if (data.length === 0) {
+                alert("Magazyn jest pusty.");
+                return;
             }
-            document.body.removeChild(textArea);
+            let content = "STAN MAGAZYNU - wykorzystane\n";
+            content += "Data: " + new Date().toLocaleString() + "\n";
+            content += "---------------------------\n";
+            data.forEach(item => {
+                content += `• ${item.name}: ${item.quantity || 0}\n`;
+            });
+            content += "---------------------------";
+
+            navigator.clipboard.writeText(content).then(() => {
+                alert("Skopiowano do schowka! 📋");
+            });
         }
-    }
     </script>
 </body>
+
 </html>

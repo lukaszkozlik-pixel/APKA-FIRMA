@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,6 +15,7 @@
             background: #1a73e8;
             color: white;
         }
+
         header h1 {
             margin: 0;
             font-size: 1.3rem;
@@ -29,57 +31,161 @@
             font-size: 1.8rem;
             font-weight: 300;
             padding: 5px 15px 5px 0;
-                body { font-family: sans-serif; margin: 0; background: var(--bg); color: var(--text); }
+
+            body {
+                font-family: sans-serif;
+                margin: 0;
+                background: var(--bg);
+                color: var(--text);
+            }
+
             line-height: 1;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        .item-list { padding: 15px; flex: 1; overflow-y: auto; padding-bottom: 100px; }
+
+        .item-list {
+            padding: 15px;
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 100px;
+        }
+
         .price-item {
-            background: var(--tile-bg); margin-bottom: 10px; padding: 15px; border-radius: 10px;
-            display: flex; justify-content: space-between; align-items: center;
-            border: 2px solid transparent; transition: 0.2s;
-            user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+            background: var(--tile-bg);
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 2px solid transparent;
+            transition: 0.2s;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
             color: var(--text);
         }
-        .price-item.selected { border-color: #1a73e8; background: #e8f0fe; }
-        .price-item:active { background-color: #fce8e6; transition: background-color 0.8s; }
-        .price-value { font-weight: bold; color: #1a73e8; }
-        .qty { font-weight: bold; color: #1a73e8; margin-right: 5px; }
-        .item-other { border: 2px dashed #1a73e8; color: #1a73e8; justify-content: center; font-weight: bold; margin-top: 20px; }
+
+        .price-item.selected {
+            border-color: #1a73e8;
+            background: #e8f0fe;
+        }
+
+        .price-item:active {
+            background-color: #fce8e6;
+            transition: background-color 0.8s;
+        }
+
+        .price-value {
+            font-weight: bold;
+            color: #1a73e8;
+        }
+
+        .qty {
+            font-weight: bold;
+            color: #1a73e8;
+            margin-right: 5px;
+        }
+
+        .item-other {
+            border: 2px dashed #1a73e8;
+            color: #1a73e8;
+            justify-content: center;
+            font-weight: bold;
+            margin-top: 20px;
+        }
 
         .summary-bar {
-            position: fixed; bottom: 0; left: 0; width: 100%;
-            background: var(--tile-bg); color: var(--text); padding: 20px;
-            border-radius: 20px 20px 0 0; display: flex; justify-content: space-between; align-items: center;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: var(--tile-bg);
+            color: var(--text);
+            padding: 20px;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             z-index: 50;
         }
-        .btn-done { background: #03dac6; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; }
-        
-        .modal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); justify-content: center; align-items: center; padding: 20px; z-index: 100;
+
+        .btn-done {
+            background: #03dac6;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
         }
-        .modal-content { background: var(--tile-bg); color: var(--text); padding: 20px; border-radius: 15px; width: 95%; max-width: 400px; }
-        .modal-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
-        .btn-modal { padding: 12px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
-        
-        .custom-form { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
-        .custom-form input { padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 1rem; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            z-index: 100;
+        }
+
+        .modal-content {
+            background: var(--tile-bg);
+            color: var(--text);
+            padding: 20px;
+            border-radius: 15px;
+            width: 95%;
+            max-width: 400px;
+        }
+
+        .modal-btns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-modal {
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .custom-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .custom-form input {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
     </style>
 </head>
 <script>
-// Motyw: kopiuj ustawienie z localStorage lub systemu
-function applyTheme() {
-    let theme = localStorage.getItem('theme');
-    if (!theme) {
-        theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    // Motyw: kopiuj ustawienie z localStorage lub systemu
+    function applyTheme() {
+        let theme = localStorage.getItem('theme');
+        if (!theme) {
+            theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        document.documentElement.setAttribute('data-theme', theme);
     }
-    document.documentElement.setAttribute('data-theme', theme);
-}
-applyTheme();
+    applyTheme();
 </script>
+
 <body>
     <div id="app">
         <header>
@@ -88,7 +194,9 @@ applyTheme();
         </header>
 
         <div class="item-list" id="menu">
-            <div class="price-item" onclick="addMountingPrice()" onmousedown="startPress(this)" onmouseup="endPress()" ontouchstart="startPress(this)" ontouchend="endPress()" oncontextmenu="return false;" data-name="Montaż">
+            <div class="price-item" onclick="addMountingPrice()" onmousedown="startPress(this)" onmouseup="endPress()"
+                ontouchstart="startPress(this)" ontouchend="endPress()" oncontextmenu="return false;"
+                data-name="Montaż">
                 <div><span class="qty"></span><span>Montaż (podaj cenę)</span></div>
                 <span class="price-value" id="mount-val">--- zł</span>
             </div>
@@ -98,20 +206,23 @@ applyTheme();
 
         <div class="summary-bar">
             <div>Suma: <span id="total-price">0</span> zł</div>
-            <button id="btn-submit" class="btn-done" onclick="showSummary()" disabled style="opacity: 0.5;">GOTOWE</button>
+            <button id="btn-submit" class="btn-done" onclick="showSummary()" disabled
+                style="opacity: 0.5;">GOTOWE</button>
         </div>
     </div>
-        
+
     <div id="modal-custom" class="modal">
         <div class="modal-content">
             <h3>Własna usługa</h3>
             <div class="custom-form">
                 <input type="text" id="custom-name" placeholder="Nazwa">
-                <input type="number" id="custom-price" placeholder="Cena (zł)" inputmode="decimal" step="0.01" onkeydown="if(['e', 'E', '+', '-'].includes(event.key)) event.preventDefault();">
+                <input type="number" id="custom-price" placeholder="Cena (zł)" inputmode="decimal" step="0.01"
+                    onkeydown="if(['e', 'E', '+', '-'].includes(event.key)) event.preventDefault();">
             </div>
             <div class="modal-btns">
                 <button class="btn-modal" onclick="closeCustomModal()" style="background:#eee;">Anuluj</button>
-                <button class="btn-modal" onclick="addCustomItem()" style="background:#1a73e8; color:white;">Dodaj</button>
+                <button class="btn-modal" onclick="addCustomItem()"
+                    style="background:#1a73e8; color:white;">Dodaj</button>
             </div>
         </div>
     </div>
@@ -132,12 +243,15 @@ applyTheme();
     <div id="modal-summary" class="modal">
         <div class="modal-content">
             <h3>Podsumowanie:</h3>
-            <ul id="summary-list" style="margin: 20px 0; list-style: none; padding: 0; max-height: 50vh; overflow-y: auto;"></ul>
+            <ul id="summary-list"
+                style="margin: 20px 0; list-style: none; padding: 0; max-height: 50vh; overflow-y: auto;"></ul>
             <hr>
             <h2 id="modal-total" style="text-align: center;"></h2>
             <div class="modal-btns">
-                <button class="btn-modal" onclick="sendToReports()" style="background: #1a73e8; color: white; grid-column: span 2;">WYGENERUJ RAPORT</button>
-                <button class="btn-modal" onclick="closeSummaryModal()" style="background: #70757a; color: white;">Wróć</button>
+                <button class="btn-modal" onclick="sendToReports()"
+                    style="background: #1a73e8; color: white; grid-column: span 2;">WYGENERUJ RAPORT</button>
+                <button class="btn-modal" onclick="closeSummaryModal()"
+                    style="background: #70757a; color: white;">Wróć</button>
                 <button class="btn-modal" onclick="resetAll()" style="background: #d93025; color: white;">Nowe</button>
             </div>
         </div>
@@ -148,46 +262,65 @@ applyTheme();
         let selectedItems = [];
         let pressTimer;
         let isLongPress = false;
-        
-      
 
-       const request = indexedDB.open(APP_CONFIG.DB_NAME, APP_CONFIG.DB_VERSION);
 
-        request.onupgradeneeded = (e) => {
-            const database = e.target.result;
-            // Tworzymy wszystkie szuflady, aby baza była kompletna niezależnie od tego, który plik ją inicjuje
-            if (!database.objectStoreNames.contains("raporty")) {
-                database.createObjectStore("raporty", { keyPath: "id", autoIncrement: true });
-            }
-            if (!database.objectStoreNames.contains("magazyn")) {
-                database.createObjectStore("magazyn", { keyPath: "name" });
-            }
-            if (!database.objectStoreNames.contains("settings")) {
-                database.createObjectStore("settings", { keyPath: "key" });
-            }
-        };
 
-        request.onsuccess = (e) => {
-            db = e.target.result;
-        };
+        function openDB(name, version) {
+            return new Promise((resolve, reject) => {
+                const req = indexedDB.open(name, version);
+                req.onupgradeneeded = e => {
+                    const db = e.target.result;
+                    // Ważne: ta struktura musi być identyczna jak w index.html
+                    if (!db.objectStoreNames.contains("raporty")) {
+                        db.createObjectStore("raporty", { keyPath: "id", autoIncrement: true });
+                    }
+                    if (!db.objectStoreNames.contains("magazyn")) {
+                        db.createObjectStore("magazyn", { keyPath: "id", autoIncrement: true });
+                    }
+                };
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error);
+            });
+        }
 
         // Poprawiona funkcja addToUsage (od linii ok. 154)
         async function addToUsage(items) {
-            if (!db) return;
-            // Zabezpieczenie przed błędem, jeśli tabela jakimś cudem nie powstała
-            if (!db.objectStoreNames.contains("magazyn")) return console.error("Brak tabeli magazyn!");
+            try {
+                // Otwieramy bazę roboczą (wersja 6 tak jak w index.html)
+                const db = await openDB("InstalatorDB", 6);
+                const tx = db.transaction("magazyn", "readwrite");
+                const store = tx.objectStore("magazyn");
 
-            const tx = db.transaction("magazyn", "readwrite");
-            const store = tx.objectStore("magazyn");
+                // Pobieramy wszystkie towary, aby sprawdzić czy już istnieją
+                const allItems = await new Promise(res => {
+                    store.getAll().onsuccess = e => res(e.target.result);
+                });
 
-            for (const item of items) {
-                if (item.qty <= 0) continue;
-                const req = store.get(item.name);
-                req.onsuccess = (e) => {
-                    const data = e.target.result || { name: item.name, quantity: 0 };
-                    data.quantity += item.qty;
-                    store.put(data);
-                };
+                for (const item of items) {
+                    // Szukamy po nazwie w aktualnej bazie
+                    const existing = allItems.find(record => record.name === item.name);
+
+                    if (existing) {
+                        // Jeśli towar jest - dodajemy ilość
+                        existing.quantity = (parseFloat(existing.quantity) || 0) + parseFloat(item.qty);
+                        store.put(existing);
+                    } else {
+                        // Jeśli towaru nie ma - dodajemy nowy rekord
+                        store.add({
+                            name: item.name,
+                            quantity: parseFloat(item.qty)
+                        });
+                    }
+                }
+
+                return new Promise((resolve) => {
+                    tx.oncomplete = () => {
+                        console.log("Zużycie zarejestrowane w magazynie.");
+                        resolve();
+                    };
+                });
+            } catch (err) {
+                console.error("Błąd zapisu do magazynu:", err);
             }
         }
 
@@ -200,8 +333,8 @@ applyTheme();
             input.value = defaultValue;
             document.getElementById('modal-input-prompt').style.display = 'flex';
             input.focus();
-            
-            document.getElementById('prompt-confirm-btn').onclick = function() {
+
+            document.getElementById('prompt-confirm-btn').onclick = function () {
                 const val = parseFloat(input.value.replace(',', '.'));
                 closeInputPrompt();
                 if (!isNaN(val)) callback(val);
@@ -216,20 +349,20 @@ applyTheme();
             document.getElementById('total-price').innerText = total;
             document.querySelectorAll('.price-item').forEach(div => {
                 const name = div.getAttribute('data-name');
-                if(!name) return;
+                if (!name) return;
                 const item = selectedItems.find(i => i.name === name);
                 const qtySpan = div.querySelector('.qty');
                 const valSpan = div.querySelector('.price-value');
-                
+
                 if (item) {
                     div.classList.add('selected');
                     let unit = name.includes("Kabel") ? "m x " : "x ";
                     qtySpan.innerText = item.qty + unit;
-                    if(name === "Montaż") valSpan.innerText = item.price + " zł";
+                    if (name === "Montaż") valSpan.innerText = item.price + " zł";
                 } else {
                     div.classList.remove('selected');
                     qtySpan.innerText = "";
-                    if(name === "Montaż") valSpan.innerText = "--- zł";
+                    if (name === "Montaż") valSpan.innerText = "--- zł";
                 }
             });
             const btn = document.getElementById('btn-submit');
@@ -237,7 +370,7 @@ applyTheme();
             btn.style.opacity = total > 0 ? "1" : "0.5";
         }
 
-        window.onload = function() { initPrices(); };
+        window.onload = function () { initPrices(); };
 
         async function initPrices() {
             const urlSerwera = 'https://gist.githubusercontent.com/lukaszkozlik-pixel/cc9860262022f28a759d1790020381fe/raw/uslugi.json';
@@ -263,11 +396,11 @@ applyTheme();
                 div.setAttribute('data-name', service.name);
                 div.setAttribute('data-price', service.price);
                 const isKabel = service.name.toLowerCase().includes('kabel');
-                div.onclick = function() { isKabel ? addCableFromJSON(this) : addItem(this); };
-                div.onmousedown = function() { startPress(this); };
-                div.onmouseup = function() { endPress(); };
-                div.ontouchstart = function() { startPress(this); };
-                div.ontouchend = function() { endPress(); };
+                div.onclick = function () { isKabel ? addCableFromJSON(this) : addItem(this); };
+                div.onmousedown = function () { startPress(this); };
+                div.onmouseup = function () { endPress(); };
+                div.ontouchstart = function () { startPress(this); };
+                div.ontouchend = function () { endPress(); };
                 div.innerHTML = `<div><span class="qty"></span><span>${service.name}</span></div>
                                  <span class="price-value">${service.price} zł${isKabel ? '/m' : ''}</span>`;
                 menuContainer.insertBefore(div, document.querySelector('.item-other'));
@@ -279,8 +412,8 @@ applyTheme();
             if (isLongPress) return;
             const name = element.getAttribute('data-name');
             const unitPrice = parseFloat(element.getAttribute('data-price'));
-            
-            openInputPrompt(`Ile metrów: ${name}?`, "1", function(qty) {
+
+            openInputPrompt(`Ile metrów: ${name}?`, "1", function (qty) {
                 if (qty > 0) {
                     let item = selectedItems.find(i => i.name === name);
                     if (item) item.qty += qty; else selectedItems.push({ name: name, price: unitPrice, qty: qty });
@@ -302,11 +435,11 @@ applyTheme();
 
         function addMountingPrice() {
             if (isLongPress) return;
-            openInputPrompt("Podaj cenę montażu:", "", function(price) {
+            openInputPrompt("Podaj cenę montażu:", "", function (price) {
                 if (price > 0) {
                     const name = "Montaż";
                     let item = selectedItems.find(i => i.name === name);
-                    if (item) { item.qty++; total += price; } 
+                    if (item) { item.qty++; total += price; }
                     else { selectedItems.push({ name, price, qty: 1 }); total += price; }
                     total = Math.round(total * 100) / 100;
                     updateDisplay();
@@ -327,10 +460,10 @@ applyTheme();
 
         function startPress(element) {
             isLongPress = false;
-            pressTimer = setTimeout(() => { 
-                isLongPress = true; 
-                removeItemAll(element); 
-                if(navigator.vibrate) navigator.vibrate(60); 
+            pressTimer = setTimeout(() => {
+                isLongPress = true;
+                removeItemAll(element);
+                if (navigator.vibrate) navigator.vibrate(60);
             }, 700);
         }
         function endPress() { clearTimeout(pressTimer); }
@@ -387,4 +520,5 @@ applyTheme();
         function resetAll() { total = 0; selectedItems = []; updateDisplay(); closeSummaryModal(); }
     </script>
 </body>
+
 </html>

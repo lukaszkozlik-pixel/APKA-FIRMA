@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="pl">
+
 <head>
+    <script src="config.js"></script>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1a73e8">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <script src="config.js"></script> </head>
+
     <script>
         // Ustaw zawsze motyw jasny
         window.addEventListener('DOMContentLoaded', () => {
@@ -21,55 +23,193 @@
             });
         }
 
+        async function initApp() {
+            const pin = sessionStorage.getItem('user_pin');
+            const modal = document.getElementById('loginModal');
+
+            if (!pin) {
+                // Jeśli nie ma PINu w tej sesji, pokazujemy modal logowania
+                modal.style.display = 'flex';
+            } else {
+                // Jeśli jest PIN, ukrywamy modal
+                modal.style.display = 'none';
+                console.log("Sesja aktywna, baza powinna być gotowa.");
+            }
+        }
+
     </script>
 
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-        <script>
-        // Blokada zmiany orientacji ekranu na portrait
-        if (screen.orientation && screen.orientation.lock) {
-            screen.orientation.lock('portrait').catch(()=>{});
-        } else if (window.screen.lockOrientation) {
-            window.screen.lockOrientation('portrait');
+    <script src="crypto.js"></script>
+    <script>
+        const APP_PIN = "1234"; // Tutaj możesz wpisać swój własny PIN
+
+        async function unlockApp() {
+            const inputPin = document.getElementById('pinInput').value;
+            if (!inputPin) return;
+
+            try {
+                console.time("Deszyfrowanie");
+                const dbSecure = await openDB("InstalatorSecureDB", 1);
+                const cryptoKey = await EncryptionTool.getDerivedKey(inputPin);
+
+                // 1. Pobierz zaszyfrowane paczki
+                const encReports = await getAllFromStore(dbSecure, "raporty");
+                const encMagazyn = await getAllFromStore(dbSecure, "magazyn");
+
+                // 2. Deszyfrujemy RAPORTY
+                const reports = [];
+                for (const item of encReports) {
+                    const dec = await EncryptionTool.decrypt(item.payload, cryptoKey);
+                    if (dec) { dec.id = item.id; reports.push(dec); }
+                }
+
+                // 3. Deszyfrujemy MAGAZYN (nazwa i ilość wyjdą z payloadu)
+                const magazyn = [];
+                for (const item of encMagazyn) {
+                    const dec = await EncryptionTool.decrypt(item.payload, cryptoKey);
+                    if (dec) { dec.id = item.id; magazyn.push(dec); }
+                }
+
+                // 4. Kasujemy starą bazę roboczą
+                await new Promise(res => {
+                    const req = indexedDB.deleteDatabase("InstalatorDB");
+                    req.onsuccess = res; req.onerror = res;
+                });
+
+                // 5. Wkładamy odszyfrowane dane do bazy roboczej
+                const dbTemp = await openDB("InstalatorDB", 6);
+                const tx = dbTemp.transaction(["raporty", "magazyn"], "readwrite");
+
+                reports.forEach(r => tx.objectStore("raporty").put(r));
+                magazyn.forEach(m => tx.objectStore("magazyn").put(m));
+
+                tx.oncomplete = () => {
+                    console.timeEnd("Deszyfrowanie");
+                    sessionStorage.setItem('user_pin', inputPin);
+                    document.getElementById('loginModal').style.display = 'none';
+                    alert("Zalogowano. Dane są gotowe do pracy.");
+                };
+            } catch (err) {
+                console.error(err);
+                alert("Błędny PIN lub błąd bazy danych.");
+            }
         }
-        </script>
+
+        async function lockAndExit() {
+            const pin = sessionStorage.getItem('user_pin');
+            if (!pin) return;
+
+            try {
+                console.time("Szyfrowanie");
+                const cryptoKey = await EncryptionTool.getDerivedKey(pin);
+
+                // 1. Pobierz dane z bazy roboczej
+                const dbTemp = await openDB("InstalatorDB", 6);
+                const reports = await getAllFromStore(dbTemp, "raporty");
+                const magazyn = await getAllFromStore(dbTemp, "magazyn");
+
+                // 2. Otwórz Sejf
+                const dbSecure = await openDB("InstalatorSecureDB", 1);
+                const txSec = dbSecure.transaction(["raporty", "magazyn"], "readwrite");
+
+                // Czyścimy Sejf przed nowym zapisem
+                await txSec.objectStore("raporty").clear();
+                await txSec.objectStore("magazyn").clear();
+
+                // 3. Szyfrujemy RAPORTY (ID zostaje jawne, reszta w payload)
+                for (const item of reports) {
+                    const encrypted = await EncryptionTool.encrypt(item, cryptoKey);
+                    txSec.objectStore("raporty").put({ id: item.id, payload: encrypted });
+                }
+
+                // 4. Szyfrujemy MAGAZYN (ID zostaje jawne, NAZWA i ILOŚĆ w payload)
+                for (const item of magazyn) {
+                    const encrypted = await EncryptionTool.encrypt(item, cryptoKey);
+                    txSec.objectStore("magazyn").put({ id: item.id, payload: encrypted });
+                }
+
+                txSec.oncomplete = () => {
+                    console.timeEnd("Szyfrowanie");
+                    // Kasujemy bazę roboczą i wylogowujemy
+                    indexedDB.deleteDatabase("InstalatorDB");
+                    sessionStorage.removeItem('user_pin');
+                    alert("Wszystkie dane zostały zaszyfrowane i ukryte.");
+                    location.reload();
+                };
+            } catch (err) {
+                console.error(err);
+                alert("Błąd podczas zamykania sejfu.");
+            }
+        }
+        // Funkcje pomocnicze
+        function openDB(name, version) {
+            return new Promise((resolve, reject) => {
+                const req = indexedDB.open(name, version);
+                req.onupgradeneeded = e => {
+                    const db = e.target.result;
+                    // Obie bazy (robocza i sejf) używają teraz ID jako klucza
+                    if (!db.objectStoreNames.contains("raporty")) {
+                        db.createObjectStore("raporty", { keyPath: "id", autoIncrement: true });
+                    }
+                    if (!db.objectStoreNames.contains("magazyn")) {
+                        db.createObjectStore("magazyn", { keyPath: "id", autoIncrement: true });
+                    }
+                };
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        function getAllFromStore(db, storeName) {
+            return new Promise(res => {
+                const tx = db.transaction(storeName, "readonly");
+                tx.objectStore(storeName).getAll().onsuccess = e => res(e.target.result);
+            });
+        }
+
+    </script>
     <title>Instalator Pro</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
     <!--skrypt pierwszego LOGOWWNIA-->
-    <div id="app-lock-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:9999; flex-direction:column; align-items:center; justify-content:center; padding:20px; text-align:center;">
-    <div id="lock-icon" style="font-size: 4rem; margin-bottom: 20px;">🔒</div>
-    <h2 id="lock-title">Zabezpiecz dostęp</h2>
-    <p id="lock-msg">Wybierz metodę ochrony swoich danych.</p>
-    
-    <div id="setup-section" style="display:none; width:100%; max-width:300px;">
-        <input type="password" id="setup-pin" pattern="[0-9]*" inputmode="numeric" placeholder="Ustaw 4-cyfrowy PIN" maxlength="4" style="width:100%; padding:15px; font-size:1.2rem; border-radius:10px; border:1px solid #ccc; margin-bottom:10px; text-align:center;">
-        <button onclick="saveInitialPin()" style="width:100%; padding:15px; background:#1a73e8; color:white; border:none; border-radius:10px; font-weight:bold;">ZAPISZ PIN</button>
+    <div id="loginModal"
+        style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:1000; align-items:center; justify-content:center; backdrop-filter:blur(5px);">
+        <div
+            style="background:white; padding:30px; border-radius:20px; text-align:center; width:90%; max-width:350px; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+            <div style="font-size:50px; margin-bottom:10px;">🔐</div>
+            <h2 style="margin:0 0 10px 0; color:#1a73e8;">Sejf Danych</h2>
+            <p style="color:#666; font-size:14px; margin-bottom:20px;">Wprowadź PIN, aby odszyfrować bazę raportów.</p>
+            <input type="password" id="pinInput" inputmode="numeric" placeholder="PIN"
+                style="width:100%; padding:15px; font-size:24px; text-align:center; border:2px solid #eee; border-radius:12px; margin-bottom:20px;">
+            <button onclick="unlockApp()"
+                style="width:100%; padding:15px; background:#1a73e8; color:white; border:none; border-radius:12px; font-weight:bold; cursor:pointer;">ODBLOKUJ</button>
+        </div>
     </div>
+    <!--skrypt LOGOWWNIA-->
 
-    <div id="login-section" style="display:none; width:100%; max-width:300px;">
-        <input type="password" id="login-pin" pattern="[0-9]*" inputmode="numeric" placeholder="Wpisz PIN" maxlength="4" style="width:100%; padding:15px; font-size:1.5rem; border-radius:10px; border:1px solid #ccc; margin-bottom:15px; text-align:center;">
-        <button onclick="checkPin()" style="width:100%; padding:15px; background:#34a853; color:white; border:none; border-radius:10px; font-weight:bold; margin-bottom:10px;">ODBLOKUJ PINEM</button>
-        <button id="btn-biometric" onclick="tryBiometry()" style="display:none; width:100%; padding:15px; background:none; border:2px solid #1a73e8; color:#1a73e8; border-radius:10px; font-weight:bold;">UŻYJ BIOMETRII ☝️</button>
-    </div>
-    </div>
-   <!--skrypt LOGOWWNIA-->
-
-    <div id="offline-banner" style="display:none;position:fixed;top:0;left:0;width:100vw;background:#d93025;color:white;text-align:center;padding:12px 0;z-index:10001;font-weight:bold;box-shadow:0 2px 8px rgba(0,0,0,0.15);">
+    <div id="offline-banner"
+        style="display:none;position:fixed;top:0;left:0;width:100vw;background:#d93025;color:white;text-align:center;padding:12px 0;z-index:10001;font-weight:bold;box-shadow:0 2px 8px rgba(0,0,0,0.15);">
         Brak połączenia z internetem – aplikacja działa w trybie offline.
     </div>
 
-    <div id="ios-install-banner" style="display:none;position:fixed;bottom:0;left:0;width:100vw;background:#fffbe6;color:#202124;text-align:center;padding:14px 10px 14px 50px;z-index:10002;font-weight:500;box-shadow:0 -2px 8px rgba(0,0,0,0.10);border-top:2px solid #fbbc05;font-size:1rem;align-items:center;">
-        Aby zainstalować aplikację na iPhonie: kliknij <b>Udostępnij</b>  i wybierz <b>Do ekranu początkowego</b>.
-        <button onclick="this.parentElement.style.display='none'" style="margin-left:20px;background:#fbbc05;border:none;padding:4px 16px;border-radius:16px;font-weight:bold;cursor:pointer;">Zamknij</button>
+    <div id="ios-install-banner"
+        style="display:none;position:fixed;bottom:0;left:0;width:100vw;background:#fffbe6;color:#202124;text-align:center;padding:14px 10px 14px 50px;z-index:10002;font-weight:500;box-shadow:0 -2px 8px rgba(0,0,0,0.10);border-top:2px solid #fbbc05;font-size:1rem;align-items:center;">
+        Aby zainstalować aplikację na iPhonie: kliknij <b>Udostępnij</b> i wybierz <b>Do ekranu początkowego</b>.
+        <button onclick="this.parentElement.style.display='none'"
+            style="margin-left:20px;background:#fbbc05;border:none;padding:4px 16px;border-radius:16px;font-weight:bold;cursor:pointer;">Zamknij</button>
     </div>
 
-    <div id="error-banner" style="display:none;position:fixed;top:48px;left:50%;transform:translateX(-50%);background:#d93025;color:white;padding:12px 24px;border-radius:8px;z-index:10003;font-weight:bold;box-shadow:0 2px 8px rgba(0,0,0,0.15);max-width:90vw;">
+    <div id="error-banner"
+        style="display:none;position:fixed;top:48px;left:50%;transform:translateX(-50%);background:#d93025;color:white;padding:12px 24px;border-radius:8px;z-index:10003;font-weight:bold;box-shadow:0 2px 8px rgba(0,0,0,0.15);max-width:90vw;">
         <span id="error-message"></span>
-        <button onclick="this.parentElement.style.display='none'" style="margin-left:18px;background:#fff;color:#d93025;border:none;padding:2px 12px;border-radius:12px;font-weight:bold;cursor:pointer;">Zamknij</button>
+        <button onclick="this.parentElement.style.display='none'"
+            style="margin-left:18px;background:#fff;color:#d93025;border:none;padding:2px 12px;border-radius:12px;font-weight:bold;cursor:pointer;">Zamknij</button>
     </div>
 
     <div id="app">
@@ -78,7 +218,7 @@
         </header>
 
         <main class="grid-container">
-           
+
             <div class="tile" onclick="location.href='tools-src/nadajniki.html'">
                 <span class="icon">🗼</span>
                 <span class="label">Kierunki do nadajników DVB-T</span>
@@ -87,7 +227,7 @@
                 <span class="icon">📺</span>
                 <span class="label">Baza wiedzy DVB-T</span>
             </div>
-             <div class="tile" onclick="location.href='tools-src/satelity.html'">
+            <div class="tile" onclick="location.href='tools-src/satelity.html'">
                 <span class="icon">📡</span>
                 <span class="label">Kalkulator azymutu SAT</span>
             </div>
@@ -123,9 +263,10 @@
                 <span class="icon">📦</span>
                 <span class="label">Magazyn</span>
             </div>
-             <div class="tile" onclick="location.href='tools-src/settings.html'">
-                <span class="icon">⚙️</span>
-                <span class="label">Ustawienia</span>
+
+            <div class="tile" onclick="lockAndExit()">
+                <span class="icon">🔒</span>
+                <span class="label">Wyloguj się</span>
             </div>
         </main>
 
@@ -135,388 +276,164 @@
     </div>
 </body>
 
-    <script>
-        let backClickCounter = 0;
-
-    
-       
-        
-        function onDeviceReady() {
-            // 1. WERSJA - automatycznie pobierana z manifest.json lub ze zmiennej CACHE_NAME w sw.js
-            async function setAppVersion() {
-                const el = document.getElementById('app-version');
-                if (!el) return;
-                // 1) Spróbuj pobrać manifest.json i odczytać pole `version`
-                try {
-                    const r = await fetch('manifest.json', {cache: 'no-store'});
-                    if (r.ok) {
-                        const m = await r.json();
-                        if (m.version) { el.innerText = m.version; return; }
-                    }
-                } catch(e){}
-                // 2) Fallback: spróbuj odczytać sw.js i dopasować wersję z CACHE_NAME
-                try {
-                    const r2 = await fetch('sw.js', {cache: 'no-store'});
-                    if (r2.ok) {
-                        const txt = await r2.text();
-                        const re = /CACHE_NAME\s*=\s*['"]([a-zA-Z0-9\-_.]*v?(\d+(?:\.\d+)+))['"]/i;
-                        const m = txt.match(re);
-                        if (m && m[2]) { el.innerText = m[2]; return; }
-                    }
-                } catch(e){}
-                // 3) Ostateczny fallback
-                el.innerText = '1.0.0';
-            }
-            setAppVersion();
-        
-            const statusSpan = document.getElementById('app-status');
-        
-            // 2. STATUS SIECI
-            function updateOnlineStatus() {
-
-                if (navigator.onLine) {
-                    statusSpan.innerText = "Tryb ONLINE gotowy";
-                    statusSpan.style.color = "#03dac6";
-                    document.getElementById('offline-banner').style.display = 'none';
-                } else {
-                    statusSpan.innerText = "Tryb OFFLINE gotowy";
-                    statusSpan.style.color = "gray";
-                    document.getElementById('offline-banner').style.display = 'block';
-                }
-            }
-            updateOnlineStatus();
-
-            document.addEventListener("offline", updateOnlineStatus, false);
-            document.addEventListener("online", updateOnlineStatus, false);
-
-            // 3. TEST POŁĄCZENIA Z INTERNETEM (opcjonalnie, można zostawić tylko navigator.onLine)
-            function testInternetConnection() {
-                fetch('https://www.google.com/favicon.ico', { mode: 'no-cors' })
-                    .then(() => {
-                        if (!navigator.onLine) return; // jeśli systemowy offline, nie nadpisuj
-                        statusSpan.innerText = "Tryb ONLINE gotowy";
-                        statusSpan.style.color = "#03dac6";
-                    })
-                    .catch(() => {
-                        statusSpan.innerText = "Tryb OFFLINE gotowy";
-                        statusSpan.style.color = "gray";
-                    })
-                    .finally(() => {
-                        updateOnlineStatus(); // zawsze synchronizuj po teście
-                    });
-            }
-            testInternetConnection();
-
-            // 4. UKRYTY PRYCISK DO RESETU - licznik kliknięć w stopkę
-            const footer = document.querySelector('footer');
-            if (footer) {
-                footer.style.cursor = 'pointer';
-                footer.setAttribute('title', 'Kliknij kilka razy, aby zresetować aplikację');
-
-                footer.addEventListener('click', () => {
-                    backClickCounter++;
-                    // opcjonalnie pokazujemy krótkie powiadomienie
-                    showToast(`Kliknięcia: ${backClickCounter}/5`);
-                    if (backClickCounter >= 5) {
-                        // potwierdzenie użytkownika przed trwałym usunięciem
-                        if (confirm('Czy na pewno chcesz zresetować aplikację? To usunie wszystkie dane i cache.')) {
-                            // usuń cache'y service workera
-                            if ('caches' in window) {
-                                caches.keys().then(names => {
-                                    names.forEach(name => caches.delete(name));
-                                });
-                            }
-                            // wyrejestruj service workera (jeśli jest)
-                            if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
-                                navigator.serviceWorker.getRegistrations().then(regs => {
-                                    regs.forEach(r => r.unregister());
-                                }).catch(()=>{});
-                            }
-                            // wyczyść localStorage
-                            try { localStorage.clear(); } catch(e) {}
-                            // zresetuj licznik i przeładuj stronę
-                            backClickCounter = 0;
-                            location.reload();
-                        } else {
-                            backClickCounter = 0; // anulowano, resetujemy licznik
-                        }
-                    }
-                });
-
-                // Zeruj licznik kiedy użytkownik opuszcza aplikację lub ukrywa kartę
-                window.addEventListener('pagehide', () => { backClickCounter = 0; });
-                window.addEventListener('beforeunload', () => { backClickCounter = 0; });
-                document.addEventListener('visibilitychange', () => {
-                    if (document.hidden) backClickCounter = 0;
-                });
-            }
-        }
+<script>
+    let backClickCounter = 0;
 
 
-        
-        // Nasza własna, darmowa funkcja powiadomienia na ekranie
-        function showToast(message) {
-            // Usuwamy stare powiadomienie jeśli jeszcze istnieje
-            const oldToast = document.getElementById('custom-toast');
-            if (oldToast) oldToast.remove();
-        
-            const statusDiv = document.createElement('div');
-            statusDiv.id = 'custom-toast';
-            statusDiv.style = "position:fixed; bottom:50px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.8); color:white; padding:12px 25px; border-radius:25px; z-index:9999; font-size:14px; white-space:nowrap; border: 1px solid #444;";
-            statusDiv.innerText = message;
-            document.body.appendChild(statusDiv);
-        
-            // Animacja znikania
-            setTimeout(() => {
-                statusDiv.style.opacity = '0';
-                statusDiv.style.transition = 'opacity 0.5s ease';
-                setTimeout(() => statusDiv.remove(), 500);
-            }, 2000);
-        }
-
-        function showOfflineBanner(show) {
-            const banner = document.getElementById('offline-banner');
-            const header = document.querySelector('header');
-            // Ustaw margin-top headera zawsze na wysokość ramki, jeśli ramka jest widoczna
-            if (show) {
-                banner.style.display = 'block';
-                setTimeout(() => {
-                    if(header) header.style.marginTop = banner.offsetHeight + 'px';
-                }, 10); // opóźnienie na render
-            } else {
-                banner.style.display = 'none';
-                if(header) header.style.marginTop = '';
-            }
-
-            // Dodatkowo, na zmianę orientacji i resize — popraw margin-top headera
-            window.addEventListener('resize', () => {
-                if (banner.style.display === 'block' && header) {
-                    header.style.marginTop = banner.offsetHeight + 'px';
-                }
-            });
-        }
-
-        // Dla pewności: po powrocie na stronę/wybudzeniu — odśwież status i układ
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden) {
-                if (typeof updateOnlineStatus === 'function') updateOnlineStatus();
-                if (typeof showOfflineBanner === 'function') showOfflineBanner(!navigator.onLine ? true : false);
-            }
-        });
-        window.addEventListener('pageshow', () => {
-            if (typeof updateOnlineStatus === 'function') updateOnlineStatus();
-            if (typeof showOfflineBanner === 'function') showOfflineBanner(!navigator.onLine ? true : false);
-        });
-        
-
-        function showIosInstallBanner() {
-            const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-            if (isIos && !isStandalone) {
-                document.getElementById('ios-install-banner').style.display = 'block';
-            }
-        }
-      
-        
-
-        // Magazyn i inne narzędzia korzystają z IndexedDB — upewniamy się, że baza danych jest gotowa do użycia
-        const request = indexedDB.open(APP_CONFIG.DB_NAME, APP_CONFIG.DB_VERSION); // Wersja 3 dla ustawień
-
-        request.onupgradeneeded = (e) => {
-            const db = e.target.result;
-            if (!db.objectStoreNames.contains("raporty")) db.createObjectStore("raporty", { keyPath: "id", autoIncrement: true });
-            if (!db.objectStoreNames.contains("magazyn")) db.createObjectStore("magazyn", { keyPath: "name" });
-            if (!db.objectStoreNames.contains("settings")) db.createObjectStore("settings", { keyPath: "key" });
-        };
-
-        // Inicjalizacja zabezpieczeń (PIN/biometria) przy starcie aplikacji    
- 
-        async function initSecurity() {
-            // Sprawdzenie sesji - jeśli zalogowany w tej karcie, kończymy funkcję i pokazujemy apkę
-            if (sessionStorage.getItem('app_authenticated') === 'true') {
-                document.getElementById('app-lock-overlay').style.display = 'none';
-                return Promise.resolve();
-            }
-
-            const db = await openDB();
-            const settings = await getSetting(db, 'user_security');
-            const overlay = document.getElementById('app-lock-overlay');
-
-            if (!settings) {
-                // Jeśli brak skonfigurowanego PINu, apka jest otwarta
-                overlay.style.display = 'none';
-                return Promise.resolve();
-            } else {
-                // Blokujemy ekran i czekamy na PIN/Biometrię
-                overlay.style.display = 'flex';
-                document.getElementById('login-section').style.display = 'block';
-                document.getElementById('lock-title').innerText = "Zablokowano";
-                
-                if (settings.biometryEnabled) {
-                    document.getElementById('btn-biometric').style.display = 'block';
-                    tryBiometry(); 
-                }
-                
-                // Zwracamy Promise, który "wisi", dopóki użytkownik się nie zaloguje
-                return new Promise((resolve) => {
-                    window.resolveLogin = resolve; // Wywołamy to po poprawnym checkPin()
-                });
-            }
-        }
-
-        // Funkcja weryfikacji PINu z obsługą sesji i kodu ratunkowego
-        async function checkPin() {
-            const input = document.getElementById('login-pin').value.toUpperCase();
-            const db = await openDB();
-            const settings = await getSetting(db, 'user_security');
-
-            // Logowanie poprawne (PIN lub Kod Ratunkowy z bazy)
-            if (input === settings.pin || (settings.recoveryKey && input === settings.recoveryKey)) {
-                sessionStorage.setItem('app_authenticated', 'true'); // USTAWIENIE SESJI
-                document.getElementById('app-lock-overlay').style.display = 'none';
-                
-                if (input === settings.recoveryKey) {
-                    alert("Użyto kodu ratunkowego. Zmień swój PIN w ustawieniach.");
-                }
-            } else {
-                alert("Błędny PIN!");
-                document.getElementById('login-pin').value = '';
-            }
-        }
-
-        // Funkcja zapisu PINu (wywoływana tylko przy pierwszej konfiguracji)
-        async function saveInitialPin() {
-            const pin = document.getElementById('setup-pin').value;
-            if (pin.length < 4) return alert("PIN musi mieć 4 cyfry");
-
-            // Generujemy unikalny Kod Ratunkowy (bezpieczniejszy niż stały Master PIN)
-            const recoveryKey = Math.random().toString(36).substring(2, 10).toUpperCase();
-
-            let bioEnabled = false;
-            if (window.PublicKeyCredential) {
-                bioEnabled = confirm("Czy chcesz używać biometrii (odcisk palca)?");
-            }
-
-            const db = await openDB();
-            const tx = db.transaction("settings", "readwrite");
-            tx.objectStore("settings").put({ 
-                key: 'user_security', 
-                pin: pin, 
-                biometryEnabled: bioEnabled,
-                recoveryKey: recoveryKey 
-            });
-            
-            tx.oncomplete = () => {
-                sessionStorage.setItem('app_authenticated', 'true');
-                alert("Zabezpieczenia skonfigurowane!\n\nKOD RATUNKOWY: " + recoveryKey + "\nZapisz go w bezpiecznym miejscu!");
-                location.reload();
-            };
-        }
-
-        async function checkPin() {
-            const input = document.getElementById('login-pin').value.toUpperCase();
-            const db = await openDB();
-            const settings = await getSetting(db, 'user_security');
-
-            if (input === settings.pin || (settings.recoveryKey && input === settings.recoveryKey)) {
-                sessionStorage.setItem('app_authenticated', 'true');
-                document.getElementById('app-lock-overlay').style.display = 'none';
-                
-                // POWIADOMIENIE RESZTY KODU, ŻE MOŻNA STARTOWAĆ
-                if (window.resolveLogin) window.resolveLogin(); 
-                
-                if (input === settings.recoveryKey) {
-                    alert("Użyto kodu ratunkowego! Zmień PIN w ustawieniach.");
-                }
-            } else {
-                alert("Błędny PIN!");
-                document.getElementById('login-pin').value = '';
-            }
-        }
-
-        // Funkcja do obsługi logowania biometrycznego
-        async function tryBiometry() {
-            const db = await openDB();
-            const settings = await getSetting(db, 'user_security');
-            
-            if (!settings || !settings.credentialId) return;
-
-            const challenge = new Uint8Array(32);
-            window.crypto.getRandomValues(challenge);
-
-            // Przekształcamy zapisany ID z powrotem na format binarny
-            const credentialId = Uint8Array.from(atob(settings.credentialId), c => c.charCodeAt(0));
-
-            const getCredentialOptions = {
-                publicKey: {
-                    challenge: challenge,
-                    allowCredentials: [{
-                        id: credentialId,
-                        type: 'public-key',
-                        transports: ['internal'],
-                    }],
-                    userVerification: "required",
-                    timeout: 60000,
-                }
-            };
-
-            try {
-                const assertion = await navigator.credentials.get(getCredentialOptions);
-                if (assertion) {
-                    // Sukces! Biometria potwierdzona sprzętowo
-                    sessionStorage.setItem('app_authenticated', 'true');
-                    document.getElementById('app-lock-overlay').style.display = 'none';
-                    if (window.resolveLogin) window.resolveLogin();
-                }
-            } catch (err) {
-                console.log("Logowanie biometryczne przerwane lub błąd:", err);
-            }
-        }
-
-        // Pomocnicze funkcje IndexedDB
-        function openDB() {
-            return new Promise((resolve, reject) => {
-                const req = indexedDB.open(APP_CONFIG.DB_NAME, APP_CONFIG.DB_VERSION);
-                
-                req.onupgradeneeded = (e) => {
-                    const d = e.target.result;
-                    if (!d.objectStoreNames.contains("raporty")) d.createObjectStore("raporty", { keyPath: "id", autoIncrement: true });
-                    if (!d.objectStoreNames.contains("magazyn")) d.createObjectStore("magazyn", { keyPath: "name" });
-                    if (!d.objectStoreNames.contains("settings")) d.createObjectStore("settings", { keyPath: "key" });
-                };
-
-                req.onsuccess = () => resolve(req.result);
-                req.onerror = () => reject(req.error);
-                
-                // Ważne: obsługa blokady, gdy inna karta trzyma starą wersję bazy
-                req.onblocked = () => {
-                    alert("Zamknij inne karty aplikacji, aby dokończyć aktualizację!");
-                };
-            });
-        }
-
-        // Funkcja do pobierania ustawień z IndexedDB
-        function getSetting(db, key) {
-            return new Promise(res => {
-                db.transaction("settings").objectStore("settings").get(key).onsuccess = e => res(e.target.result);
-            });
-        }
 
 
-        // Funkcja stopki (zostaje, by pokazywać wersję z manifestu)
+    function onDeviceReady() {
+        // 1. WERSJA - automatycznie pobierana z manifest.json lub ze zmiennej CACHE_NAME w sw.js
         async function setAppVersion() {
             const el = document.getElementById('app-version');
-            if (el) el.innerText = APP_CONFIG.VERSION;
+            if (!el) return;
+            // 1) Spróbuj pobrać manifest.json i odczytać pole `version`
+            try {
+                const r = await fetch('manifest.json', { cache: 'no-store' });
+                if (r.ok) {
+                    const m = await r.json();
+                    if (m.version) { el.innerText = m.version; return; }
+                }
+            } catch (e) { }
+            // 2) Fallback: spróbuj odczytać sw.js i dopasować wersję z CACHE_NAME
+            try {
+                const r2 = await fetch('sw.js', { cache: 'no-store' });
+                if (r2.ok) {
+                    const txt = await r2.text();
+                    const re = /CACHE_NAME\s*=\s*['"]([a-zA-Z0-9\-_.]*v?(\d+(?:\.\d+)+))['"]/i;
+                    const m = txt.match(re);
+                    if (m && m[2]) { el.innerText = m[2]; return; }
+                }
+            } catch (e) { }
+            // 3) Ostateczny fallback
+            el.innerText = '1.0.0';
+        }
+        setAppVersion();
+
+        const statusSpan = document.getElementById('app-status');
+
+        // 2. STATUS SIECI
+        function updateOnlineStatus() {
+
+            if (navigator.onLine) {
+                statusSpan.innerText = "Tryb ONLINE gotowy";
+                statusSpan.style.color = "#03dac6";
+                document.getElementById('offline-banner').style.display = 'none';
+            } else {
+                statusSpan.innerText = "Tryb OFFLINE gotowy";
+                statusSpan.style.color = "gray";
+                document.getElementById('offline-banner').style.display = 'block';
+            }
+        }
+        updateOnlineStatus();
+
+        document.addEventListener("offline", updateOnlineStatus, false);
+        document.addEventListener("online", updateOnlineStatus, false);
+
+        // 3. TEST POŁĄCZENIA Z INTERNETEM (opcjonalnie, można zostawić tylko navigator.onLine)
+        function testInternetConnection() {
+            fetch('https://www.google.com/favicon.ico', { mode: 'no-cors' })
+                .then(() => {
+                    if (!navigator.onLine) return; // jeśli systemowy offline, nie nadpisuj
+                    statusSpan.innerText = "Tryb ONLINE gotowy";
+                    statusSpan.style.color = "#03dac6";
+                })
+                .catch(() => {
+                    statusSpan.innerText = "Tryb OFFLINE gotowy";
+                    statusSpan.style.color = "gray";
+                })
+                .finally(() => {
+                    updateOnlineStatus(); // zawsze synchronizuj po teście
+                });
+        }
+        testInternetConnection();
+    }
+
+
+
+    // Nasza własna, darmowa funkcja powiadomienia na ekranie
+    function showToast(message) {
+        // Usuwamy stare powiadomienie jeśli jeszcze istnieje
+        const oldToast = document.getElementById('custom-toast');
+        if (oldToast) oldToast.remove();
+
+        const statusDiv = document.createElement('div');
+        statusDiv.id = 'custom-toast';
+        statusDiv.style = "position:fixed; bottom:50px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.8); color:white; padding:12px 25px; border-radius:25px; z-index:9999; font-size:14px; white-space:nowrap; border: 1px solid #444;";
+        statusDiv.innerText = message;
+        document.body.appendChild(statusDiv);
+
+        // Animacja znikania
+        setTimeout(() => {
+            statusDiv.style.opacity = '0';
+            statusDiv.style.transition = 'opacity 0.5s ease';
+            setTimeout(() => statusDiv.remove(), 500);
+        }, 2000);
+    }
+
+    function showOfflineBanner(show) {
+        const banner = document.getElementById('offline-banner');
+        const header = document.querySelector('header');
+        // Ustaw margin-top headera zawsze na wysokość ramki, jeśli ramka jest widoczna
+        if (show) {
+            banner.style.display = 'block';
+            setTimeout(() => {
+                if (header) header.style.marginTop = banner.offsetHeight + 'px';
+            }, 10); // opóźnienie na render
+        } else {
+            banner.style.display = 'none';
+            if (header) header.style.marginTop = '';
         }
 
-        //Po załadaniu strony, inicjalizujemy zabezpieczenia, ustawiamy status sieci i wersję aplikacji
-        window.addEventListener('load',async () => {
-            await initSecurity();
-            onDeviceReady();
-            setAppVersion();
-            showIosInstallBanner();
-        }); 
+        // Dodatkowo, na zmianę orientacji i resize — popraw margin-top headera
+        window.addEventListener('resize', () => {
+            if (banner.style.display === 'block' && header) {
+                header.style.marginTop = banner.offsetHeight + 'px';
+            }
+        });
+    }
 
-        
-    </script>
+    // Dla pewności: po powrocie na stronę/wybudzeniu — odśwież status i układ
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+            if (typeof updateOnlineStatus === 'function') updateOnlineStatus();
+            if (typeof showOfflineBanner === 'function') showOfflineBanner(!navigator.onLine ? true : false);
+        }
+    });
+    window.addEventListener('pageshow', () => {
+        if (typeof updateOnlineStatus === 'function') updateOnlineStatus();
+        if (typeof showOfflineBanner === 'function') showOfflineBanner(!navigator.onLine ? true : false);
+    });
+
+
+    function showIosInstallBanner() {
+        const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+        if (isIos && !isStandalone) {
+            document.getElementById('ios-install-banner').style.display = 'block';
+        }
+    }
+
+
+
+
+
+    // Funkcja stopki (zostaje, by pokazywać wersję z manifestu)
+    async function setAppVersion() {
+        const el = document.getElementById('app-version');
+        if (el) el.innerText = APP_CONFIG.VERSION;
+    }
+
+    //Po załadaniu strony, inicjalizujemy zabezpieczenia, ustawiamy status sieci i wersję aplikacji
+    window.addEventListener('load', async () => {
+        //await initSecurity();
+        initApp();
+        onDeviceReady();
+        setAppVersion();
+        showIosInstallBanner();
+    });
+
+
+</script>
+
 </html>
