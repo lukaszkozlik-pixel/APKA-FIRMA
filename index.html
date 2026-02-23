@@ -44,59 +44,84 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <script src="crypto.js"></script>
     <script>
-        const APP_PIN = "1234"; // Tutaj możesz wpisać swój własny PIN
+        // index.html - Nowa wersja logiki
+    async function unlockApp() {
+    const inputPin = document.getElementById('pinInput').value;
+    if (!inputPin || inputPin.length < 4) {
+        alert("Podaj poprawny PIN (min. 4 znaki).");
+        return;
+    }
 
-        async function unlockApp() {
-            const inputPin = document.getElementById('pinInput').value;
-            if (!inputPin) return;
+    try {
+        console.time("Proces_Logowania");
+        const SECURE_DB_NAME = "InstalatorSecureDB";
+        const TEMP_DB_NAME = "InstalatorDB";
 
-            try {
-                console.time("Deszyfrowanie");
-                const dbSecure = await openDB("InstalatorSecureDB", 1);
-                const cryptoKey = await EncryptionTool.getDerivedKey(inputPin);
+        // 1. Otwórz Sejf
+        const dbSecure = await openDB(SECURE_DB_NAME, 1);
+        
+        // 2. Pobierz zaszyfrowane dane (sprawdzamy czy sejf nie jest pusty)
+        const encReports = await getAllFromStore(dbSecure, "raporty");
+        const encMagazyn = await getAllFromStore(dbSecure, "magazyn");
 
-                // 1. Pobierz zaszyfrowane paczki
-                const encReports = await getAllFromStore(dbSecure, "raporty");
-                const encMagazyn = await getAllFromStore(dbSecure, "magazyn");
+        // 3. Generowanie klucza z wpisanego PIN-u
+        const cryptoKey = await EncryptionTool.getDerivedKey(inputPin);
 
-                // 2. Deszyfrujemy RAPORTY
-                const reports = [];
-                for (const item of encReports) {
-                    const dec = await EncryptionTool.decrypt(item.payload, cryptoKey);
-                    if (dec) { dec.id = item.id; reports.push(dec); }
-                }
-
-                // 3. Deszyfrujemy MAGAZYN (nazwa i ilość wyjdą z payloadu)
-                const magazyn = [];
-                for (const item of encMagazyn) {
-                    const dec = await EncryptionTool.decrypt(item.payload, cryptoKey);
-                    if (dec) { dec.id = item.id; magazyn.push(dec); }
-                }
-
-                // 4. Kasujemy starą bazę roboczą
-                await new Promise(res => {
-                    const req = indexedDB.deleteDatabase("InstalatorDB");
-                    req.onsuccess = res; req.onerror = res;
-                });
-
-                // 5. Wkładamy odszyfrowane dane do bazy roboczej
-                const dbTemp = await openDB("InstalatorDB", 6);
-                const tx = dbTemp.transaction(["raporty", "magazyn"], "readwrite");
-
-                reports.forEach(r => tx.objectStore("raporty").put(r));
-                magazyn.forEach(m => tx.objectStore("magazyn").put(m));
-
-                tx.oncomplete = () => {
-                    console.timeEnd("Deszyfrowanie");
-                    sessionStorage.setItem('user_pin', inputPin);
-                    document.getElementById('loginModal').style.display = 'none';
-                    alert("Zalogowano. Dane są gotowe do pracy.");
-                };
-            } catch (err) {
-                console.error(err);
-                alert("Błędny PIN lub błąd bazy danych.");
-            }
+        // --- SCENARIUSZ A: Pierwsze logowanie (brak danych w sejfie) ---
+        if (encReports.length === 0 && encMagazyn.length === 0) {
+            sessionStorage.setItem('user_pin', inputPin);
+            alert("Ustalono nowy PIN. Zostanie on użyty do zaszyfrowania danych przy wylogowaniu.");
+            document.getElementById('loginModal').style.display = 'none';
+            return;
         }
+
+        // --- SCENARIUSZ B: Weryfikacja PIN-u (próba deszyfrowania) ---
+        // Próbujemy odszyfrować pierwszy element z brzegu (np. z raportów)
+        let testData = encReports.length > 0 ? encReports[0] : encMagazyn[0];
+        const isVerified = await EncryptionTool.decrypt(testData.payload, cryptoKey);
+
+        if (isVerified === null) {
+            alert("Błędny PIN! Nie można odblokować bazy.");
+            console.timeEnd("Proces_Logowania");
+            return;
+        }
+
+        // 4. Jeśli weryfikacja przeszła - deszyfrujemy wszystko
+        const reports = [];
+        for (const item of encReports) {
+            const dec = await EncryptionTool.decrypt(item.payload, cryptoKey);
+            if (dec) { dec.id = item.id; reports.push(dec); }
+        }
+
+        const magazyn = [];
+        for (const item of encMagazyn) {
+            const dec = await EncryptionTool.decrypt(item.payload, cryptoKey);
+            if (dec) { dec.id = item.id; magazyn.push(dec); }
+        }
+
+        // 5. Przeniesienie do bazy roboczej
+        await new Promise(res => {
+            const req = indexedDB.deleteDatabase(TEMP_DB_NAME);
+            req.onsuccess = res; req.onerror = res;
+        });
+
+        const dbTemp = await openDB(TEMP_DB_NAME, 6);
+        const tx = dbTemp.transaction(["raporty", "magazyn"], "readwrite");
+        reports.forEach(r => tx.objectStore("raporty").put(r));
+        magazyn.forEach(m => tx.objectStore("magazyn").put(m));
+
+        tx.oncomplete = () => {
+            sessionStorage.setItem('user_pin', inputPin);
+            document.getElementById('loginModal').style.display = 'none';
+            console.timeEnd("Proces_Logowania");
+            alert("Zalogowano pomyślnie.");
+        };
+
+    } catch (err) {
+        console.error("Błąd logowania:", err);
+        alert("Wystąpił błąd podczas odblokowywania bazy.");
+    }
+}
 
         async function lockAndExit() {
             const pin = sessionStorage.getItem('user_pin');

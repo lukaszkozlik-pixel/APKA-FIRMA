@@ -202,29 +202,33 @@
 
         let currentReportId = null;
         let tempPhotos = [];
-        let db;
-        // Korzystamy z APP_CONFIG z Twojego config.js
-        const request = indexedDB.open(APP_CONFIG.DB_NAME, APP_CONFIG.DB_VERSION);
+let db;
+// Wymuszamy wersję 6, aby była spójna z cennikiem i nowym logowaniem
+const request = indexedDB.open("InstalatorDB", 6);
 
-        request.onupgradeneeded = (e) => {
-            const database = e.target.result;
-            // Kompletny zestaw tabel
-            if (!database.objectStoreNames.contains("raporty")) {
-                database.createObjectStore("raporty", { keyPath: "id", autoIncrement: true });
-            }
-            if (!database.objectStoreNames.contains("magazyn")) {
-                database.createObjectStore("magazyn", { keyPath: "name" });
-            }
-            if (!database.objectStoreNames.contains("settings")) {
-                database.createObjectStore("settings", { keyPath: "key" });
-            }
-        };
+request.onupgradeneeded = (e) => {
+    const database = e.target.result;
+    
+    // Tabela raportów - klucz 'id' (musi być spójny z Sejfem)
+    if (!database.objectStoreNames.contains("raporty")) {
+        database.createObjectStore("raporty", { keyPath: "id", autoIncrement: true });
+    }
+    
+    // Tabela magazynu - ZMIANA: tutaj musi być 'id', nie 'name'!
+    if (!database.objectStoreNames.contains("magazyn")) {
+        database.createObjectStore("magazyn", { keyPath: "id", autoIncrement: true });
+    }
+    
+    if (!database.objectStoreNames.contains("settings")) {
+        database.createObjectStore("settings", { keyPath: "key" });
+    }
+};
 
-        request.onsuccess = (e) => {
-            db = e.target.result;
-            loadReports();
-            checkPending(); // Twoja funkcja sprawdzająca dane z cennika
-        };
+request.onsuccess = (e) => {
+    db = e.target.result;
+    loadReports();
+    checkPending(); 
+};
 
         function loadReports() {
             if (!db) return;
