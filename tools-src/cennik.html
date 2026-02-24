@@ -258,6 +258,11 @@
     </div>
 
     <script>
+        // Sprawdzenie sesji (zabezpieczenie)
+        if (!sessionStorage.getItem('user_pin')) {
+            window.location.replace('../index.html');
+        }   
+        
         let total = 0;
         let selectedItems = [];
         let pressTimer;

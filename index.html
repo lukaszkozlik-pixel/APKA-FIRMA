@@ -28,18 +28,14 @@
             const modal = document.getElementById('loginModal');
             const modalTitle = document.querySelector('#loginModal h2');
             const inputField = document.getElementById('pinInput');
-
             if (!pin) {
                 modal.style.display = 'flex';
-
                 try {
                     // Sprawdzamy stan Sejfu przy starcie
                     const SECURE_DB_NAME = "InstalatorSecureDB";
                     const dbSecure = await openDB(SECURE_DB_NAME, 1);
-
                     const encReports = await getAllFromStore(dbSecure, "raporty");
                     const encMagazyn = await getAllFromStore(dbSecure, "magazyn");
-
                     // Jeśli sejf jest pusty -> tryb tworzenia
                     if (encReports.length === 0 && encMagazyn.length === 0) {
                         if (modalTitle) {
@@ -59,6 +55,7 @@
                 }
             } else {
                 modal.style.display = 'none';
+                
             }
         }
 
@@ -69,6 +66,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <script src="crypto.js"></script>
     <script>
+        // Funkcja anulująca logowanie (ukrywa modal i czyści pole)
+        function abortUnlock() {
+            sessionStorage.setItem('login_cancelled', '1');
+          
+            const modal = document.getElementById('loginModal');
+            const inputField = document.getElementById('pinInput');
+            modal.style.display = 'none';
+            if (inputField) {
+                inputField.value = '';
+            }
+        
+            //pokazujemy przycisk logowania, bo użytkownik anulował logowanie i może chcieć spróbować ponownie
+            const logInBtn = document.getElementById("logInBtn");
+            if (logInBtn) {
+                logInBtn.style.display = 'flex';   
+            }
+        }
+
+
+        function loginAgain() {
+        sessionStorage.removeItem('login_cancelled');
+        initApp();
+        }   
+
+
+    
         // index.html - Nowa wersja logiki
         async function unlockApp() {
             const inputField = document.getElementById('pinInput');
@@ -149,8 +172,27 @@
                 magazyn.forEach(m => tx.objectStore("magazyn").put(m));
 
                 tx.oncomplete = () => {
+                    
                     sessionStorage.setItem('user_pin', inputPin);
                     document.getElementById('loginModal').style.display = 'none';
+
+                    //pokazujemy przyciski korzystające z bazy, bo użytkownik jest zalogowany
+                    const btnUsingDb = document.getElementsByClassName("btn-using-db");
+                    if (btnUsingDb.length > 0) {
+                        for (const btn of btnUsingDb) {
+                            btn.style.display = 'flex';
+                        }
+                    }
+                    //ukrywamy przycisk logowania, bo użytkownik jest zalogowany
+                    const logInBtn = document.getElementById("logInBtn");
+                    if (logInBtn) {
+                        logInBtn.style.display = 'none';
+                    }
+                    //pokazujemy przycisk wylogujacy, bo użytkownik jest zalogowany
+                    const lockBtn = document.getElementById("lockAndExitBtn");
+                    if (lockBtn) {
+                        lockBtn.style.display = 'flex';    
+                    }   
                 };
 
             } catch (err) {
@@ -250,7 +292,10 @@
                 style="width:100%; padding:15px; font-size:24px; text-align:center; border:2px solid #eee; border-radius:12px; margin-bottom:20px;">
             <button onclick="unlockApp()"
                 style="width:100%; padding:15px; background:#1a73e8; color:white; border:none; border-radius:12px; font-weight:bold; cursor:pointer;">ODBLOKUJ</button>
-        </div>
+            <button onclick="abortUnlock()"
+                style="width:100%; padding:15px; background:#e8581a; color:white; border:none; border-radius:12px; font-weight:bold; cursor:pointer;">ANULUJ</button>
+        
+            </div>
     </div>
     <!--skrypt LOGOWWNIA-->
 
@@ -301,7 +346,7 @@
                 <span class="icon">📖</span>
                 <span class="label">Instrukcje obsługi i dekoderów</span>
             </div>
-            <div class="tile" onclick="location.href='tools-src/cennik.html'">
+            <div class="tile btn-using-db" onclick="location.href='tools-src/cennik.html'" style="display: none;">
                 <span class="icon">💰</span>
                 <span class="label">Kalkulator usług i cennik</span>
             </div>
@@ -317,18 +362,22 @@
                 <span class="icon">📝</span>
                 <span class="label">Notatnik instalatora</span>
             </div>
-            <div class="tile" onclick="location.href='tools-src/raporty.html'">
+            <div class="tile btn-using-db" onclick="location.href='tools-src/raporty.html'" style="display: none;">
                 <span class="icon">📋</span>
                 <span class="label">Raporty z instalacji</span>
             </div>
-            <div class="tile" onclick="location.href='tools-src/magazyn.html'">
+            <div class="tile btn-using-db" onclick="location.href='tools-src/magazyn.html'" style="display: none;">
                 <span class="icon">📦</span>
                 <span class="label">Magazyn</span>
             </div>
 
-            <div class="tile" onclick="lockAndExit()">
+            <div class="tile" onclick="lockAndExit()" id="lockAndExitBtn" style="display: none;">
                 <span class="icon">🔒</span>
                 <span class="label">Wyloguj się</span>
+            </div>
+            <div class="tile" onclick="loginAgain()" id="logInBtn" style="display: none;">
+                <span class="icon">🔑</span>
+                <span class="label">Zaloguj się</span>
             </div>
         </main>
 
@@ -339,6 +388,7 @@
 </body>
 
 <script>
+      
     let backClickCounter = 0;
 
 
@@ -487,9 +537,37 @@
     }
 
     //Po załadaniu strony, inicjalizujemy zabezpieczenia, ustawiamy status sieci i wersję aplikacji
+
+    // Funkcja sprawdzająca czy użytkownik jest zalogowany
+    function checkLoggedIn() {
+        const pin = sessionStorage.getItem('user_pin');
+        const btnUsingDb = document.getElementsByClassName("btn-using-db");
+        const lockBtn = document.getElementById("lockAndExitBtn");
+        const logInBtn = document.getElementById("logInBtn");
+        if (pin) {
+            // Użytkownik zalogowany: pokaż przyciski korzystające z bazy i wyloguj, ukryj zaloguj
+            if (btnUsingDb.length > 0) {
+                for (const btn of btnUsingDb) {
+                    btn.style.display = 'flex';
+                }
+            }
+            if (lockBtn) lockBtn.style.display = 'flex';
+            if (logInBtn) logInBtn.style.display = 'none';
+        } else {
+            // Użytkownik niezalogowany: ukryj przyciski korzystające z bazy i wyloguj, pokaż zaloguj i modal
+            if (btnUsingDb.length > 0) {
+                for (const btn of btnUsingDb) {
+                    btn.style.display = 'none';
+                }
+            }
+            if (lockBtn) lockBtn.style.display = 'none';
+            if (logInBtn) logInBtn.style.display = 'flex';
+            
+        }
+    }
+
     window.addEventListener('load', async () => {
-        //await initSecurity();
-        initApp();
+        checkLoggedIn();
         onDeviceReady();
         setAppVersion();
         showIosInstallBanner();
