@@ -279,6 +279,7 @@
         </header>
 
         <main class="grid-container">
+    
 
             <div class="tile" onclick="location.href='tools-src/nadajniki.html'">
                 <span class="icon">🗼</span>
@@ -492,18 +493,6 @@
         onDeviceReady();
         setAppVersion();
         showIosInstallBanner();
-    });
-
-    // Ostrzeżenie przed zamknięciem karty, jeśli użytkownik jest zalogowany
-    window.addEventListener('beforeunload', (event) => {
-        const pin = sessionStorage.getItem('user_pin');
-        // Jeśli PIN jest w sesji, oznacza to, że baza robocza jest "odkryta"
-        if (pin) {
-            event.preventDefault();
-            // Większość nowoczesnych przeglądarek wyświetli własny tekst, 
-            // ale ustawienie returnValue jest wymagane do aktywacji okna.
-            event.returnValue = 'Uwaga! Masz aktywne dane. Użyj przycisku WYLOGUJ, aby je bezpiecznie zaszyfrować.';
-        }
     });
 
 

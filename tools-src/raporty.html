@@ -147,7 +147,10 @@
                 <h1>Baza Raportów</h1>
             </div>
             <div class="search-container">
-                <input type="text" id="searchInput" class="search-bar" placeholder="Szukaj adresu..." oninput="loadReports()">
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <input type="text" id="searchInput" class="search-bar" placeholder="Szukaj adresu..." oninput="loadReports()" style="flex:2;">
+                    <input type="date" id="searchDate" class="search-bar" placeholder="Data" oninput="loadReports()" style="flex:1; min-width:120px;">
+                </div>
             </div>
         </header>
 
@@ -233,12 +236,12 @@ request.onsuccess = (e) => {
         function loadReports() {
             if (!db) return;
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const searchDate = document.getElementById('searchDate').value;
             const transaction = db.transaction(["raporty"], "readonly");
             const store = transaction.objectStore("raporty");
             
             store.getAll().onsuccess = e => {
                 let reports = e.target.result;
-                
                 // Statystyki
                 const pendingCount = reports.filter(r => !r.isPdfGenerated).length;
                 document.getElementById('stat-total').innerText = reports.length;
@@ -247,10 +250,20 @@ request.onsuccess = (e) => {
                 if (searchTerm) {
                     reports = reports.filter(r => (r.address || '').toLowerCase().includes(searchTerm));
                 }
-                
+                if (searchDate) {
+                    // Filtrowanie po dacie (YYYY-MM-DD)
+                    reports = reports.filter(r => {
+                        if (!r.date) return false;
+                        const reportDate = new Date(r.date);
+                        const searchDateObj = new Date(searchDate);
+                        // Porównujemy tylko rok, miesiąc, dzień
+                        return reportDate.getFullYear() === searchDateObj.getFullYear() &&
+                            reportDate.getMonth() === searchDateObj.getMonth() &&
+                            reportDate.getDate() === searchDateObj.getDate();
+                    });
+                }
                 reports.sort((a, b) => new Date(b.date) - new Date(a.date));
                 const listContainer = document.getElementById('reportList');
-                
                 listContainer.innerHTML = reports.map(r => `
                     <div class="report-card" onclick="showPreview(${r.id})">
                         <div class="report-header">

@@ -97,6 +97,7 @@
                     <div class="usage-card">
                         <div style="font-weight:bold">${item.name}</div>
                         <div class="qty-badge">${item.quantity || 0}</div>
+                        <button onclick="deleteMagazynItem(${item.id})" style="background:#ea4335;color:white;border:none;padding:6px 12px;border-radius:8px;font-weight:bold;margin-left:10px;cursor:pointer;">Usuń</button>
                     </div>
                 `).join('');
             };
@@ -117,6 +118,11 @@
             };
         }
 
+        window.deleteMagazynItem = function(id) {
+            if (!confirm('Czy na pewno usunąć ten wpis?')) return;
+            const tx = db.transaction('magazyn', 'readwrite');
+            tx.objectStore('magazyn').delete(id).onsuccess = () => loadUsage();
+        };
         function formatAndCopy(data) {
             if (data.length === 0) {
                 alert("Magazyn jest pusty.");
