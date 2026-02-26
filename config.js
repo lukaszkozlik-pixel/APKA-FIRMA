@@ -6,7 +6,7 @@ const APP_CONFIG = {
     SECURE_DB_NAME: "InstalatorSecureDB",
     SECURE_DB_VERSION: 1, // Baza do przechowywania zaszyfrowanych danych
 
-    APP_VERSION: "2.4.2", // Zwiększ przy każdej aktualizacji aplikacji
+    APP_VERSION: "2.4.3", // Zwiększ przy każdej aktualizacji aplikacji
         
 };
 

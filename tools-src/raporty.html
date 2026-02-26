@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pl">
+
 <head>
     <link rel="stylesheet" href="../style.css">
     <meta charset="UTF-8">
@@ -9,7 +10,7 @@
     <script>
         if (!sessionStorage.getItem('user_pin')) {
             window.location.replace('../index.html');
-            }
+        }
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
@@ -21,16 +22,20 @@
             --success: #34a853;
             --danger: #ea4335;
             --tile-bg: #ffffff;
-            --tile-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            --tile-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
-        * { box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+        }
 
         body {
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background: var(--bg);
             color: var(--text);
-            margin: 0; padding: 0; line-height: 1.5;
+            margin: 0;
+            padding: 0;
+            line-height: 1.5;
         }
 
         header {
@@ -39,14 +44,36 @@
             position: sticky;
             top: 0;
             z-index: 100;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
-        .header-top { display: flex; align-items: center; padding: 10px 15px; }
-        .header-top h1 { margin: 0; font-size: 1.2rem; flex-grow: 1; text-align: center; margin-right: 40px; }
-        .btn-back { background: none; border: none; color: white; font-size: 1.8rem; cursor: pointer; padding: 5px; }
+        .header-top {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+        }
 
-        .search-container { padding: 0 15px 10px 15px; }
+        .header-top h1 {
+            margin: 0;
+            font-size: 1.2rem;
+            flex-grow: 1;
+            text-align: center;
+            margin-right: 40px;
+        }
+
+        .btn-back {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.8rem;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .search-container {
+            padding: 0 15px 10px 15px;
+        }
+
         .search-bar {
             width: 100%;
             padding: 10px 15px;
@@ -54,7 +81,7 @@
             border: none;
             font-size: 0.9rem;
             outline: none;
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
         }
 
         /* Styl Licznika */
@@ -72,13 +99,33 @@
         }
 
         .report-card {
-            background: var(--tile-bg); border-radius: 12px; padding: 15px; margin-bottom: 15px;
-            box-shadow: var(--tile-shadow); border-left: 5px solid var(--primary);
+            background: var(--tile-bg);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: var(--tile-shadow);
+            border-left: 5px solid var(--primary);
             cursor: pointer;
         }
-        .report-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-        .report-date { font-size: 0.85rem; color: #666; font-weight: 500; }
-        .report-address { font-weight: bold; font-size: 1.1rem; margin-bottom: 5px; }
+
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .report-date {
+            font-size: 0.85rem;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .report-address {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
 
         /* Badge Statusu */
         .status-badge {
@@ -90,54 +137,155 @@
             gap: 4px;
             font-weight: bold;
         }
-        .status-pending { background: #fee2e2; color: var(--danger); }
-        .status-done { background: #e8f5e9; color: var(--success); }
+
+        .status-pending {
+            background: #fee2e2;
+            color: var(--danger);
+        }
+
+        .status-done {
+            background: #e8f5e9;
+            color: var(--success);
+        }
 
         .fab {
-            position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px;
-            background-color: var(--primary); color: white; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 90;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            z-index: 90;
         }
 
-        #previewModal, #formModal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); z-index: 1000; backdrop-filter: blur(3px); overflow-y: auto;
+        #previewModal,
+        #formModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            backdrop-filter: blur(3px);
+            overflow-y: auto;
         }
-        #formModal { background: white; z-index: 2000; overflow-y: auto; padding: 20px; }
+
+        #formModal {
+            background: white;
+            z-index: 2000;
+            overflow-y: auto;
+            padding: 20px;
+        }
 
         .modal-content {
-            background: white; 
-            color: var(--text); 
-            margin: 20px auto; /* Zmienione z 5% na sztywne 20px, żeby był margines na dole */
-            width: 95%; 
-            min-height: 90%; /* Zmienione z height na min-height */
-            border-radius: 12px; 
-            padding: 20px; 
-            position: relative; /* Ważne dla układu */
-            display: block; /* Zmienione z flex, żeby treść mogła swobodnie "rosnąć" w dół */
+            background: white;
+            color: var(--text);
+            margin: 20px auto;
+            /* Zmienione z 5% na sztywne 20px, żeby był margines na dole */
+            width: 95%;
+            min-height: 90%;
+            /* Zmienione z height na min-height */
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+            /* Ważne dla układu */
+            display: block;
+            /* Zmienione z flex, żeby treść mogła swobodnie "rosnąć" w dół */
         }
-        .preview-body { flex-grow: 1; }
-        
-        .modal-actions {
-            margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;
-            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
-        }
-        .btn { padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-align: center; }
-        .btn-close { background: #f1f3f4; }
-        .btn-delete { background: #fee2e2; color: var(--danger); }
-        .btn-edit { background: #e8f0fe; color: var(--primary); }
-        .btn-screenshot { background: #4285f4; color: white; grid-column: span 2 }
-        .btn-pdf { background: #673ab7; color: white; grid-column: span 2; }
 
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
-        .form-control { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; }
-        
-        .preview-photo { width: 100%; border-radius: 8px; margin-top: 10px; display: block; }
-        .temp-thumb { width: 70px; height: 70px; object-fit: cover; border-radius: 8px; margin-right: 5px; }
+        .preview-body {
+            flex-grow: 1;
+        }
+
+        .modal-actions {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .btn-close {
+            background: #f1f3f4;
+        }
+
+        .btn-delete {
+            background: #fee2e2;
+            color: var(--danger);
+        }
+
+        .btn-edit {
+            background: #e8f0fe;
+            color: var(--primary);
+        }
+
+        .btn-screenshot {
+            background: #4285f4;
+            color: white;
+            grid-column: span 2
+        }
+
+        .btn-pdf {
+            background: #673ab7;
+            color: white;
+            grid-column: span 2;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .preview-photo {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: block;
+        }
+
+        .temp-thumb {
+            width: 70px;
+            height: 70px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-right: 5px;
+        }
     </style>
 </head>
+
 <body>
 
     <div class="app-interface">
@@ -148,8 +296,10 @@
             </div>
             <div class="search-container">
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    <input type="text" id="searchInput" class="search-bar" placeholder="Szukaj adresu..." oninput="loadReports()" style="flex:2;">
-                    <input type="date" id="searchDate" class="search-bar" placeholder="Data" oninput="loadReports()" style="flex:1; min-width:120px;">
+                    <input type="text" id="searchInput" class="search-bar" placeholder="Szukaj adresu..."
+                        oninput="loadReports()" style="flex:2;">
+                    <input type="date" id="searchDate" class="search-bar" placeholder="Data" oninput="loadReports()"
+                        style="flex:1; min-width:120px;">
                 </div>
             </div>
         </header>
@@ -160,7 +310,7 @@
         </div>
 
         <div class="container" id="reportList" style="padding: 0 15px 100px 15px;"></div>
-        
+
         <div class="fab" onclick="openForm()">+</div>
     </div>
 
@@ -194,44 +344,48 @@
         <div class="form-group">
             <label>Zdjęcia</label>
             <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="handlePhoto(this)">
-            <button class="btn" onclick="document.getElementById('photoInput').click()" style="width:100%; border:2px dashed var(--primary); background:none; color:var(--primary);">📷 DODAJ ZDJĘCIE</button>
+            <button class="btn" onclick="document.getElementById('photoInput').click()"
+                style="width:100%; border:2px dashed var(--primary); background:none; color:var(--primary);">📷 DODAJ
+                ZDJĘCIE</button>
             <div id="temp-photos" style="margin-top:10px;"></div>
         </div>
-        <button class="btn" style="background:var(--primary); color:white; width:100%; padding:15px;" onclick="saveReport()">ZAPISZ RAPORT</button>
-        <button class="btn-close" style="width:100%; border:none; padding:15px; margin-top:10px;" onclick="closeForm()">ANULUJ</button>
+        <button class="btn" style="background:var(--primary); color:white; width:100%; padding:15px;"
+            onclick="saveReport()">ZAPISZ RAPORT</button>
+        <button class="btn-close" style="width:100%; border:none; padding:15px; margin-top:10px;"
+            onclick="closeForm()">ANULUJ</button>
     </div>
 
     <script>
 
         let currentReportId = null;
         let tempPhotos = [];
-let db;
-// Wymuszamy wersję 6, aby była spójna z cennikiem i nowym logowaniem
-const request = indexedDB.open("InstalatorDB", 6);
+        let db;
+        // Wymuszamy wersję 6, aby była spójna z cennikiem i nowym logowaniem
+        const request = indexedDB.open("InstalatorDB", 6);
 
-request.onupgradeneeded = (e) => {
-    const database = e.target.result;
-    
-    // Tabela raportów - klucz 'id' (musi być spójny z Sejfem)
-    if (!database.objectStoreNames.contains("raporty")) {
-        database.createObjectStore("raporty", { keyPath: "id", autoIncrement: true });
-    }
-    
-    // Tabela magazynu - ZMIANA: tutaj musi być 'id', nie 'name'!
-    if (!database.objectStoreNames.contains("magazyn")) {
-        database.createObjectStore("magazyn", { keyPath: "id", autoIncrement: true });
-    }
-    
-    if (!database.objectStoreNames.contains("settings")) {
-        database.createObjectStore("settings", { keyPath: "key" });
-    }
-};
+        request.onupgradeneeded = (e) => {
+            const database = e.target.result;
 
-request.onsuccess = (e) => {
-    db = e.target.result;
-    loadReports();
-    checkPending(); 
-};
+            // Tabela raportów - klucz 'id' (musi być spójny z Sejfem)
+            if (!database.objectStoreNames.contains("raporty")) {
+                database.createObjectStore("raporty", { keyPath: "id", autoIncrement: true });
+            }
+
+            // Tabela magazynu - ZMIANA: tutaj musi być 'id', nie 'name'!
+            if (!database.objectStoreNames.contains("magazyn")) {
+                database.createObjectStore("magazyn", { keyPath: "id", autoIncrement: true });
+            }
+
+            if (!database.objectStoreNames.contains("settings")) {
+                database.createObjectStore("settings", { keyPath: "key" });
+            }
+        };
+
+        request.onsuccess = (e) => {
+            db = e.target.result;
+            loadReports();
+            checkPending();
+        };
 
         function loadReports() {
             if (!db) return;
@@ -239,7 +393,7 @@ request.onsuccess = (e) => {
             const searchDate = document.getElementById('searchDate').value;
             const transaction = db.transaction(["raporty"], "readonly");
             const store = transaction.objectStore("raporty");
-            
+
             store.getAll().onsuccess = e => {
                 let reports = e.target.result;
                 // Statystyki
@@ -301,7 +455,7 @@ request.onsuccess = (e) => {
                     <p><b>Adres:</b> ${r.address || '-'}</p>
                     <div style="white-space:pre-wrap; background:#f5f5f5; padding:15px; border-radius:8px;">${r.text}</div>
                 `;
-                if(r.images) r.images.forEach(img => html += `<img src="${img}" class="preview-photo">`);
+                if (r.images) r.images.forEach(img => html += `<img src="${img}" class="preview-photo">`);
                 document.getElementById('previewContent').innerHTML = html;
                 document.getElementById('previewModal').style.display = 'block';
             };
@@ -311,61 +465,84 @@ request.onsuccess = (e) => {
             const modal = document.querySelector('#previewModal');
             const content = document.querySelector('.modal-content');
             const actions = document.querySelector('.modal-actions');
-            
+            const appInterface = document.querySelector('.app-interface');
+
             if (enable) {
-                // Tryb do zdjęcia
-                actions.style.display = 'none';
+                // 1. Ukrywamy interfejs apki
+                appInterface.style.display = 'none';
+
+                // 2. Przekształcamy modal w pełnowymiarową stronę
+                modal.style.position = 'relative';
+                modal.style.display = 'block';
                 modal.style.background = 'white';
+                modal.style.zIndex = '1';
+
+                // 3. Resetujemy kontenery, by nie ograniczały wysokości
                 content.style.margin = '0';
-                content.style.paddingBottom = '80px';
                 content.style.width = '100%';
                 content.style.boxShadow = 'none';
-                
+                content.style.padding = '20px';
+                content.style.minHeight = 'auto'; // Pozwalamy mu się kurczyć/rozciągać naturalnie
+
+                actions.style.display = 'none'; // Ukrywamy standardowe przyciski akcji
+
+                // 4. Przycisk powrotu DODAWANY NA KOŃCU TREŚCI
                 const exitBtn = document.createElement('button');
                 exitBtn.id = "exit-screen-mode";
-                exitBtn.innerText = "✕ ZAKOŃCZ TRYB SCREENA";
-                exitBtn.style = "position:fixed; bottom:10px; right:10px; z-index:9999; padding:12px; background:rgba(234, 67, 53, 0.8); color:white; border:none; border-radius:50px; font-weight:bold;";
+                exitBtn.innerText = "✕ ZAKOŃCZ TRYB SCREENA (POWRÓT)";
+                // Stylizacja przycisku jako elementu blokowego na dole
+                exitBtn.style = "display: block; width: 100%; margin-top: 30px; padding: 20px; background: #f1f3f4; color: #5f6368; border: 2px dashed #ccc; border-radius: 8px; font-weight: bold; font-size: 1rem;";
                 exitBtn.onclick = () => toggleScreenshotMode(false);
-                document.body.appendChild(exitBtn);
-                
-                window.scrollTo(0, 0); // Przewiń na górę przed robieniem screena
+
+                // Dodajemy go do modal-content, czyli pod zdjęcia/tekst
+                content.appendChild(exitBtn);
+
+                window.scrollTo(0, 0);
             } else {
-                // Powrót do apki
-                actions.style.display = 'grid';
-                modal.style.background = 'rgba(0,0,0,0.8)';
+                // Powrót do normalnego stanu aplikacji
+                appInterface.style.display = 'block';
+
+                modal.style.position = 'fixed';
+                modal.style.zIndex = '1000';
+                modal.style.background = 'rgba(0,0,0,0.6)';
+
                 content.style.margin = '20px auto';
                 content.style.width = '95%';
                 content.style.boxShadow = '';
+
+                actions.style.display = 'grid'; // Przywracamy przyciski akcji
+
                 const btn = document.getElementById('exit-screen-mode');
                 if (btn) btn.remove();
+
+                loadReports(); // Odświeżamy listę
             }
         }
-
         async function shareAsPDF() {
             if (!currentReportId) return;
-            
+
             try {
                 const { jsPDF } = window.jspdf;
                 // Ustawiamy doc na format UTF-8
-                const doc = new jsPDF({ 
-                    orientation: "p", 
-                    unit: "mm", 
+                const doc = new jsPDF({
+                    orientation: "p",
+                    unit: "mm",
                     format: "a4",
-                    putOnlyUsedFonts: true 
+                    putOnlyUsedFonts: true
                 });
 
                 const transaction = db.transaction(["raporty"], "readonly");
                 const store = transaction.objectStore("raporty");
-                
+
                 store.get(currentReportId).onsuccess = async (e) => {
                     const r = e.target.result;
-                    
+
                     // Nagłówek
                     doc.setFont("helvetica", "bold");
                     doc.setFontSize(18);
                     doc.setTextColor(26, 115, 232);
                     doc.text("RAPORT INSTALACYJNY", 20, 20);
-                    
+
                     // Linia dekoracyjna
                     doc.setDrawColor(26, 115, 232);
                     doc.line(20, 22, 190, 22);
@@ -374,19 +551,19 @@ request.onsuccess = (e) => {
                     doc.setFont("helvetica", "normal");
                     doc.setFontSize(11);
                     doc.setTextColor(0, 0, 0);
-                    
+
                     doc.text(`Data: ${new Date(r.date).toLocaleString('pl-PL')}`, 20, 35);
-                    
+
                     // Funkcja czyszcząca tekst z polskich znaków jeśli czcionka ich nie wspiera
                     // (Zabezpieczenie przed "krzakami" w PDF)
                     const plFix = (text) => {
-                        if(!text) return "-";
+                        if (!text) return "-";
                         return text.replace(/ą/g, 'a').replace(/ć/g, 'c').replace(/ę/g, 'e')
-                                .replace(/ł/g, 'l').replace(/ń/g, 'n').replace(/ó/g, 'o')
-                                .replace(/ś/g, 's').replace(/ź/g, 'z').replace(/ż/g, 'z')
-                                .replace(/Ą/g, 'A').replace(/Ć/g, 'C').replace(/Ę/g, 'E')
-                                .replace(/Ł/g, 'L').replace(/Ń/g, 'N').replace(/Ó/g, 'O')
-                                .replace(/Ś/g, 'S').replace(/Ź/g, 'Z').replace(/Ż/g, 'Z');
+                            .replace(/ł/g, 'l').replace(/ń/g, 'n').replace(/ó/g, 'o')
+                            .replace(/ś/g, 's').replace(/ź/g, 'z').replace(/ż/g, 'z')
+                            .replace(/Ą/g, 'A').replace(/Ć/g, 'C').replace(/Ę/g, 'E')
+                            .replace(/Ł/g, 'L').replace(/Ń/g, 'N').replace(/Ó/g, 'O')
+                            .replace(/Ś/g, 'S').replace(/Ź/g, 'Z').replace(/Ż/g, 'Z');
                     };
 
                     const cleanAddress = plFix(r.address);
@@ -413,18 +590,18 @@ request.onsuccess = (e) => {
                     // Finalizacja i status
                     const pdfBlob = doc.output('blob');
 
-                    const dynamicFileName = formatFileName(r.address, r.date);   
+                    const dynamicFileName = formatFileName(r.address, r.date);
                     const file = new File([pdfBlob], dynamicFileName, { type: "application/pdf" });
 
 
                     if (navigator.canShare && navigator.canShare({ files: [file] })) {
                         try {
-                            await navigator.share({ 
-                                files: [file], 
+                            await navigator.share({
+                                files: [file],
                                 title: 'Raport Instalacyjny: ' + (r.address || ''),
                                 text: 'Przesyłam raport instalacyjny z dnia ' + new Date(r.date).toLocaleDateString()
                             });
-                            
+
                             // Oznacz jako wygenerowany tylko jeśli share się powiódł
                             r.isPdfGenerated = true;
                             const updateTx = db.transaction(["raporty"], "readwrite");
@@ -436,14 +613,14 @@ request.onsuccess = (e) => {
                         } catch (err) {
                             console.log("Udostępnianie przerwane lub błąd:", err);
                         }
-                        } else {
-                            doc.save(dynamicFileName);
-                        }
-                    };
-                } catch (err) {
-                    alert("Błąd PDF: " + err.message);
-                }
+                    } else {
+                        doc.save(dynamicFileName);
+                    }
+                };
+            } catch (err) {
+                alert("Błąd PDF: " + err.message);
             }
+        }
 
         function formatFileName(address, date) {
             const clean = (text) => {
@@ -455,17 +632,17 @@ request.onsuccess = (e) => {
                     .replace(/[^a-z0-9]/g, '_') // zamień wszystko inne na podkreślnik
                     .replace(/_+/g, '_'); // usuń podwójne podkreślniki
             };
-            
+
             const d = new Date(date);
-            const dateStr = d.getFullYear() + "-" + (d.getMonth()+1).toString().padStart(2, '0') + "-" + d.getDate().toString().padStart(2, '0');
-            
+            const dateStr = d.getFullYear() + "-" + (d.getMonth() + 1).toString().padStart(2, '0') + "-" + d.getDate().toString().padStart(2, '0');
+
             return `RP_${clean(address)}_${dateStr}.pdf`;
         }
 
         function saveReport() {
             const tx = db.transaction(["raporty"], "readwrite");
             const store = tx.objectStore("raporty");
-            
+
             const reportData = {
                 date: document.getElementById('reportDate').value,
                 address: document.getElementById('reportAddress').value,
@@ -507,8 +684,8 @@ request.onsuccess = (e) => {
         function openForm(editId = null) {
             currentReportId = editId;
             document.getElementById('formModal').style.display = 'block';
-            document.getElementById('reportDate').value = new Date().toISOString().slice(0,16);
-            if(!editId) {
+            document.getElementById('reportDate').value = new Date().toISOString().slice(0, 16);
+            if (!editId) {
                 document.getElementById('reportAddress').value = "";
                 document.getElementById('reportText').value = "";
                 tempPhotos = [];
@@ -517,7 +694,7 @@ request.onsuccess = (e) => {
         }
 
         function removeReport(id) {
-            if(confirm("Usunąć?")) {
+            if (confirm("Usunąć?")) {
                 db.transaction(["raporty"], "readwrite").objectStore("raporty").delete(id).onsuccess = () => {
                     closePreview();
                     loadReports();
@@ -527,15 +704,15 @@ request.onsuccess = (e) => {
 
         function closeForm() { document.getElementById('formModal').style.display = 'none'; }
         function closePreview() { document.getElementById('previewModal').style.display = 'none'; }
-    
+
         function checkPending() {
             // Sprawdzamy klucz, którego używa Twój cennik
             const t = localStorage.getItem('pending_report_text');
-            
+
             if (t) {
                 // 1. Otwieramy formularz (tryb nowego raportu)
-                openForm(); 
-                
+                openForm();
+
                 // 2. Wklejamy wygenerowany tekst do pola opisu
                 const textArea = document.getElementById('reportText');
                 if (textArea) {
@@ -545,11 +722,12 @@ request.onsuccess = (e) => {
                 // 3. WAŻNE: Czyścimy localStorage, żeby formularz nie wyskakiwał 
                 // przy każdym odświeżeniu strony
                 localStorage.removeItem('pending_report_text');
-                
+
                 console.log("Automatycznie zaimportowano dane z cennika.");
             }
         }
-    
+
     </script>
 </body>
+
 </html>
