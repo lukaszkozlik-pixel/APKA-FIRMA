@@ -523,12 +523,10 @@
 
             try {
                 const { jsPDF } = window.jspdf;
-                // Ustawiamy doc na format UTF-8
                 const doc = new jsPDF({
                     orientation: "p",
                     unit: "mm",
-                    format: "a4",
-                    putOnlyUsedFonts: true
+                    format: "a4"
                 });
 
                 const transaction = db.transaction(["raporty"], "readonly");
@@ -537,25 +535,22 @@
                 store.get(currentReportId).onsuccess = async (e) => {
                     const r = e.target.result;
 
-                    // Nagłówek
+                    // Nagłówek i Stylizacja
                     doc.setFont("helvetica", "bold");
                     doc.setFontSize(18);
                     doc.setTextColor(26, 115, 232);
                     doc.text("RAPORT INSTALACYJNY", 20, 20);
 
-                    // Linia dekoracyjna
                     doc.setDrawColor(26, 115, 232);
                     doc.line(20, 22, 190, 22);
 
-                    // Dane raportu
+                    // Dane tekstowe
                     doc.setFont("helvetica", "normal");
                     doc.setFontSize(11);
                     doc.setTextColor(0, 0, 0);
 
                     doc.text(`Data: ${new Date(r.date).toLocaleString('pl-PL')}`, 20, 35);
 
-                    // Funkcja czyszcząca tekst z polskich znaków jeśli czcionka ich nie wspiera
-                    // (Zabezpieczenie przed "krzakami" w PDF)
                     const plFix = (text) => {
                         if (!text) return "-";
                         return text.replace(/ą/g, 'a').replace(/ć/g, 'c').replace(/ę/g, 'e')
@@ -566,62 +561,57 @@
                             .replace(/Ś/g, 'S').replace(/Ź/g, 'Z').replace(/Ż/g, 'Z');
                     };
 
-                    const cleanAddress = plFix(r.address);
-                    const cleanText = plFix(r.text);
+                    doc.text(`Adres: ${plFix(r.address)}`, 20, 43);
 
-                    doc.text(`Adres: ${cleanAddress}`, 20, 43);
-
-                    // Treść raportu z zawijaniem
-                    const splitText = doc.splitTextToSize(cleanText, 170);
+                    const splitText = doc.splitTextToSize(plFix(r.text), 170);
                     doc.text(splitText, 20, 55);
 
-                    // Dodawanie zdjęć (jeśli są)
+                    // --- POPRAWKA ZDJĘĆ ---
                     if (r.images && r.images.length > 0) {
                         let yPos = 60 + (splitText.length * 7);
+                        const pageWidth = 170; // Szerokość zdjęcia na stronie
+
                         for (const imgData of r.images) {
-                            if (yPos > 220) { doc.addPage(); yPos = 20; }
+                            // Sprawdzenie miejsca na stronie
+                            if (yPos > 220) {
+                                doc.addPage();
+                                yPos = 20;
+                            }
+
                             try {
-                                doc.addImage(imgData, 'JPEG', 20, yPos, 170, 127);
+                                // Używamy formatu JPEG (zgodnie z nowym handlePhoto)
+                                // 'FAST' zapewnia stabilność przy dużych plikach
+                                doc.addImage(imgData, 'JPEG', 20, yPos, pageWidth, 127, undefined, 'FAST');
                                 yPos += 135;
-                            } catch (err) { console.error("Błąd obrazu", err); }
+                            } catch (err) {
+                                console.error("Błąd zdjęcia w PDF:", err);
+                            }
                         }
                     }
 
-                    // Finalizacja i status
-                    const pdfBlob = doc.output('blob');
-
+                    // Finalizacja
                     const dynamicFileName = formatFileName(r.address, r.date);
+                    const pdfBlob = doc.output('blob');
                     const file = new File([pdfBlob], dynamicFileName, { type: "application/pdf" });
-
 
                     if (navigator.canShare && navigator.canShare({ files: [file] })) {
                         try {
                             await navigator.share({
                                 files: [file],
-                                title: 'Raport Instalacyjny: ' + (r.address || ''),
-                                text: 'Przesyłam raport instalacyjny z dnia ' + new Date(r.date).toLocaleDateString()
+                                title: 'Raport: ' + (r.address || ''),
+                                text: 'Raport instalacyjny - ' + new Date(r.date).toLocaleDateString()
                             });
-
-                            // Oznacz jako wygenerowany tylko jeśli share się powiódł
                             r.isPdfGenerated = true;
                             const updateTx = db.transaction(["raporty"], "readwrite");
                             updateTx.objectStore("raporty").put(r);
-                            updateTx.oncomplete = () => {
-                                loadReports();
-                                closePreview();
-                            };
-                        } catch (err) {
-                            console.log("Udostępnianie przerwane lub błąd:", err);
-                        }
+                            updateTx.oncomplete = () => { loadReports(); closePreview(); };
+                        } catch (err) { console.log("Share cancelled"); }
                     } else {
                         doc.save(dynamicFileName);
                     }
                 };
-            } catch (err) {
-                alert("Błąd PDF: " + err.message);
-            }
+            } catch (err) { alert("Błąd PDF: " + err.message); }
         }
-
         function formatFileName(address, date) {
             const clean = (text) => {
                 if (!text) return 'brak';
@@ -669,10 +659,40 @@
         }
 
         function handlePhoto(input) {
+            if (!input.files || !input.files[0]) return;
+
             const reader = new FileReader();
             reader.onload = e => {
-                tempPhotos.push(e.target.result);
-                renderTempPhotos();
+                const img = new Image();
+                img.onload = function () {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 1280; // Standardowa szerokość dla wyraźnych zdjęć
+                    let width = img.width;
+                    let height = img.height;
+
+                    // Zachowanie proporcji zdjęcia
+                    if (width > MAX_WIDTH) {
+                        height *= MAX_WIDTH / width;
+                        width = MAX_WIDTH;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+
+                    // Rysowanie zdjęcia na "płótnie" (wygładzanie)
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Konwersja na JPEG z kompresją 0.7 (70% jakości)
+                    // To rozwiązuje problem pionowych pasów w PDF
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+
+                    tempPhotos.push(compressedBase64);
+                    renderTempPhotos();
+                };
+                img.src = e.target.result;
             };
             reader.readAsDataURL(input.files[0]);
         }
